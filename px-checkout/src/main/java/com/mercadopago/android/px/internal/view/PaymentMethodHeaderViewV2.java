@@ -36,6 +36,7 @@ public class PaymentMethodHeaderViewV2 extends PaymentMethodHeaderView {
         this.isDisabled = isDisabled;
         setHelperVisibility(isDisabled);
         changeInstallmentsState(hasPayerCost);
+        configureTitleVisibility(isDisabled, hasPayerCost);
     }
 
     @Override
@@ -88,4 +89,12 @@ public class PaymentMethodHeaderViewV2 extends PaymentMethodHeaderView {
         titlePager.setVisibility(View.GONE);
         listener.onInstallmentViewUpdated();
     }
+
+    private void configureTitleVisibility(final boolean isDisabled, final boolean hasPayerCost) {
+        if (this.paymentType.equals("debit_card"))
+            changeVisibilityTitle(isDisabled || hasPayerCost);
+        else
+            changeVisibilityTitle(!hasPayerCost);
+    }
+
 }

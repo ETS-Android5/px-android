@@ -2,6 +2,7 @@ package com.mercadopago.android.px.internal.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import androidx.annotation.NonNull;
@@ -16,6 +17,8 @@ public abstract class PaymentMethodHeaderView extends FrameLayout {
     /* default */ final ImageView helper;
     protected final TitlePager titlePager;
     protected boolean isDisabled;
+    protected String paymentType;
+    protected boolean splitSelection;
 
     protected PaymentMethodHeaderView(@NonNull final Context context, @Nullable final AttributeSet attrs,
         final int defStyleAttr) {
@@ -65,4 +68,14 @@ public abstract class PaymentMethodHeaderView extends FrameLayout {
             this.nextIsExpandable = nextIsExpandable;
         }
     }
+
+    public void setPaymentTypeAndSplitSelection(String paymentType, final boolean isSelected) {
+        this.paymentType = paymentType;
+        this.splitSelection = isSelected;
+    }
+
+    protected void changeVisibilityTitle(boolean isVisible) {
+        titlePager.setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
+    }
+
 }

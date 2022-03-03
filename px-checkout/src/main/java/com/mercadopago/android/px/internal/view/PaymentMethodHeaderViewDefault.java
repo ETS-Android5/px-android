@@ -128,8 +128,10 @@ public class PaymentMethodHeaderViewDefault extends PaymentMethodHeaderView {
         if (titleView.getVisibility() == VISIBLE) {
             arrow.startAnimation(rotateDown);
         }
-
-        titlePager.setVisibility(VISIBLE);
+        if (this.paymentType.equals("debit_card"))
+            changeVisibilityTitle(isDisabled || splitSelection);
+        else
+            changeVisibilityTitle(true);
         titleView.setVisibility(GONE);
 
         setClickable(isClickable);
