@@ -146,11 +146,15 @@ internal class PayButtonViewModel(
         }
         handler.enqueueOnExploding(object : PayButton.OnEnqueueResolvedCallback {
             override fun success() {
-                state.paymentConfiguration?.let { configuration ->
-                    paymentService.startExpressPayment(configuration)
-                    paymentService.observableEvents?.let { observeService(it) }
-                    handler.onPaymentExecuted(configuration)
-                } ?: error("No payment configuration provided")
+                runCatching {
+                    state.paymentConfiguration?.let { configuration ->
+                        paymentService.startExpressPayment(configuration)
+                        paymentService.observableEvents?.let { observeService(it) }
+                        handler.onPaymentExecuted(configuration)
+                    } ?: error("No payment configuration provided")
+                }.onFailure {
+                    stateUILiveData.value = UIError.NotRecoverableError(it)
+                }
             }
 
             override fun failure() {

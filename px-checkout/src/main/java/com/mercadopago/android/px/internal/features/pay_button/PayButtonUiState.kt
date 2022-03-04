@@ -30,4 +30,5 @@ internal open class UIError : PayButtonUiState() {
         val actionMessage = if (retriesCount > maxRetries) R.string.px_snackbar_error_action else null
     }
     object BusinessError : UIError()
+    class NotRecoverableError(val error: Throwable) : UIError()
 }
