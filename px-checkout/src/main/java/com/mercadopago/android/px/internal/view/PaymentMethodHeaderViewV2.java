@@ -9,6 +9,8 @@ import com.mercadopago.android.px.R;
 import com.mercadopago.android.px.internal.experiments.BadgeVariant;
 import com.mercadopago.android.px.internal.experiments.Variant;
 import com.mercadopago.android.px.internal.experiments.VariantHandler;
+import com.mercadopago.android.px.model.PaymentTypes;
+
 import java.util.List;
 
 public class PaymentMethodHeaderViewV2 extends PaymentMethodHeaderView {
@@ -91,10 +93,10 @@ public class PaymentMethodHeaderViewV2 extends PaymentMethodHeaderView {
     }
 
     private void configureTitleVisibility(final boolean isDisabled, final boolean hasPayerCost) {
-        if (this.paymentType.equals("debit_card"))
-            changeVisibilityTitle(isDisabled || hasPayerCost);
+        if (paymentType.equals(PaymentTypes.DEBIT_CARD))
+            setTitleVisibility(isDisabled || hasPayerCost);
         else
-            changeVisibilityTitle(!hasPayerCost);
+            setTitleVisibility(!hasPayerCost);
     }
 
 }

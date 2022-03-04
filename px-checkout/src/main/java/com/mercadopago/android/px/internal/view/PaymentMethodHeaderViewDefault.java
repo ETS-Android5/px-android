@@ -16,6 +16,8 @@ import com.mercadopago.android.px.internal.experiments.Variant;
 import com.mercadopago.android.px.internal.experiments.VariantHandler;
 import com.mercadopago.android.px.internal.view.experiments.ExperimentHelper;
 import com.mercadopago.android.px.internal.viewmodel.GoingToModel;
+import com.mercadopago.android.px.model.PaymentTypes;
+
 import java.util.List;
 
 import static com.mercadopago.android.px.internal.util.ViewUtils.hasEndedAnim;
@@ -128,10 +130,10 @@ public class PaymentMethodHeaderViewDefault extends PaymentMethodHeaderView {
         if (titleView.getVisibility() == VISIBLE) {
             arrow.startAnimation(rotateDown);
         }
-        if (this.paymentType.equals("debit_card"))
-            changeVisibilityTitle(isDisabled || splitSelection);
+        if (paymentType.equals(PaymentTypes.DEBIT_CARD))
+            setTitleVisibility(isDisabled || splitSelection);
         else
-            changeVisibilityTitle(true);
+            setTitleVisibility(true);
         titleView.setVisibility(GONE);
 
         setClickable(isClickable);

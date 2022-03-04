@@ -69,12 +69,12 @@ public abstract class PaymentMethodHeaderView extends FrameLayout {
         }
     }
 
-    public void setPaymentTypeAndSplitSelection(String paymentType, final boolean isSelected) {
+    public void setPaymentTypeAndSplitSelection(final String paymentType, final boolean isSelected) {
         this.paymentType = paymentType;
         this.splitSelection = isSelected;
     }
 
-    protected void changeVisibilityTitle(boolean isVisible) {
+    protected void setTitleVisibility(boolean isVisible) {
         titlePager.setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
     }
 
