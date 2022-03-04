@@ -17,6 +17,7 @@ import com.mercadopago.android.px.internal.view.SummaryView
 import com.mercadopago.android.px.internal.viewmodel.SummaryModel
 import com.mercadopago.android.px.model.AmountConfiguration
 import com.mercadopago.android.px.model.DiscountConfigurationModel
+import com.mercadopago.android.px.model.PayerCost
 import com.mercadopago.android.px.model.commission.PaymentTypeChargeRule
 import com.mercadopago.android.px.model.internal.OneTapItem
 
@@ -85,6 +86,22 @@ internal class SummaryViewModelMapper(
             customTextsRepository, amountRepository.getAmountToPay(paymentTypeId, discountModel)
         )
         return SummaryView.Model(elementDescriptorViewModel, summaryDetailList, totalRow)
+    }
+
+    fun updateTotalValue(
+        customOptionId: String,
+        paymentMethodTypeId: String,
+        paymentCost: PayerCost
+    ): SummaryView.Model {
+        val totalUpdated = amountDescriptorViewModelFactory.create(
+            customTextsRepository, paymentCost.totalAmount)
+        val chargeRule = chargeRepository.getChargeRule(paymentMethodTypeId)
+        val discountModel = getDiscountConfiguration(customOptionId,paymentMethodTypeId)
+        val amountConfiguration = getAmountConfiguration(customOptionId, paymentMethodTypeId)
+        val summaryDetailList = summaryDetailDescriptorMapper.map(
+            SummaryDetailDescriptorMapper.Model(discountModel, chargeRule, amountConfiguration, onClickListener)
+        )
+        return SummaryView.Model(elementDescriptorViewModel,summaryDetailList, totalUpdated)
     }
 
     private fun getDiscountConfiguration(

@@ -199,6 +199,10 @@ public class SummaryView extends LinearLayout {
         detailRecyclerView.startAnimation(listAppearAnimation);
     }
 
+    public void updateTotal(@NonNull final Model model){
+        totalAmountDescriptor.update(model.total);
+    }
+
     @Override
     protected void onLayout(final boolean changed, final int l, final int t, final int r, final int b) {
         super.onLayout(changed, l, t, r, b);
