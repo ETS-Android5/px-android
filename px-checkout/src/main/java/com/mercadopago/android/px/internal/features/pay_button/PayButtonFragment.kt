@@ -230,6 +230,8 @@ internal class PayButtonFragment : BaseFragment(), PayButton.View, SecurityValid
     private fun resolveError(uiError: UIError) {
         when (uiError) {
             is UIError.ConnectionError -> resolveConnectionError(uiError)
+            is UIError.NotRecoverableError ->
+                ErrorUtil.startErrorActivity(this, MercadoPagoError.createNotRecoverable(uiError.error.message.orEmpty()))
             else -> {
                 val action = AndesSnackbarAction(
                     getString(R.string.px_snackbar_error_action), View.OnClickListener {
