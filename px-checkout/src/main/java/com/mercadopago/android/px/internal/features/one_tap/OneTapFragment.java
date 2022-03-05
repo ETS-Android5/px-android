@@ -611,6 +611,12 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
     }
 
     @Override
+    public void updateTotalValue(@NonNull final SummaryView.Model model) {
+        summaryView.updateTotal(model);
+
+    }
+
+    @Override
     public void onPageScrolled(final int position, final float positionOffset, final int positionOffsetPixels) {
         hubAdapter.updatePosition(positionOffset, position);
     }

@@ -21,6 +21,7 @@ import com.mercadopago.android.px.internal.features.pay_button.PayButton.OnReady
 import com.mercadopago.android.px.internal.features.generic_modal.ActionType
 import com.mercadopago.android.px.internal.viewmodel.PostPaymentAction
 import com.mercadopago.android.px.internal.features.pay_button.PayButton.ViewTrackPathCallback
+import com.mercadopago.android.px.internal.view.SummaryView
 import com.mercadopago.android.px.model.Currency
 import com.mercadopago.android.px.model.Site
 import com.mercadopago.android.px.model.internal.Application
@@ -41,6 +42,7 @@ internal interface OneTap {
             splitSelectionState: SplitSelectionState,
             application: Application
         )
+        fun updateTotalValue(model: SummaryView.Model)
         fun updateInstallmentsList(selectedIndex: Int, models: List<InstallmentRowHolder.Model?>)
         fun animateInstallmentsList()
         fun showToolbarElementDescriptor(elementDescriptorModel: ElementDescriptorView.Model)

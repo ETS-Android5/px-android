@@ -21,10 +21,8 @@ import com.mercadopago.android.px.internal.features.AmountDescriptorViewModelFac
 import com.mercadopago.android.px.internal.features.generic_modal.ActionType
 import com.mercadopago.android.px.internal.features.generic_modal.ActionTypeWrapper
 import com.mercadopago.android.px.internal.features.generic_modal.FromModalToGenericDialogItem
-import com.mercadopago.android.px.internal.features.generic_modal.ViewModel
 import com.mercadopago.android.px.internal.features.one_tap.offline_methods.OfflineMethods.Companion.shouldLaunch
 import com.mercadopago.android.px.internal.features.one_tap.slider.HubAdapter
-import com.mercadopago.android.px.internal.features.one_tap.slider.SummaryViewAdapter
 import com.mercadopago.android.px.internal.features.pay_button.PayButton
 import com.mercadopago.android.px.internal.features.pay_button.PayButton.OnReadyForPaymentCallback
 import com.mercadopago.android.px.internal.features.pay_button.PayButton.StateChange
@@ -46,7 +44,6 @@ import com.mercadopago.android.px.internal.repository.DiscountRepository
 import com.mercadopago.android.px.internal.repository.ExperimentsRepository
 import com.mercadopago.android.px.internal.repository.ModalRepository
 import com.mercadopago.android.px.internal.repository.OneTapItemRepository
-import com.mercadopago.android.px.internal.repository.PayerComplianceRepository
 import com.mercadopago.android.px.internal.repository.PayerCostSelectionRepository
 import com.mercadopago.android.px.internal.repository.PayerPaymentMethodKey
 import com.mercadopago.android.px.internal.repository.PayerPaymentMethodRepository
@@ -57,7 +54,6 @@ import com.mercadopago.android.px.internal.util.CardFormWrapper
 import com.mercadopago.android.px.internal.util.TextUtil
 import com.mercadopago.android.px.internal.view.AmountDescriptorView
 import com.mercadopago.android.px.internal.view.SummaryDetailDescriptorMapper
-import com.mercadopago.android.px.internal.view.SummaryView
 import com.mercadopago.android.px.internal.view.experiments.ExperimentHelper
 import com.mercadopago.android.px.internal.view.experiments.ExperimentHelper.getVariantFrom
 import com.mercadopago.android.px.internal.viewmodel.PostPaymentAction
@@ -256,6 +252,18 @@ internal class OneTapPresenter(
         state.paymentMethodIndex = paymentMethodIndex
         track(SwipeOneTapEventTracker())
         updateElementPosition(payerCostSelectionRepository[customOptionIdSolver[getCurrentOneTapItem()]])
+        //update total value
+        val customOptionId = customOptionIdSolver[getCurrentOneTapItem()]
+        val application = applicationSelectionRepository[customOptionId]
+        val paymentTypeId = application.paymentMethod.id
+        val summaryInfo = summaryInfoMapper.map(paymentSettingRepository.checkoutPreference!!)
+        val elementDescriptorModel = elementDescriptorMapper.map(summaryInfo)
+        val model = SummaryViewModelMapper(
+            discountRepository, amountRepository, elementDescriptorModel, this,
+            chargeRepository, amountConfigurationRepository, customTextsRepository, summaryDetailDescriptorMapper,
+            applicationSelectionRepository, amountDescriptorViewModelFactory
+        ).mapTotalWithoutInstallment(paymentTypeId, customOptionId)
+        view.updateTotalValue(model)
     }
 
     private fun updateElements() {
@@ -275,8 +283,6 @@ internal class OneTapPresenter(
      */
     override fun onPayerCostSelected(payerCostSelected: PayerCost) {
         val customOptionId = customOptionIdSolver[getCurrentOneTapItem()]
-        val application = applicationSelectionRepository[customOptionId]
-        val paymentTypeId = application.paymentMethod.id
         val selected = amountConfigurationRepository.getConfigurationSelectedFor(customOptionId)!!
             .getAppliedPayerCost(state.splitSelectionState.userWantsToSplit())
             .indexOf(payerCostSelected)
@@ -288,24 +294,17 @@ internal class OneTapPresenter(
                 }
             }
         })
-        view.updateViewForPosition(
-            selected,
-            payerCostSelectionRepository[customOptionId],
-            state.splitSelectionState,
-            applicationSelectionRepository[customOptionId]
-        )
-        //updateTotalValue(customOptionId, paymentTypeId, payerCostSelected)
-    }
-
-    private fun updateTotalValue(customOptionId: String, paymentTypeId: String, payerCostSelected: PayerCost){
+        // update total value
+        val application = applicationSelectionRepository[customOptionId]
+        val paymentTypeId = application.paymentMethod.id
         val summaryInfo = summaryInfoMapper.map(paymentSettingRepository.checkoutPreference!!)
         val elementDescriptorModel = elementDescriptorMapper.map(summaryInfo)
-        SummaryViewModelMapper(
+        val model = SummaryViewModelMapper(
             discountRepository, amountRepository, elementDescriptorModel, this,
             chargeRepository, amountConfigurationRepository, customTextsRepository, summaryDetailDescriptorMapper,
             applicationSelectionRepository, amountDescriptorViewModelFactory
-        ).updateTotalValue(customOptionId, paymentTypeId, payerCostSelected)
-        updateElements()
+        ).mapTotalWithInstallment(payerCostSelected, paymentTypeId, customOptionId)
+        view.updateTotalValue(model)
     }
 
     fun onDisabledDescriptorViewClick() {
@@ -509,7 +508,6 @@ internal class OneTapPresenter(
                 updateElements()
             }
         }
-
     }
 
     private fun getVariants() = ExperimentHelper.getVariantsFrom(

@@ -88,19 +88,34 @@ internal class SummaryViewModelMapper(
         return SummaryView.Model(elementDescriptorViewModel, summaryDetailList, totalRow)
     }
 
-    fun updateTotalValue(
-        customOptionId: String,
-        paymentMethodTypeId: String,
-        paymentCost: PayerCost
+    fun mapTotalWithoutInstallment(
+        paymentTypeId: String,
+        customOptionId: String
     ): SummaryView.Model {
-        val totalUpdated = amountDescriptorViewModelFactory.create(
-            customTextsRepository, paymentCost.totalAmount)
+        val chargeRule = chargeRepository.getChargeRule(paymentTypeId)
+        val discountModel = getDiscountConfiguration(customOptionId,paymentTypeId)
+        val amountConfiguration = getAmountConfiguration(customOptionId, paymentTypeId)
+        val summaryDetailList = summaryDetailDescriptorMapper.map(
+            SummaryDetailDescriptorMapper.Model(discountModel, chargeRule, amountConfiguration, onClickListener)
+        )
+        val totalUpdated: AmountDescriptorView.Model = amountDescriptorViewModelFactory.create(
+                customTextsRepository, amountRepository.getAmountToPay(paymentTypeId, discountModel))
+        return SummaryView.Model(elementDescriptorViewModel,summaryDetailList, totalUpdated)
+    }
+
+    fun mapTotalWithInstallment(
+        payerCost: PayerCost,
+        customOptionId: String,
+        paymentMethodTypeId: String
+    ): SummaryView.Model {
         val chargeRule = chargeRepository.getChargeRule(paymentMethodTypeId)
         val discountModel = getDiscountConfiguration(customOptionId,paymentMethodTypeId)
         val amountConfiguration = getAmountConfiguration(customOptionId, paymentMethodTypeId)
         val summaryDetailList = summaryDetailDescriptorMapper.map(
             SummaryDetailDescriptorMapper.Model(discountModel, chargeRule, amountConfiguration, onClickListener)
         )
+        val totalUpdated: AmountDescriptorView.Model = amountDescriptorViewModelFactory.create(
+            customTextsRepository, payerCost.totalAmount)
         return SummaryView.Model(elementDescriptorViewModel,summaryDetailList, totalUpdated)
     }
 
