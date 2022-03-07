@@ -88,7 +88,7 @@ internal class SummaryViewModelMapper(
         return SummaryView.Model(elementDescriptorViewModel, summaryDetailList, totalRow)
     }
 
-    fun mapTotalWithoutInstallment(
+    fun mapTotalInterestFree(
         paymentTypeId: String,
         customOptionId: String
     ): SummaryView.Model {
@@ -103,7 +103,7 @@ internal class SummaryViewModelMapper(
         return SummaryView.Model(elementDescriptorViewModel,summaryDetailList, totalUpdated)
     }
 
-    fun mapTotalWithInstallment(
+    fun mapTotalWithInterest(
         payerCost: PayerCost,
         customOptionId: String,
         paymentMethodTypeId: String

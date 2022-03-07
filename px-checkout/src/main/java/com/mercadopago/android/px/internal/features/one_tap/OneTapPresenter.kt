@@ -252,7 +252,10 @@ internal class OneTapPresenter(
         state.paymentMethodIndex = paymentMethodIndex
         track(SwipeOneTapEventTracker())
         updateElementPosition(payerCostSelectionRepository[customOptionIdSolver[getCurrentOneTapItem()]])
-        //update total value
+        refreshTotalValue()
+    }
+
+    private fun refreshTotalValue(){
         val customOptionId = customOptionIdSolver[getCurrentOneTapItem()]
         val application = applicationSelectionRepository[customOptionId]
         val paymentTypeId = application.paymentMethod.id
@@ -262,7 +265,7 @@ internal class OneTapPresenter(
             discountRepository, amountRepository, elementDescriptorModel, this,
             chargeRepository, amountConfigurationRepository, customTextsRepository, summaryDetailDescriptorMapper,
             applicationSelectionRepository, amountDescriptorViewModelFactory
-        ).mapTotalWithoutInstallment(paymentTypeId, customOptionId)
+        ).mapTotalInterestFree(paymentTypeId, customOptionId)
         view.updateTotalValue(model)
     }
 
@@ -294,7 +297,10 @@ internal class OneTapPresenter(
                 }
             }
         })
-        // update total value
+        updateTotalValue(customOptionId, payerCostSelected)
+    }
+
+    private fun updateTotalValue(customOptionId: String, payerCostSelected: PayerCost ){
         val application = applicationSelectionRepository[customOptionId]
         val paymentTypeId = application.paymentMethod.id
         val summaryInfo = summaryInfoMapper.map(paymentSettingRepository.checkoutPreference!!)
@@ -303,7 +309,7 @@ internal class OneTapPresenter(
             discountRepository, amountRepository, elementDescriptorModel, this,
             chargeRepository, amountConfigurationRepository, customTextsRepository, summaryDetailDescriptorMapper,
             applicationSelectionRepository, amountDescriptorViewModelFactory
-        ).mapTotalWithInstallment(payerCostSelected, paymentTypeId, customOptionId)
+        ).mapTotalWithInterest(payerCostSelected, paymentTypeId, customOptionId)
         view.updateTotalValue(model)
     }
 
