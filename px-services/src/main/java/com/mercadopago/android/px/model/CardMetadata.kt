@@ -8,5 +8,6 @@ import java.io.Serializable
 data class CardMetadata(
     val id: String,
     val displayInfo: CardDisplayInfo,
-    val retry: Retry
+    val retry: Retry,
+    val tokenization: Tokenization
 ) : Parcelable, Serializable
