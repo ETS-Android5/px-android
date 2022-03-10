@@ -1,3 +1,9 @@
+## VERSION 4.106.0
+_10_03_2022_
+* FIX - Removed total duplicate when payment method is debit card.
+* FIX - Call to action when payment method is debin.
+* FIX - Crash payment method not found.
+
 ## VERSION 4.105.0
 _24_02_2022_
 * FEATURE - New wordings for IFPE regulation.
