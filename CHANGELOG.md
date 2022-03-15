@@ -1,3 +1,7 @@
+## Unreleased
+_XX_03_2022_
+* FIX - Congrats empty texts when paying with account money
+
 ## VERSION 4.106.0
 _10_03_2022_
 * FIX - Removed total duplicate when payment method is debit card.

@@ -30,8 +30,12 @@ internal class PaymentResultMethodMapper(context: Context, private val paymentRe
         when {
             extraInfo?.isNotEmpty() == true -> extraInfo
             consumerCreditsInfo != null -> listOfNotNull(
-                consumerCreditsInfo.title?.let { PaymentCongratsText(it, textColor = "#CC000000", fontSize = 16f) },
-                consumerCreditsInfo.subtitle?.let { PaymentCongratsText(it, textColor = "#73000000", fontSize = 14f) }
+                consumerCreditsInfo.title.takeUnless { it.isNullOrBlank() }?.let {
+                    PaymentCongratsText(it, textColor = "#CC000000", fontSize = 16f)
+                },
+                consumerCreditsInfo.subtitle.takeUnless { it.isNullOrBlank() }?.let {
+                    PaymentCongratsText(it, textColor = "#73000000", fontSize = 14f)
+                }
             )
             else -> null
         }?.let { builder.setExtraInfo(it) }

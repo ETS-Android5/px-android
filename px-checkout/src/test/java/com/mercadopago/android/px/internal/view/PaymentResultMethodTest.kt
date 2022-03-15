@@ -160,8 +160,10 @@ class PaymentResultMethodTest : BasicRobolectricTest() {
             .setNoDiscountAmount(BigDecimal.TEN)
             .setPaymentMethod(paymentMethod)
             .createPaymentData()
-        val paymentResultInfo = PaymentResultInfo(displayInfo.resultInfo.title, displayInfo.resultInfo.subtitle)
-        val paymentCongratsText = PaymentCongratsText.from(displayInfo.description)
+        val paymentResultInfo = displayInfo.resultInfo?.let {
+            PaymentResultInfo(it.title, it.subtitle)
+        }
+        val paymentCongratsText = PaymentCongratsText.from(displayInfo.description!!)
 
         return PaymentInfo.Builder()
             .withPaymentMethodName(paymentData.paymentMethod.name)

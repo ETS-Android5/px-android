@@ -45,8 +45,9 @@ internal class DisplayInfoHelper(
         paymentInfoBuilder: PaymentInfo.Builder
     ) {
         displayInfo?.run {
-            val paymentResultInfo = PaymentResultInfo(resultInfo.title, resultInfo.subtitle)
-            paymentInfoBuilder.withConsumerCreditsInfo(paymentResultInfo)
+            resultInfo?.let {
+                paymentInfoBuilder.withConsumerCreditsInfo(PaymentResultInfo(it.title, it.subtitle))
+            }
             description?.let {
                 paymentInfoBuilder.withDescription(PaymentCongratsText.from(it))
             }
