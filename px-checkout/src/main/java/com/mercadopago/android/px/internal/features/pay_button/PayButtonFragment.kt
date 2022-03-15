@@ -1,6 +1,7 @@
 package com.mercadopago.android.px.internal.features.pay_button
 
 import android.app.Activity
+import android.app.Activity.RESULT_CANCELED
 import android.content.Intent
 import android.os.Bundle
 import android.os.Parcelable
@@ -251,14 +252,17 @@ internal class PayButtonFragment : BaseFragment(), PayButton.View, SecurityValid
     }
 
     override fun onSecurityValidated(isSuccess: Boolean, securityValidated: Boolean) {
+        if (!isSuccess) {
+            enable()
+        }
         viewModel.handleBiometricsResult(isSuccess, securityValidated)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQ_CODE_BIOMETRICS) {
             val securityRequested = data?.getBooleanExtra(
-                BehaviourProvider.getSecurityBehaviour().extraResultKey, false) ?: false
-            enable()
+                BehaviourProvider.getSecurityBehaviour().extraResultKey, false
+            ) ?: false
             onSecurityValidated(resultCode == Activity.RESULT_OK, securityRequested)
         } else if (requestCode == REQ_CODE_CONGRATS) {
             if (resultCode == Constants.RESULT_ACTION) {
@@ -276,7 +280,7 @@ internal class PayButtonFragment : BaseFragment(), PayButton.View, SecurityValid
             viewModel.onPostPayment(PaymentProcessorActivity.getPaymentModel(data))
         } else if (resultCode == Constants.RESULT_FAIL_ESC) {
             viewModel.onRecoverPaymentEscInvalid(PaymentProcessorActivity.getPaymentRecovery(data)!!)
-        } else if (requestCode == ErrorUtil.ERROR_REQUEST_CODE) {
+        } else if (requestCode == ErrorUtil.ERROR_REQUEST_CODE || requestCode == REQ_CODE_PAYMENT_PROCESSOR && resultCode == RESULT_CANCELED) {
             activity?.finish()
         } else {
             super.onActivityResult(requestCode, resultCode, data)

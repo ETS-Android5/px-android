@@ -1,6 +1,7 @@
 ## Unreleased
 _XX_03_2022_
 * FIX - Congrats empty texts when paying with account money
+* FIX - Duplicated payments in some cases where pay button was being enabled incorrectly.
 
 ## VERSION 4.106.0
 _10_03_2022_
