@@ -10,10 +10,10 @@ public class AvailableOfflineMethod extends TrackingMapModel {
     @NonNull
     /* default */ final String paymentMethodId;
     @NonNull
-    /* default */ final String paymentTypeId;
+    /* default */ final String paymentMethodType;
 
-    public AvailableOfflineMethod(@NonNull final String paymentTypeId, @NonNull final String paymentMethodId) {
-        this.paymentTypeId = paymentTypeId;
+    public AvailableOfflineMethod(@NonNull final String paymentMethodType, @NonNull final String paymentMethodId) {
+        this.paymentMethodType = paymentMethodType;
         this.paymentMethodId = paymentMethodId;
     }
 }
