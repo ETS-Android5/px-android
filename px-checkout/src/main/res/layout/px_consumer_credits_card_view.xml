@@ -22,7 +22,8 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             app:layout_constraintDimensionRatio="@string/px_card_aspect_ratio"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="contentDescription"/>
 
         <ImageView
             android:id="@+id/background_shape"
@@ -30,47 +31,55 @@
             android:layout_height="0dp"
             android:adjustViewBounds="true"
             android:scaleType="fitXY"
-            android:src="@drawable/px_card_shape_layer"
+            android:src="@drawable/px_background_cc"
             app:layout_constraintBottom_toBottomOf="@id/background"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="contentDescription"/>
 
         <ImageView
             android:id="@+id/logo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_above="@id/top_text"
-            android:layout_marginBottom="@dimen/px_xxs_margin"
-            app:layout_constraintBottom_toTopOf="@id/top_text"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginStart="@dimen/px_s_margin"
+            android:layout_marginTop="@dimen/px_s_margin"
+            android:src="@drawable/px_consumer_credits_onetap"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            android:src="@drawable/px_consumer_credits_onetap" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0"
+            app:layout_constraintHorizontal_bias="0"
+            tools:ignore="contentDescription"/>
 
         <com.mercadopago.android.px.internal.view.LinkableTextView
             android:id="@+id/top_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:textSize="@dimen/ui_fontsize_xxsmall"
-            app:layout_constraintBottom_toBottomOf="@id/background"
+            android:textColor="@color/white"
+            android:layout_marginStart="@dimen/px_s_margin"
+            android:layout_marginEnd="@dimen/px_s_margin"
+            android:textStyle="bold"
+            android:textSize="@dimen/ui_fontsize_small"
+            app:layout_constraintTop_toBottomOf="@+id/logo"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/bottom_text"
             tools:text="Pagá en hasta 12 cuotas sin usar tarjeta" />
 
         <com.mercadopago.android.px.internal.view.LinkableTextView
             android:id="@+id/bottom_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/px_m_margin"
-            android:layout_marginEnd="@dimen/px_m_margin"
-            android:layout_marginBottom="@dimen/px_xxxs_margin"
-            android:gravity="center_horizontal"
-            android:textSize="@dimen/px_xxxs_text"
+            android:textColor="@color/white"
+            android:textSize="@dimen/ui_fontsize_xxsmall"
+            android:layout_marginBottom="@dimen/px_s_margin"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/top_text"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/top_text"
-            app:layout_constraintVertical_bias="0.0"
+            app:layout_constraintEnd_toEndOf="@id/top_text"
+            app:layout_constraintStart_toStartOf="@id/top_text"
+            app:layout_constraintVertical_bias="1"
             tools:text="Al confirmar, aceptás los términos generales y las condiciones particulares de este préstamo." />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
