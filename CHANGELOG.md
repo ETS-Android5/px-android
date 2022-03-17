@@ -1,5 +1,5 @@
-## Unreleased
-_XX_03_2022_
+## VERSION 4.107.0
+_17_03_2022_
 * FIX - Congrats empty texts when paying with account money
 * FIX - Duplicated payments in some cases where pay button was being enabled incorrectly.
 * FIX - Adjust track offline_methods.
