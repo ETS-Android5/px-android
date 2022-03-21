@@ -21,7 +21,7 @@ data class PaymentCongratsText @JvmOverloads constructor(
 
         fun from(text: Text) = text.run {
             PaymentCongratsText(
-                message,
+                message.orEmpty(),
                 backgroundColor,
                 textColor,
                 weight ?: REGULAR,

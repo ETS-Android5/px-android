@@ -127,7 +127,7 @@ internal class RemediesFragment : Fragment(), Remedies.View, CvvRemedy.Listener,
                 is RemedyState.ShowModal -> {
                     showDialog(
                         childFragmentManager, GenericDialogItem(
-                            it.modal.description.message,
+                            it.modal.description.message.orEmpty(),
                             null,
                             TextLocalized(it.modal.title, 0),
                             TextLocalized(it.modal.description, 0),

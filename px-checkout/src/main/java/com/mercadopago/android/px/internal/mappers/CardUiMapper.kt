@@ -89,10 +89,10 @@ internal object CardUiMapper {
         with(displayInfo) {
             return GenericPaymentMethod(
                 Color.parseColor(color),
-                CardDrawerText(title.message, Color.parseColor(title.textColor)),
+                CardDrawerText(title.message.orEmpty(), Color.parseColor(title.textColor)),
                 paymentMethodImageUrl,
                 subtitle?.let {
-                    CardDrawerText(it.message, Color.parseColor(it.textColor))
+                    CardDrawerText(it.message.orEmpty(), Color.parseColor(it.textColor))
                 },
                 mapCardTagToCardDrawerTag(cardTag),
                 gradientColor
@@ -104,15 +104,15 @@ internal object CardUiMapper {
         with(displayInfo) {
             return GenericPaymentMethod(
                 Color.parseColor(color),
-                CardDrawerText(title.message, Color.parseColor(title.textColor), title.weight),
+                CardDrawerText(title.message.orEmpty(), Color.parseColor(title.textColor), title.weight),
                 paymentMethodImageUrl,
                 subtitle?.let {
-                    CardDrawerText(it.message, Color.parseColor(it.textColor), it.weight)
+                    CardDrawerText(it.message.orEmpty(), Color.parseColor(it.textColor), it.weight)
                 },
                 mapCardTagToCardDrawerTag(cardTag),
                 gradientColor,
                 description?.let {
-                    CardDrawerText(it.message, Color.parseColor(it.textColor), it.weight)
+                    CardDrawerText(it.message.orEmpty(), Color.parseColor(it.textColor), it.weight)
                 }
             )
         }
@@ -120,7 +120,7 @@ internal object CardUiMapper {
 
     private fun mapCardTagToCardDrawerTag(cardTag : Text?) : CardDrawerTag? {
         return cardTag?.let {
-            CardDrawerTag(cardTag.message, Color.parseColor(cardTag.backgroundColor),
+            CardDrawerTag(cardTag.message.orEmpty(), Color.parseColor(cardTag.backgroundColor),
                 Color.parseColor(cardTag.textColor), cardTag.weight ?: PxFont.REGULAR.name.toLowerCase(Locale.ROOT))
         }
     }
