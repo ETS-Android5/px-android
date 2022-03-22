@@ -258,7 +258,9 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
             renderMode = (RenderMode) savedInstanceState.getSerializable(EXTRA_RENDER_MODE);
             navigationState =
                 (OneTap.NavigationState) savedInstanceState.getSerializable(EXTRA_NAVIGATION_STATE);
-            presenter.restoreState(savedInstanceState.getParcelable(BUNDLE_STATE));
+            if (savedInstanceState.getParcelable(BUNDLE_STATE) != null) {
+                presenter.restoreState(savedInstanceState.getParcelable(BUNDLE_STATE));
+            }
         } else {
             presenter.onFreshStart();
         }

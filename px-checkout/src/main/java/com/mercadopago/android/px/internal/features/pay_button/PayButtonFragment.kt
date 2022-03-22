@@ -118,7 +118,9 @@ internal class PayButtonFragment : BaseFragment(), PayButton.View, SecurityValid
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt(EXTRA_STATE, buttonStatus)
-        outState.putInt(EXTRA_VISIBILITY, button.visibility)
+        if (this::button.isInitialized) {
+            outState.putInt(EXTRA_VISIBILITY, button.visibility)
+        }
         outState.putBoolean(EXTRA_OBSERVING, observingPostPaymentAction)
         outState.putParcelable(BUNDLE_STATE, viewModel.state)
     }
