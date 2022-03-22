@@ -26,6 +26,13 @@ object PaymentCongrats {
         }
     }
 
+    internal fun showWithSession(paymentCongratsModel: PaymentCongratsModel, activity: Activity, requestCode: Int) {
+        Intent(activity, BusinessPaymentResultActivity::class.java).also {
+            it.putExtra(PAYMENT_CONGRATS, paymentCongratsModel)
+            activity.startActivityForResult(it, requestCode)
+        }
+    }
+
     internal fun show(paymentCongratsModel: PaymentCongratsModel, fragment: Fragment, requestCode: Int) {
         Intent(fragment.context, BusinessPaymentResultActivity::class.java).also {
             it.putExtra(PAYMENT_CONGRATS, paymentCongratsModel)
