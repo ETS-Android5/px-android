@@ -3,14 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/payment_method"
+    style="@style/CardViewCustomerCredits"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginBottom="@dimen/px_s_margin"
-    android:layout_marginLeft="@dimen/px_m_margin"
-    android:layout_marginRight="@dimen/px_m_margin"
-    app:cardCornerRadius="@dimen/px_xs_margin"
-    app:cardElevation="2dp"
-    app:cardPreventCornerOverlap="false">
+    android:layout_height="wrap_content">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/credits_layout"
@@ -23,50 +18,45 @@
             android:layout_height="0dp"
             android:adjustViewBounds="true"
             app:layout_constraintDimensionRatio="@string/px_card_aspect_ratio_minires"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="contentDescription" />
 
         <ImageView
             android:id="@+id/background_shape"
+            style="@style/BackgroundCustomerCredits"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:adjustViewBounds="true"
-            android:scaleType="fitXY"
-            android:src="@drawable/px_card_shape_layer"
-            app:layout_constraintBottom_toBottomOf="@id/background"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="contentDescription"/>
 
         <ImageView
             android:id="@+id/logo"
+            style="@style/LogoCustomerCredits"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/ui_3m"
-            android:layout_marginStart="@dimen/ui_2m"
-            android:src="@drawable/px_consumer_credits_onetap"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="@dimen/px_xs_margin"
+            android:scaleType="fitStart"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_chainStyle="spread" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintVertical_chainStyle="spread"
+            tools:ignore="contentDescription"/>
 
-       <FrameLayout
-            android:layout_width="wrap_content"
+        <com.mercadopago.android.px.internal.view.LinkableTextView
+            android:id="@+id/bottom_text"
+            style="@style/BottomTextCustomerCredits"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:visibility="gone"
-            tools:ignore="MissingConstraints">
-
-            <com.mercadopago.android.px.internal.view.LinkableTextView
-                android:id="@+id/top_text"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:textSize="@dimen/ui_fontsize_xxsmall"
-                app:layout_constraintBottom_toBottomOf="@id/background"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="Pagá en hasta 12 cuotas sin usar tarjeta" />
-
-        </FrameLayout>
+            android:layout_marginStart="@dimen/px_s_margin"
+            app:layout_constraintTop_toBottomOf="@+id/logo"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:text="Ao pagar aceito e declaro assinada a Cédula de Crédito Bancário"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>
