@@ -1,3 +1,7 @@
+## Unreleased
+_XX_03_2022_
+* FIX - Parameter specified as non-null is null - solution: avoid to clear session with a new method
+
 ## VERSION 4.107.0
 _17_03_2022_
 * FIX - Congrats empty texts when paying with account money
