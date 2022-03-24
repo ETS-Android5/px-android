@@ -108,6 +108,7 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
     private static final String TAG = OneTapFragment.class.getSimpleName();
     private static final String TAG_HEADER_DYNAMIC_DIALOG = "TAG_HEADER_DYNAMIC_DIALOG";
     private static final String EXTRA_VARIANT = "EXTRA_VARIANT";
+    private static final String EXTRA_FROM_DEEPLINK = "FROM_DEEPLINK";
     private static final String EXTRA_RENDER_MODE = "render_mode";
     private static final String EXTRA_NAVIGATION_STATE = "navigation_state";
 
@@ -148,10 +149,11 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
     private PayButtonFragment payButtonFragment;
     private OfflineMethodsFragment offlineMethodsFragment;
 
-    public static Fragment getInstance(@NonNull final Variant variant) {
+    public static Fragment getInstance(@NonNull final Variant variant, final boolean fromDeeplink) {
         final OneTapFragment oneTapFragment = new OneTapFragment();
         final Bundle bundle = new Bundle();
         bundle.putParcelable(EXTRA_VARIANT, variant);
+        bundle.putBoolean(EXTRA_FROM_DEEPLINK, fromDeeplink);
         oneTapFragment.setArguments(bundle);
         return oneTapFragment;
     }
@@ -263,6 +265,9 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
             }
         } else {
             presenter.onFreshStart();
+            if (getArguments() != null && getArguments().getBoolean(EXTRA_FROM_DEEPLINK)) {
+                onDeepLinkReceived();
+            }
         }
 
         presenter.attachView(this);

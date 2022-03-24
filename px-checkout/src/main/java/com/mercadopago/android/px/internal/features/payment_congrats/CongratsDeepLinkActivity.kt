@@ -71,7 +71,7 @@ internal class CongratsDeepLinkActivity : AppCompatActivity() {
                 PaymentResultActivity.start(this, REQ_CODE_CONGRATS, congratsResult.paymentModel)
             }
             is CongratsResult.BusinessPaymentResult -> {
-                PaymentCongrats.show(congratsResult.paymentCongratsModel, this, REQ_CODE_CONGRATS)
+                PaymentCongrats.showWithSession(congratsResult.paymentCongratsModel, this, REQ_CODE_CONGRATS)
             }
             is CongratsPaymentResult.SkipCongratsResult -> {
                 DummyResultActivity.start(
