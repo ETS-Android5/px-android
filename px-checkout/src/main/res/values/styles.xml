@@ -181,19 +181,22 @@
     </style>
 
     <style name="TopTextCustomerCredits" parent="TextCustomerCredits">
-        <item name="android:textStyle">bold</item>
-        <item name="android:textSize">@dimen/ui_fontsize_medium</item>
+        <item name="fontStyle">normal</item>
+        <item name="fontWeight">600</item>
+        <item name="android:textSize">@dimen/px_m_text</item>
         <item name="android:layout_marginStart">@dimen/px_s_margin</item>
     </style>
 
     <style name="BottomTextCustomerCredits" parent="TextCustomerCredits">
-        <item name="android:textSize">@dimen/ui_fontsize_small</item>
+        <item name="android:textSize">@dimen/px_xs_text</item>
         <item name="android:layout_marginBottom">@dimen/px_s_margin</item>
     </style>
 
     <style name="TextCustomerCredits">
         <item name="android:textColor">@color/white</item>
         <item name="android:layout_marginEnd">@dimen/px_s_margin</item>
+        <item name="android:layout_alignParentLeft">true</item>
+        <item name="android:layout_alignParentTop">true</item>
     </style>
 
     <style name="CardViewCustomerCredits">
