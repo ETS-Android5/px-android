@@ -2,7 +2,7 @@
 _XX_03_2022_
 * FIX - Parameter specified as non-null is null - parameter state
 
-## VERSION 4.108.0
+## VERSION 4.108.1
 _24_03_2022_
 * FIX - CheckoutActivity launch mode changed to clean activity correctly.
 * FIX - Parameter specified as non-null is null - solution: avoid to clear session with a new method
