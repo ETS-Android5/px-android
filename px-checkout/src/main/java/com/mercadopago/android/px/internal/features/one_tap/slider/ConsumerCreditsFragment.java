@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatTextView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.fragment.app.Fragment;
@@ -19,6 +20,7 @@ import com.mercadopago.android.px.internal.view.LinkableTextView;
 import com.mercadopago.android.px.internal.viewmodel.DisableConfiguration;
 import com.mercadopago.android.px.internal.viewmodel.drawables.ConsumerCreditsDrawableFragmentItem;
 import com.mercadopago.android.px.model.ConsumerCreditsDisplayInfo;
+import com.mercadopago.android.px.model.Tag;
 
 public class ConsumerCreditsFragment extends PaymentMethodFragment<ConsumerCreditsDrawableFragmentItem> {
 
@@ -27,6 +29,8 @@ public class ConsumerCreditsFragment extends PaymentMethodFragment<ConsumerCredi
     private ImageView logo;
     private LinkableTextView topText;
     private LinkableTextView bottomText;
+    // diego
+    private ViewGroup tag;
     private final RemediesLinkableMapper remediesLinkableMapper = MapperProvider.INSTANCE.getRemediesLinkableMapper();
 
     @NonNull
@@ -54,6 +58,9 @@ public class ConsumerCreditsFragment extends PaymentMethodFragment<ConsumerCredi
         final ConsumerCreditsDisplayInfo displayInfo = model.metadata.displayInfo;
         tintBackground(background, displayInfo.color);
         showDisplayInfo(displayInfo);
+        // diego
+        tag = view.findViewById(R.id.card_tag_container);
+        showTag();
         configureListener();
         view.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
     }
@@ -69,6 +76,12 @@ public class ConsumerCreditsFragment extends PaymentMethodFragment<ConsumerCredi
         if (bottomText != null) {
             bottomText.updateModel(remediesLinkableMapper.map(displayInfo.bottomText));
         }
+    }
+
+    //diego
+    public void showTag() {
+      AppCompatTextView text = tag.findViewById(R.id.card_tag);
+      text.setText("Teste de tag");
     }
 
     public void configureListener() {

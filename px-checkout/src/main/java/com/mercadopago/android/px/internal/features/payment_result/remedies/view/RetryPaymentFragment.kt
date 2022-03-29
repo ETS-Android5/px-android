@@ -60,7 +60,11 @@ internal class RetryPaymentFragment : Fragment(), PaymentMethodFragment.Disabled
 
             it.consumerCredits?.let { consumerCredits ->
                 with(bottomText) {
-                    updateModel(remediesLinkableMapper.mapRemedies(consumerCredits.displayInfo.bottomText))
+                    updateModel(consumerCredits.displayInfo.bottomText?.let { it ->
+                        remediesLinkableMapper.mapRemedies(
+                            it
+                        )
+                    })
                     setLinkableTextListener {
                         val instalmentKey = model.payerCost?.installments ?: NO_SELECTED
                         context?.apply {

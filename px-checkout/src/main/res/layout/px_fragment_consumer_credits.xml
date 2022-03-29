@@ -4,5 +4,4 @@
     android:layout_height="wrap_content">
 
     <include layout="@layout/px_consumer_credits_card_view" />
-
 </FrameLayout>
