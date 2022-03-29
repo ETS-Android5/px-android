@@ -86,7 +86,9 @@ internal class OfflineMethodsFragment : Fragment(), OfflineMethods.View, BackHan
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(EXTRA_BOTTOM_SHEET_STATE, bottomSheetBehavior.state)
+        if (this::bottomSheetBehavior.isInitialized) {
+            outState.putInt(EXTRA_BOTTOM_SHEET_STATE, bottomSheetBehavior.state)
+        }
     }
 
     private fun draw(model: OfflineMethods.Model) {

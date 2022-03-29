@@ -38,6 +38,9 @@ import com.mercadopago.android.px.internal.experiments.Variant;
 import com.mercadopago.android.px.internal.experiments.VariantHandler;
 import com.mercadopago.android.px.internal.features.TermsAndConditionsActivity;
 import com.mercadopago.android.px.internal.features.disable_payment_method.DisabledPaymentMethodDetailDialog;
+import com.mercadopago.android.px.internal.features.generic_modal.GenericDialog;
+import com.mercadopago.android.px.internal.features.generic_modal.GenericDialogAction;
+import com.mercadopago.android.px.internal.features.generic_modal.GenericDialogItem;
 import com.mercadopago.android.px.internal.features.one_tap.add_new_card.OtherPaymentMethodFragment;
 import com.mercadopago.android.px.internal.features.one_tap.add_new_card.sheet_options.CardFormBottomSheetFragment;
 import com.mercadopago.android.px.internal.features.one_tap.add_new_card.sheet_options.CardFormBottomSheetModel;
@@ -57,9 +60,6 @@ import com.mercadopago.android.px.internal.features.one_tap.slider.SplitPaymentH
 import com.mercadopago.android.px.internal.features.one_tap.slider.SummaryViewAdapter;
 import com.mercadopago.android.px.internal.features.one_tap.slider.TitlePagerAdapter;
 import com.mercadopago.android.px.internal.features.one_tap.slider.TitlePagerAdapterV2;
-import com.mercadopago.android.px.internal.features.generic_modal.GenericDialog;
-import com.mercadopago.android.px.internal.features.generic_modal.GenericDialogAction;
-import com.mercadopago.android.px.internal.features.generic_modal.GenericDialogItem;
 import com.mercadopago.android.px.internal.features.pay_button.PayButton;
 import com.mercadopago.android.px.internal.features.pay_button.PayButtonFragment;
 import com.mercadopago.android.px.internal.features.security_code.SecurityCodeFragment;
@@ -83,10 +83,10 @@ import com.mercadopago.android.px.internal.viewmodel.SplitSelectionState;
 import com.mercadopago.android.px.internal.viewmodel.drawables.DrawableFragmentItem;
 import com.mercadopago.android.px.model.Currency;
 import com.mercadopago.android.px.model.DiscountConfigurationModel;
-import com.mercadopago.android.px.model.TermsAndConditionsLinks;
 import com.mercadopago.android.px.model.PayerCost;
 import com.mercadopago.android.px.model.Site;
 import com.mercadopago.android.px.model.StatusMetadata;
+import com.mercadopago.android.px.model.TermsAndConditionsLinks;
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError;
 import com.mercadopago.android.px.model.internal.Application;
 import com.mercadopago.android.px.model.internal.DisabledPaymentMethod;
@@ -432,9 +432,10 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
     public void onSaveInstanceState(@NonNull final Bundle outState) {
         outState.putSerializable(EXTRA_RENDER_MODE, renderMode);
         outState.putSerializable(EXTRA_NAVIGATION_STATE, navigationState);
-        if (presenter != null) {
-            outState.putParcelable(BUNDLE_STATE, presenter.getState());
+        if (presenter == null) {
+            presenter = createPresenter();
         }
+        outState.putParcelable(BUNDLE_STATE, presenter.getState());
         super.onSaveInstanceState(outState);
     }
 
