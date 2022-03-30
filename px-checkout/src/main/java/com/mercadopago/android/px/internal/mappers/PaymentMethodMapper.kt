@@ -8,9 +8,9 @@ internal class PaymentMethodMapper(
 ) : Mapper<Pair<String, String>, PaymentMethod>() {
 
     override fun map(value: Pair<String, String>): PaymentMethod {
-        return paymentMethodRepository.getPaymentMethodById(value.first)?.also {
+        return paymentMethodRepository.getPaymentMethodById(value.first).also {
             it.paymentTypeId = value.second
-        } ?: throw IllegalStateException("Payment method not found")
+        }
     }
 
 }
