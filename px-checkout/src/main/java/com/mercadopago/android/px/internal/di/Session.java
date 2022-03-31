@@ -29,6 +29,7 @@ import com.mercadopago.android.px.internal.datasource.PayerPaymentMethodReposito
 import com.mercadopago.android.px.internal.datasource.PaymentMethodRepositoryImpl;
 import com.mercadopago.android.px.internal.datasource.PaymentService;
 import com.mercadopago.android.px.internal.datasource.PrefetchInitService;
+import com.mercadopago.android.px.internal.datasource.PreparePaymentRepositoryImpl;
 import com.mercadopago.android.px.internal.features.PaymentResultViewModelFactory;
 import com.mercadopago.android.px.internal.features.payment_congrats.CongratsResultFactory;
 import com.mercadopago.android.px.internal.features.payment_congrats.model.PXPaymentCongratsTracking;
@@ -48,6 +49,7 @@ import com.mercadopago.android.px.internal.repository.PayerPaymentMethodReposito
 import com.mercadopago.android.px.internal.repository.PaymentMethodRepository;
 import com.mercadopago.android.px.internal.repository.PaymentRepository;
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository;
+import com.mercadopago.android.px.internal.repository.PreparePaymentRepository;
 import com.mercadopago.android.px.internal.services.CardHolderAuthenticatorService;
 import com.mercadopago.android.px.internal.services.CongratsService;
 import com.mercadopago.android.px.internal.services.GatewayService;
@@ -62,8 +64,8 @@ import static com.mercadopago.android.px.internal.util.MercadoPagoUtil.getPlatfo
 public final class Session extends ApplicationModule {
 
     /**
-     * This singleton instance is safe because session will work with application applicationContext. Application
-     * applicationContext it's never leaking.
+     * This singleton instance is safe because session will work with application applicationContext. Application applicationContext it's
+     * never leaking.
      */
     @SuppressLint("StaticFieldLeak")
     private static Session instance;
@@ -89,6 +91,7 @@ public final class Session extends ApplicationModule {
     private ModalRepository modalRepository;
     private ConfigurationSolver configurationSolver;
     private CardHolderAuthenticatorRepositoryImpl cardHolderAuthenticatorRepository;
+    private PreparePaymentRepository preparePaymentRepository;
     private UseCaseModule useCaseModule;
     private FactoryModule factoryModule;
     private CustomOptionIdSolver customOptionIdSolver;
@@ -302,10 +305,11 @@ public final class Session extends ApplicationModule {
                 getCongratsRepository(),
                 getFileManager(),
                 getUseCaseModule().getValidationProgramUseCase(),
+                getUseCaseModule().getPreparePaymentUseCase(),
                 getFactoryModule().getPaymentResultFactory(),
-                getFactoryModule().getPaymentDataFactory());
+                getFactoryModule().getPaymentDataFactory(),
+                getFactoryModule().getTransactionInfoFactory());
         }
-
         return paymentRepository;
     }
 
@@ -454,6 +458,14 @@ public final class Session extends ApplicationModule {
                 new CardHolderAuthenticatorRepositoryImpl(service, configurationModule.getPaymentSettings());
         }
         return cardHolderAuthenticatorRepository;
+    }
+
+    @NonNull
+    public PreparePaymentRepository getPreparePaymentRepository() {
+        if (preparePaymentRepository == null) {
+            preparePaymentRepository = new PreparePaymentRepositoryImpl();
+        }
+        return preparePaymentRepository;
     }
 
     private void configIds(@NonNull final MercadoPagoCheckout checkout) {

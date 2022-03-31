@@ -4,5 +4,5 @@ import com.mercadopago.android.px.model.internal.ResponseSectionStatus
 
 data class PreparePaymentResponse(
     val status: Map<String, ResponseSectionStatus>,
-    val paymentMethods: Collection<PaymentMethodDM>
+    val paymentMethod: PaymentMethodDM
 )

@@ -67,6 +67,7 @@ public final class ApiUtil {
         public static final String POST_INIT = "POST_INIT";
         public static final String CREATE_PAYMENT = "CREATE_PAYMENT";
         public static final String CREATE_TOKEN = "CREATE_TOKEN";
+        public static final String PREPARE_PAYMENT = "PREPARE_PAYMENT";
         public static final String GET_INSTRUCTIONS = "GET_INSTRUCTIONS";
     }
 }
