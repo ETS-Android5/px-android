@@ -25,6 +25,7 @@ internal class DummyResultActivity : PXActivity<DummyResultPresenter>(), MvpView
             paymentModel,
             configuration.paymentSettings.advancedConfiguration.paymentResultScreenConfiguration,
             configuration.paymentSettings, MercadoPagoUtil.isMP(this),
+            session.helperModule.bankInfoHelper,
             session.tracker
         )
         presenter.attachView(this)

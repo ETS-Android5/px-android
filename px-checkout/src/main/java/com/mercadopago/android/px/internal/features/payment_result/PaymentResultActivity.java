@@ -129,6 +129,7 @@ public class PaymentResultActivity extends PXActivity<PaymentResultPresenter> im
         return new PaymentResultPresenter(session.getConfigurationModule().getPaymentSettings(),
             paymentModel, BehaviourProvider.getFlowBehaviour(), isMP(this),
             mapperProvider.getPaymentCongratsMapper(), mapperProvider.getPaymentResultViewModelMapper(),
+            session.getHelperModule().getBankInfoHelper(),
             session.getTracker());
     }
 

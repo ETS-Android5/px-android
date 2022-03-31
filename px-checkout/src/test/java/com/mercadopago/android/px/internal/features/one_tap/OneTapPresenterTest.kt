@@ -46,6 +46,7 @@ import com.mercadopago.android.px.model.internal.DisabledPaymentMethod
 import com.mercadopago.android.px.model.internal.OneTapItem
 import com.mercadopago.android.px.model.internal.SummaryInfo
 import com.mercadopago.android.px.preferences.CheckoutPreference
+import com.mercadopago.android.px.tracking.internal.BankInfoHelper
 import com.mercadopago.android.px.tracking.internal.MPTracker
 import com.mercadopago.android.px.tracking.internal.events.AbortEvent
 import com.mercadopago.android.px.tracking.internal.events.BackEvent
@@ -132,6 +133,8 @@ class OneTapPresenterTest {
 
     private val authorizationProvider = mockk<AuthorizationProvider>()
 
+    private val bankInfoHelper = mockk<BankInfoHelper>()
+
     private lateinit var checkoutUseCase: CheckoutUseCase
     private lateinit var checkoutWithNewCardUseCase: CheckoutWithNewCardUseCase
 
@@ -201,6 +204,7 @@ class OneTapPresenterTest {
             mockk(relaxed = true),
             authorizationProvider,
             amountDescriptorViewModelFactory,
+            bankInfoHelper,
             tracker
         )
         verifyAttachView()
