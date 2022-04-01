@@ -1,6 +1,7 @@
 package com.mercadopago.android.px.internal.view
 
 import android.content.Context
+import android.graphics.Typeface
 import android.text.SpannableStringBuilder
 import android.text.TextUtils.TruncateAt
 import android.util.AttributeSet
@@ -10,13 +11,15 @@ import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import androidx.appcompat.widget.AppCompatTextView
 import com.mercadopago.android.px.R
 import com.mercadopago.android.px.core.commons.extensions.isNotNullNorEmpty
+import com.mercadopago.android.px.core.presentation.extensions.setColor
+import com.mercadopago.android.px.core.presentation.extensions.setFont
 import com.mercadopago.android.px.core.presentation.extensions.setTextColor
 import com.mercadopago.android.px.internal.extensions.toGravity
 import com.mercadopago.android.px.internal.features.payment_congrats.model.PaymentCongratsText
+import com.mercadopago.android.px.internal.font.FontHelper
 import com.mercadopago.android.px.internal.font.FontHelper.setFont
 import com.mercadopago.android.px.internal.font.PxFont
 import com.mercadopago.android.px.internal.util.TextUtil
-import com.mercadopago.android.px.internal.util.ViewUtils
 import com.mercadopago.android.px.internal.viewmodel.ITextDescriptor
 import com.mercadopago.android.px.model.internal.Text
 import com.mercadopago.android.px.model.internal.TextAlignment
@@ -55,18 +58,15 @@ internal class MPTextView @JvmOverloads constructor(
                 textDescriptor == textDescriptors.last()
             }?.append(TextUtil.SPACE)
             endIndex = spannableStringBuilder.length
-            ViewUtils.setFontInSpannable(
-                context,
-                textDescriptor.getFont(context),
-                spannableStringBuilder,
+
+            spannableStringBuilder.setFont(getTypefaceFromPXFont(textDescriptor.getFont(context)),
                 startIndex,
                 endIndex
             )
-            ViewUtils.setColorInSpannable(
+            spannableStringBuilder.setColor(
                 textDescriptor.getTextColor(context),
                 startIndex,
-                endIndex,
-                spannableStringBuilder
+                endIndex
             )
             startIndex = spannableStringBuilder.length
             textDescriptor.getTextSize(context)?.let {
@@ -75,6 +75,10 @@ internal class MPTextView @JvmOverloads constructor(
         }
         text = spannableStringBuilder
         visibility = View.VISIBLE
+    }
+
+    private fun getTypefaceFromPXFont(font: PxFont): Typeface {
+        return FontHelper.getFont(context, font)!!
     }
 
     fun loadOrGone(textDescriptor: ITextDescriptor) {

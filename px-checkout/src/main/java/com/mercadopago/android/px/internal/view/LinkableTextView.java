@@ -10,6 +10,9 @@ import android.util.AttributeSet;
 import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.mercadopago.android.px.core.presentation.extensions.SpannableExtKt;
+import com.mercadopago.android.px.core.presentation.extensions.TextViewExtKt;
 import com.mercadopago.android.px.model.TermsAndConditionsLinks;
 import com.mercadopago.android.px.model.LinkableText;
 import com.mercadopago.android.px.internal.util.TextUtil;
@@ -43,7 +46,7 @@ public class LinkableTextView extends androidx.appcompat.widget.AppCompatTextVie
             for (final LinkableText.LinkablePhrase linkablePhrase : model.getLinkablePhrases()) {
                 addLinkToSpannable(spannableText, linkablePhrase);
             }
-            ViewUtils.setTextColor(this, model.getTextColor());
+            TextViewExtKt.setTextColor(this, model.getTextColor());
             setText(spannableText);
             setMovementMethod(LinkMovementMethod.getInstance());
         }
@@ -62,7 +65,7 @@ public class LinkableTextView extends androidx.appcompat.widget.AppCompatTextVie
                     listener.onLinkClicked(installmentLink);
                 }
             }, start, end, Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-            ViewUtils.setColorInSpannable(link.getTextColor(), start, end, spannable);
+            SpannableExtKt.setColor(spannable, link.getTextColor(), start, end);
         }
     }
 

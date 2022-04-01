@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Color
 import android.text.SpannableStringBuilder
 import androidx.annotation.ColorInt
+import com.mercadopago.android.px.core.presentation.extensions.setColor
 import com.mercadopago.android.px.internal.font.PxFont
 import com.mercadopago.android.px.internal.util.TextUtil
 import com.mercadopago.android.px.internal.util.ViewUtils
@@ -41,7 +42,7 @@ internal open class InterestFormatter(private val spannableStringBuilder: Spanna
 
     private fun updateTextColor(indexStart: Int, indexEnd: Int) {
         textColor?.let {
-            ViewUtils.setColorInSpannable(it, indexStart, indexEnd, spannableStringBuilder)
+            spannableStringBuilder.setColor(it, indexStart, indexEnd)
         }
     }
 

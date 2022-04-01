@@ -7,6 +7,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
+
+import com.mercadopago.android.px.core.presentation.extensions.SpannableExtKt;
 import com.mercadopago.android.px.internal.font.PxFont;
 import com.mercadopago.android.px.internal.util.TextUtil;
 import com.mercadopago.android.px.internal.util.ViewUtils;
@@ -87,7 +89,7 @@ public class SpannableFormatter extends ChainFormatter {
 
         final int length = hasSpace ? SEPARATOR.length() + text.length() : text.length();
 
-        ViewUtils.setColorInSpannable(textColor, indexStart, indexStart + length, spannableStringBuilder);
+        SpannableExtKt.setColor(spannableStringBuilder, textColor, indexStart, indexStart + length);
         ViewUtils.setFontInSpannable(context, font, spannableStringBuilder, indexStart, indexStart + length);
 
         return spannableStringBuilder;
