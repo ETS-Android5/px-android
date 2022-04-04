@@ -1,3 +1,7 @@
+## Unreleased
+_XX_04_2022_
+* FIX - Crash when customOptionId is invalid
+
 ##  VERSION 4.109.0
 _31_03_2022_
 * FIX - Parameter specified as non-null is null - parameter state
