@@ -7,7 +7,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
-
 import com.mercadopago.android.px.core.presentation.extensions.SpannableExtKt;
 import com.mercadopago.android.px.internal.font.PxFont;
 import com.mercadopago.android.px.internal.util.TextUtil;

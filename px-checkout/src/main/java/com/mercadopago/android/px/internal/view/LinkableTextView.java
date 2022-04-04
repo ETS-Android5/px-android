@@ -10,13 +10,11 @@ import android.util.AttributeSet;
 import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import com.mercadopago.android.px.core.presentation.extensions.SpannableExtKt;
 import com.mercadopago.android.px.core.presentation.extensions.TextViewExtKt;
 import com.mercadopago.android.px.model.TermsAndConditionsLinks;
 import com.mercadopago.android.px.model.LinkableText;
 import com.mercadopago.android.px.internal.util.TextUtil;
-import com.mercadopago.android.px.internal.util.ViewUtils;
 import java.util.Map;
 
 public class LinkableTextView extends androidx.appcompat.widget.AppCompatTextView {
