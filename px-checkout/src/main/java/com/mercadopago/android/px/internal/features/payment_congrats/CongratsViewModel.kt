@@ -38,10 +38,14 @@ internal class CongratsViewModel(
         if (connectionHelper.hasConnection()) {
             val descriptor = iPaymentDescriptor ?: paymentRepository.payment
             if (descriptor != null) {
-                val paymentResult = paymentRepository.createPaymentResult(descriptor)
-                congratsRepository.getPostPaymentData(descriptor, paymentResult, this@CongratsViewModel)
+                runCatching {
+                    val paymentResult = paymentRepository.createPaymentResult(descriptor)
+                    congratsRepository.getPostPaymentData(descriptor, paymentResult, this@CongratsViewModel)
+                }.onFailure {
+                    congratsResultLiveData.value = CongratsPostPaymentResult.BusinessError(it.message)
+                }
             } else {
-                congratsResultLiveData.value = CongratsPostPaymentResult.BusinessError
+                congratsResultLiveData.value = CongratsPostPaymentResult.BusinessError()
             }
         } else {
             manageNoConnection()

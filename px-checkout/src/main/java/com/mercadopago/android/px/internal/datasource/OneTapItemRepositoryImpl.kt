@@ -5,6 +5,7 @@ import com.mercadopago.android.px.internal.repository.DisabledPaymentMethodRepos
 import com.mercadopago.android.px.internal.repository.OneTapItemRepository
 import com.mercadopago.android.px.model.internal.OneTapItem
 import java.io.File
+import java.lang.IllegalStateException
 
 private const val EXPRESS_METADATA = "express_metadata_repository"
 
@@ -22,7 +23,7 @@ internal class OneTapItemRepositoryImpl(private val fileManager: FileManager,
         configure(value)
     }
 
-    override fun get(customOptionId: String): OneTapItem {
-        return value.first { CustomOptionIdSolver.compare(it, customOptionId) }
-    }
+    override fun get(customOptionId: String): OneTapItem =
+        value.firstOrNull { CustomOptionIdSolver.compare(it, customOptionId) }
+            ?: throw IllegalStateException("OneTapItem not found")
 }

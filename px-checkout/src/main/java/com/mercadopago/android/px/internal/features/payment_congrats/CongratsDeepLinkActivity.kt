@@ -86,7 +86,10 @@ internal class CongratsDeepLinkActivity : AppCompatActivity() {
                 message = getString(R.string.px_no_connection_message),
                 recoverable = true
             )
-            is CongratsPostPaymentResult.BusinessError -> handleError(recoverable = false)
+            is CongratsPostPaymentResult.BusinessError -> handleError(
+                recoverable = false,
+                message = congratsResult.message.orEmpty()
+            )
         }
     }
 
@@ -102,7 +105,7 @@ internal class CongratsDeepLinkActivity : AppCompatActivity() {
         }
     }
 
-    private fun handleError(message: String = "", recoverable: Boolean) {
+    private fun handleError(message: String, recoverable: Boolean) {
         ErrorUtil.startErrorActivity(this, MercadoPagoError(message, recoverable))
     }
 
