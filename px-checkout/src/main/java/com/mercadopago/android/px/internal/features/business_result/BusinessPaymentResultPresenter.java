@@ -14,6 +14,7 @@ import com.mercadopago.android.px.internal.view.PaymentResultBody;
 import com.mercadopago.android.px.model.ExitAction;
 import com.mercadopago.android.px.model.internal.PrimaryExitAction;
 import com.mercadopago.android.px.model.internal.SecondaryExitAction;
+import com.mercadopago.android.px.tracking.internal.BankInfoHelper;
 import com.mercadopago.android.px.tracking.internal.MPTracker;
 import com.mercadopago.android.px.tracking.internal.events.AbortEvent;
 import com.mercadopago.android.px.tracking.internal.events.CongratsSuccessDeepLink;
@@ -39,11 +40,12 @@ import com.mercadopago.android.px.tracking.internal.views.ResultViewTrack;
 
     /* default */ BusinessPaymentResultPresenter(@NonNull final PaymentCongratsModel model,
         @NonNull final FlowBehaviour flowBehaviour, final boolean isMP, @NonNull final MPTracker tracker,
-        @NonNull final BusinessPaymentResultMapper businessPaymentResultMapper) {
+        @NonNull final BusinessPaymentResultMapper businessPaymentResultMapper,
+        @NonNull final BankInfoHelper bankInfoHelper) {
         super(tracker);
         this.model = model;
         this.flowBehaviour = flowBehaviour;
-        viewTracker = new ResultViewTrack(model, isMP);
+        viewTracker = new ResultViewTrack(model, isMP, bankInfoHelper);
         this.businessPaymentResultMapper = businessPaymentResultMapper;
     }
 

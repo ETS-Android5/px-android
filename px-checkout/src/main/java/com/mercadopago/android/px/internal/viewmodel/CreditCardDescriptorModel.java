@@ -141,9 +141,7 @@ public final class CreditCardDescriptorModel extends PaymentMethodDescriptorView
     private void updateInterestDescriptionSpannable(@NonNull final SpannableStringBuilder spannableStringBuilder,
         @NonNull final Context context) {
         if (hasInterestFree()) {
-            new SpannableFormatter(spannableStringBuilder, context)
-                .withSpace()
-                .apply(interestFree.getInstallmentRow());
+            new SpannableFormatter(spannableStringBuilder, context);
         }
     }
 

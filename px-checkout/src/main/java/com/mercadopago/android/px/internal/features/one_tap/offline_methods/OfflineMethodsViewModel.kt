@@ -29,7 +29,8 @@ internal class OfflineMethodsViewModel(
     private val discountRepository: DiscountRepository,
     private val oneTapItemRepository: OneTapItemRepository,
     private val payerComplianceRepository: PayerComplianceRepository,
-    tracker: MPTracker) : BaseViewModel(tracker), OfflineMethods.ViewModel {
+    tracker: MPTracker
+) : BaseViewModel(tracker), OfflineMethods.ViewModel {
 
     private lateinit var viewTracker: OfflineMethodsViewTracker
     private var payerCompliance: OfflineMethodsCompliance? = null

@@ -37,12 +37,14 @@ internal class ViewModelFactory : ViewModelProvider.Factory {
                 )
             }
             modelClass.isAssignableFrom(OfflineMethodsViewModel::class.java) -> {
-                OfflineMethodsViewModel(paymentSetting,
+                OfflineMethodsViewModel(
+                    paymentSetting,
                     session.amountRepository,
                     session.discountRepository,
                     session.oneTapItemRepository,
                     session.configurationModule.payerComplianceRepository,
-                    session.tracker)
+                    session.tracker
+                )
             }
             modelClass.isAssignableFrom(SecurityCodeViewModel::class.java) -> {
                 SecurityCodeViewModel(

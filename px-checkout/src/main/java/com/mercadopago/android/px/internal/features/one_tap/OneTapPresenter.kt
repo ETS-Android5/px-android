@@ -34,19 +34,18 @@ import com.mercadopago.android.px.internal.mappers.PaymentMethodDescriptorMapper
 import com.mercadopago.android.px.internal.mappers.SplitHeaderMapper
 import com.mercadopago.android.px.internal.mappers.SummaryInfoMapper
 import com.mercadopago.android.px.internal.mappers.SummaryViewModelMapper
-import com.mercadopago.android.px.internal.repository.AmountConfigurationRepository
-import com.mercadopago.android.px.internal.repository.AmountRepository
-import com.mercadopago.android.px.internal.repository.ApplicationSelectionRepository
+import com.mercadopago.android.px.internal.repository.PayerCostSelectionRepository
+import com.mercadopago.android.px.internal.repository.PayerPaymentMethodKey
 import com.mercadopago.android.px.internal.repository.ChargeRepository
+import com.mercadopago.android.px.internal.repository.AmountRepository
+import com.mercadopago.android.px.internal.repository.AmountConfigurationRepository
+import com.mercadopago.android.px.internal.repository.ApplicationSelectionRepository
 import com.mercadopago.android.px.internal.repository.CustomTextsRepository
 import com.mercadopago.android.px.internal.repository.DisabledPaymentMethodRepository
 import com.mercadopago.android.px.internal.repository.DiscountRepository
 import com.mercadopago.android.px.internal.repository.ExperimentsRepository
 import com.mercadopago.android.px.internal.repository.ModalRepository
 import com.mercadopago.android.px.internal.repository.OneTapItemRepository
-import com.mercadopago.android.px.internal.repository.PayerComplianceRepository
-import com.mercadopago.android.px.internal.repository.PayerCostSelectionRepository
-import com.mercadopago.android.px.internal.repository.PayerPaymentMethodKey
 import com.mercadopago.android.px.internal.repository.PayerPaymentMethodRepository
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository
 import com.mercadopago.android.px.internal.tracking.TrackingRepository
@@ -69,6 +68,7 @@ import com.mercadopago.android.px.model.exceptions.MercadoPagoError
 import com.mercadopago.android.px.model.internal.FromExpressMetadataToPaymentConfiguration
 import com.mercadopago.android.px.model.internal.PaymentConfiguration
 import com.mercadopago.android.px.model.one_tap.CheckoutBehaviour
+import com.mercadopago.android.px.tracking.internal.BankInfoHelper
 import com.mercadopago.android.px.tracking.internal.MPTracker
 import com.mercadopago.android.px.tracking.internal.events.ConfirmEvent
 import com.mercadopago.android.px.tracking.internal.events.InstallmentsEventTrack
@@ -108,6 +108,7 @@ internal class OneTapPresenter(
     private val fromApplicationToApplicationInfo: FromApplicationToApplicationInfo,
     private val authorizationProvider: AuthorizationProvider,
     private val amountDescriptorViewModelFactory: AmountDescriptorViewModelFactory,
+    private val bankInfoHelper: BankInfoHelper,
     tracker: MPTracker
 ) : BasePresenterWithState<OneTap.View, OneTapState>(tracker), OneTap.Presenter, AmountDescriptorView.OnClickListener {
 
@@ -121,7 +122,8 @@ internal class OneTapPresenter(
             discountRepository.getCurrentConfiguration(), escManagerBehaviour.escCardIds,
             payerPaymentMethodRepository.getIdsWithSplitAllowed(),
             disabledPaymentMethodRepository.value.size,
-            experimentsRepository.getExperiments(Configuration.TrackingMode.NO_CONDITIONAL)
+            experimentsRepository.getExperiments(Configuration.TrackingMode.NO_CONDITIONAL),
+            bankInfoHelper
         )
     }
 
@@ -425,8 +427,12 @@ internal class OneTapPresenter(
         val confirmData = ConfirmData(
             ConfirmData.ReviewType.ONE_TAP, state.paymentMethodIndex,
             FromSelectedExpressMetadataToAvailableMethods(
-                applicationSelectionRepository, fromApplicationToApplicationInfo,
-                escManagerBehaviour.escCardIds, configuration.payerCost, configuration.splitPayment
+                applicationSelectionRepository,
+                fromApplicationToApplicationInfo,
+                escManagerBehaviour.escCardIds,
+                configuration.payerCost,
+                configuration.splitPayment,
+                bankInfoHelper
             ).map(getCurrentOneTapItem())
         )
         val experiment = experimentsRepository.getExperiment(KnownExperiment.INSTALLMENTS_HIGHLIGHT)

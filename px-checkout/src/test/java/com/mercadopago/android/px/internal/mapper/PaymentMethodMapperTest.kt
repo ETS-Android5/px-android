@@ -1,7 +1,7 @@
 package com.mercadopago.android.px.internal.mapper
 
-import com.mercadopago.android.px.internal.repository.PaymentMethodRepository
 import com.mercadopago.android.px.internal.mappers.PaymentMethodMapper
+import com.mercadopago.android.px.internal.repository.PaymentMethodRepository
 import com.mercadopago.android.px.mocks.CheckoutResponseStub
 import com.mercadopago.android.px.mocks.PaymentMethodStub
 import com.mercadopago.android.px.model.internal.CheckoutResponse
@@ -20,7 +20,7 @@ class PaymentMethodMapperTest {
     @Mock
     private lateinit var paymentMethodRepository: PaymentMethodRepository
 
-    @Test(expected = IllegalStateException::class)
+    @Test(expected = NullPointerException::class)
     fun whenPaymentMethodNotFound() {
         checkoutResponse = CheckoutResponseStub.ONLY_TICKET_MLA.get()
         val paymentMethodMock = PaymentMethodStub.VISA_CREDIT.get()

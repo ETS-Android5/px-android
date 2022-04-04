@@ -424,6 +424,7 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
             MapperProvider.INSTANCE.getFromApplicationToApplicationInfo(),
             configurationModule.getAuthorizationProvider(),
             FactoryProvider.INSTANCE.getAmountDescriptorViewModelFactory(),
+            Session.getInstance().getHelperModule().getBankInfoHelper(),
             session.getTracker()
         );
     }

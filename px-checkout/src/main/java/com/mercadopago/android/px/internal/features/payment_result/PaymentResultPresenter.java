@@ -25,6 +25,7 @@ import com.mercadopago.android.px.internal.viewmodel.PaymentModel;
 import com.mercadopago.android.px.model.Action;
 import com.mercadopago.android.px.model.IPaymentDescriptor;
 import com.mercadopago.android.px.model.internal.CongratsResponse;
+import com.mercadopago.android.px.tracking.internal.BankInfoHelper;
 import com.mercadopago.android.px.tracking.internal.MPTracker;
 import com.mercadopago.android.px.tracking.internal.events.ChangePaymentMethodEvent;
 import com.mercadopago.android.px.tracking.internal.events.CongratsSuccessDeepLink;
@@ -52,6 +53,7 @@ import com.mercadopago.android.px.tracking.internal.views.ResultViewTrack;
         @NonNull final FlowBehaviour flowBehaviour, final boolean isMP,
         @NonNull final PaymentCongratsModelMapper paymentCongratsMapper,
         @NonNull final PaymentResultViewModelMapper paymentResultViewModelMapper,
+        @NonNull final BankInfoHelper bankInfoHelper,
         @NonNull final MPTracker tracker) {
         super(tracker);
         this.paymentModel = paymentModel;
@@ -61,7 +63,7 @@ import com.mercadopago.android.px.tracking.internal.views.ResultViewTrack;
         final PaymentResultScreenConfiguration screenConfiguration =
             paymentSettings.getAdvancedConfiguration().getPaymentResultScreenConfiguration();
         this.paymentResultViewModelMapper = paymentResultViewModelMapper;
-        setViewTrack(new ResultViewTrack(paymentModel, screenConfiguration, paymentSettings, isMP));
+        setViewTrack(new ResultViewTrack(paymentModel, screenConfiguration, paymentSettings, isMP, bankInfoHelper));
     }
 
     @Override

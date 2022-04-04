@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import com.mercadopago.android.px.model.DiscountConfigurationModel;
 import com.mercadopago.android.px.model.internal.OneTapItem;
 import com.mercadopago.android.px.preferences.CheckoutPreference;
+import com.mercadopago.android.px.tracking.internal.BankInfoHelper;
 import com.mercadopago.android.px.tracking.internal.mapper.FromApplicationToApplicationInfo;
 import com.mercadopago.android.px.tracking.internal.mapper.FromExpressMetadataToAvailableMethods;
 import com.mercadopago.android.px.tracking.internal.mapper.FromItemToItemInfo;
@@ -31,7 +32,7 @@ public final class OneTapData extends SelectMethodData {
         final Iterable<OneTapItem> oneTapItems,
         final CheckoutPreference checkoutPreference, final DiscountConfigurationModel discountModel,
         @NonNull final Set<String> cardsWithEsc, @NonNull final Set<String> cardsWithSplit,
-        final int disabledMethodsQuantity) {
+        final int disabledMethodsQuantity, @NonNull final BankInfoHelper bankInfoHelper) {
 
         final List<ItemInfo> itemInfoList = new FromItemToItemInfo().map(checkoutPreference.getItems());
 
@@ -39,7 +40,7 @@ public final class OneTapData extends SelectMethodData {
             DiscountInfo.with(discountModel.getDiscount(), discountModel.getCampaign(), discountModel.isAvailable());
 
         return new OneTapData(
-            new FromExpressMetadataToAvailableMethods(fromApplicationToApplicationInfo, cardsWithEsc, cardsWithSplit)
+            new FromExpressMetadataToAvailableMethods(fromApplicationToApplicationInfo, cardsWithEsc, cardsWithSplit, bankInfoHelper)
                 .map(oneTapItems),
             checkoutPreference.getTotalAmount(), discountInfo, itemInfoList, disabledMethodsQuantity);
     }
