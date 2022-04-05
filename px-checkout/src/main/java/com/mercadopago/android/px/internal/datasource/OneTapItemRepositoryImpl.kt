@@ -5,7 +5,6 @@ import com.mercadopago.android.px.internal.repository.DisabledPaymentMethodRepos
 import com.mercadopago.android.px.internal.repository.OneTapItemRepository
 import com.mercadopago.android.px.model.internal.OneTapItem
 import java.io.File
-import java.lang.IllegalStateException
 
 private const val EXPRESS_METADATA = "express_metadata_repository"
 
