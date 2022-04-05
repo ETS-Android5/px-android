@@ -25,5 +25,5 @@ internal class OneTapItemRepositoryImpl(private val fileManager: FileManager,
 
     override fun get(customOptionId: String): OneTapItem =
         value.firstOrNull { CustomOptionIdSolver.compare(it, customOptionId) }
-            ?: throw IllegalStateException("OneTapItem not found")
+            ?: error("OneTapItem not found")
 }
