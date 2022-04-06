@@ -369,7 +369,7 @@ class OneTapPresenterTest {
         oneTapPresenter.attachView(view)
         verify { view.configurePayButton(any()) }
         verify { view.configurePaymentMethodHeader(any()) }
-        verify { view.showToolbarElementDescriptor(any()) }
+        verify { view.showHorizontalElementDescriptor(any()) }
         verify { view.updateAdapters(any()) }
         verify { view.updateViewForPosition(any(), any(), any(), any()) }
         verify { view.configureRenderMode(any()) }

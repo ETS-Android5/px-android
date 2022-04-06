@@ -41,6 +41,9 @@
         <attr name="px_element_subtitle_size" format="dimension"/>
         <attr name="px_element_subtitle_text_color" format="color"/>
         <attr name="px_element_subtitle_max_lines" format="integer"/>
+        <attr name="px_appear_animation" format="reference"/>
+        <attr name="px_disappear_animation" format="reference"/>
+        <attr name="px_exit_animation" format="reference"/>
         <attr name="android:gravity"/>
 
     </declare-styleable>

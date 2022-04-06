@@ -43,7 +43,7 @@ internal interface OneTap {
         )
         fun updateInstallmentsList(selectedIndex: Int, models: List<InstallmentRowHolder.Model?>)
         fun animateInstallmentsList()
-        fun showToolbarElementDescriptor(elementDescriptorModel: ElementDescriptorView.Model)
+        fun showHorizontalElementDescriptor(elementDescriptorModel: ElementDescriptorView.Model)
         fun collapseInstallmentsSelection()
         fun showDiscountDetailDialog(currency: Currency, discountModel: DiscountConfigurationModel)
         fun showDisabledPaymentMethodDetailDialog(disabledPaymentMethod: DisabledPaymentMethod, currentStatus: StatusMetadata)

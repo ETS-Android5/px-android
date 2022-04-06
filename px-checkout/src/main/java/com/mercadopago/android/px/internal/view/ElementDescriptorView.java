@@ -3,17 +3,20 @@ package com.mercadopago.android.px.internal.view;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
-import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import androidx.annotation.AnimRes;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import com.mercadopago.android.px.R;
 import com.mercadopago.android.px.internal.extensions.ImageViewExtensionsKt;
 import com.mercadopago.android.px.internal.util.TextUtil;
@@ -25,6 +28,10 @@ public class ElementDescriptorView extends LinearLayout {
     private TextView title;
     private TextView subtitle;
     private ImageView icon;
+    private Animation appearAnimation;
+    private Animation disappearAnimation;
+    private Animation exitAnimation;
+    private final Animation slideDownIn = AnimationUtils.loadAnimation(getContext(), R.anim.px_summary_slide_down_in);
 
     public ElementDescriptorView(final Context context) {
         this(context, null);
@@ -50,6 +57,9 @@ public class ElementDescriptorView extends LinearLayout {
         int subtitleTextColor;
         int subtitleTextMaxLines;
         int gravity;
+        int appearAnimation;
+        int disappearAnimation;
+        int exitAnimation;
         try {
             iconHeight =
                 a.getDimension(R.styleable.PXElementDescriptorView_px_element_icon_height, LayoutParams.WRAP_CONTENT);
@@ -67,12 +77,15 @@ public class ElementDescriptorView extends LinearLayout {
             subtitleTextMaxLines =
                 a.getInt(R.styleable.PXElementDescriptorView_px_element_subtitle_max_lines, DEFAULT_MAX_LINES);
             gravity = a.getInteger(R.styleable.PXElementDescriptorView_android_gravity, Gravity.CENTER);
+            appearAnimation = a.getResourceId(R.styleable.PXElementDescriptorView_px_appear_animation, -1);
+            disappearAnimation = a.getResourceId(R.styleable.PXElementDescriptorView_px_disappear_animation, -1);
+            exitAnimation = a.getResourceId(R.styleable.PXElementDescriptorView_px_exit_animation, -1);
         } finally {
             a.recycle();
         }
 
         init(iconWidth, iconHeight, titleSize, titleTextColor, titleTextMaxLines, subtitleSize, subtitleTextColor,
-            subtitleTextMaxLines, gravity);
+            subtitleTextMaxLines, gravity, appearAnimation, disappearAnimation, exitAnimation);
     }
 
     public void setIconSize(final int width, final int height) {
@@ -84,7 +97,8 @@ public class ElementDescriptorView extends LinearLayout {
 
     private void init(final float iconWidth, final float iconHeight, final float titleSize, final int titleTextColor,
         final int titleTextMaxLines, final float subtitleSize, final int subtitleTextColor,
-        final int subtitleTextMaxLines, final int gravity) {
+        final int subtitleTextMaxLines, final int gravity,
+        @AnimRes final int appearAnimation, @AnimRes final int disappearAnimation, @AnimRes final int exitAnimation) {
         inflate(getContext(), R.layout.px_view_element_descriptor, this);
         title = findViewById(R.id.title);
         subtitle = findViewById(R.id.subtitle);
@@ -94,6 +108,9 @@ public class ElementDescriptorView extends LinearLayout {
         configureTextView(subtitle, subtitleSize, subtitleTextColor, subtitleTextMaxLines, gravity);
         setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         post(() -> title.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null));
+        this.appearAnimation = AnimationUtils.loadAnimation(getContext(), appearAnimation);
+        this.disappearAnimation = AnimationUtils.loadAnimation(getContext(), disappearAnimation);
+        this.exitAnimation = AnimationUtils.loadAnimation(getContext(), exitAnimation);
     }
 
     private void configureTextView(final TextView text, final float textSize, final int textColor,
@@ -120,6 +137,22 @@ public class ElementDescriptorView extends LinearLayout {
         }
 
         ImageViewExtensionsKt.loadOrElse(icon, model.getUrlIcon(), model.getIconResourceId(), new CircleTransform());
+    }
+
+    public void animateExit(@Nullable final Long duration) {
+        if (duration != null) {
+            exitAnimation.setDuration(duration);
+        }
+        startAnimation(exitAnimation);
+    }
+
+    public void animateAppear(@NonNull final Boolean shouldSlide) {
+        startAnimation(shouldSlide ? slideDownIn : appearAnimation);
+    }
+
+    public void animateDisappear() {
+        startAnimation(disappearAnimation);
+        setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
     }
 
     public static class Model {
