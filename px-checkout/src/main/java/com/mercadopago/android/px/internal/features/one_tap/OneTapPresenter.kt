@@ -433,7 +433,7 @@ internal class OneTapPresenter(
                 configuration.payerCost,
                 configuration.splitPayment,
                 bankInfoHelper
-            ).map(getCurrentOneTapItem())
+            ).map(oneTapItemRepository[configuration.customOptionId])
         )
         val experiment = experimentsRepository.getExperiment(KnownExperiment.INSTALLMENTS_HIGHLIGHT)
         if (getCurrentPayerCosts().size > 1 && experiment != null) {
