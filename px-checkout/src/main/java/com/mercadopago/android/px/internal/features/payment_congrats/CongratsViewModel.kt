@@ -12,7 +12,10 @@ import com.mercadopago.android.px.internal.repository.PaymentSettingRepository
 import com.mercadopago.android.px.internal.viewmodel.PaymentModel
 import com.mercadopago.android.px.model.IPaymentDescriptor
 import com.mercadopago.android.px.model.Payment
+import com.mercadopago.android.px.model.exceptions.MercadoPagoError
 import com.mercadopago.android.px.tracking.internal.MPTracker
+import com.mercadopago.android.px.tracking.internal.TrackWrapper
+import com.mercadopago.android.px.tracking.internal.events.FrictionEventTracker
 import com.mercadopago.android.px.tracking.internal.events.NoConnectionFrictionTracker
 import kotlinx.android.parcel.Parcelize
 
@@ -42,7 +45,15 @@ internal class CongratsViewModel(
                     val paymentResult = paymentRepository.createPaymentResult(descriptor)
                     congratsRepository.getPostPaymentData(descriptor, paymentResult, this@CongratsViewModel)
                 }.onFailure {
-                    congratsResultLiveData.value = CongratsPostPaymentResult.BusinessError(it.message)
+                    track(
+                        FrictionEventTracker.with(
+                            "${TrackWrapper.BASE_PATH}/post_payment_create_result",
+                            FrictionEventTracker.Id.INVALID_POST_PAYMENT_CREATE_RESULT,
+                            FrictionEventTracker.Style.NON_SCREEN,
+                            MercadoPagoError.createNotRecoverable(it.message.orEmpty())
+                        )
+                    )
+                    congratsResultLiveData.value = CongratsPostPaymentResult.BusinessError()
                 }
             } else {
                 congratsResultLiveData.value = CongratsPostPaymentResult.BusinessError()

@@ -62,6 +62,10 @@ public class UserSelectionService implements UserSelectionRepository {
         removePayerCostSelection();
     }
 
+    private void removeCustomOptionId() {
+        sharedPreferences.edit().remove(CUSTOM_OPTION_ID).apply();
+    }
+
     /**
      * it's important to select and then add the installments there is a side effect after changing the payment method
      * that deletes the old payer cost cache
@@ -162,5 +166,6 @@ public class UserSelectionService implements UserSelectionRepository {
         removePaymentMethodSelection();
         removeIssuerSelection();
         removeCardSelection();
+        removeCustomOptionId();
     }
 }
