@@ -13,6 +13,7 @@ import com.mercadopago.android.px.internal.viewmodel.PaymentModel
 import com.mercadopago.android.px.model.BusinessPayment
 import com.mercadopago.android.px.model.Payment
 import com.mercadopago.android.px.model.Sites
+import java.lang.IllegalArgumentException
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
@@ -99,7 +100,7 @@ class CongratsViewModelTest {
         congratsViewModel.createCongratsResult(null)
 
         verify(congratsResultLiveData).onChanged(CongratsPostPaymentResult.Loading)
-        verify(congratsResultLiveData).onChanged(CongratsPostPaymentResult.BusinessError)
+        verify(congratsResultLiveData).onChanged(any<CongratsPostPaymentResult.BusinessError>())
     }
 
     @Test
@@ -227,5 +228,19 @@ class CongratsViewModelTest {
 
         verify(postPaymentUrlsLiveData).onChanged(CongratsPostPaymentUrlsResponse.OnOpenInWebView(redirectUrl))
         verify(exitFlowLiveData).onChanged(CongratsPostPaymentUrlsResponse.OnExitWith(1, null))
+    }
+
+    @Test
+    fun `When createCongratsResult there is connectivity and IPaymentDescriptor is not null and createPaymentResult fail`() {
+        whenever(connectionHelper.hasConnection()).thenReturn(true)
+        val paymentModel = mock<PaymentModel>{
+            on { payment }.thenReturn(mock())
+        }
+        whenever(paymentModel.payment?.let { paymentRepository.createPaymentResult(it) }).thenThrow(IllegalArgumentException())
+
+        congratsViewModel.createCongratsResult(paymentModel.payment)
+
+        verify(congratsResultLiveData).onChanged(CongratsPostPaymentResult.Loading)
+        verify(congratsResultLiveData).onChanged(any<CongratsPostPaymentResult.BusinessError>())
     }
 }
