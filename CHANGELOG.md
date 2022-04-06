@@ -1,5 +1,6 @@
 ## Unreleased
 _XX_04_2022_
+* FIX - Crash when installments of payerCosts for credit cards is null.
 * FIX - Crash when customOptionId is invalid
 
 ##  VERSION 4.109.0
