@@ -544,8 +544,8 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
     }
 
     @Override
-    public void showToolbarElementDescriptor(@NonNull final ElementDescriptorView.Model elementDescriptorModel) {
-        summaryView.showToolbarElementDescriptor(elementDescriptorModel);
+    public void showHorizontalElementDescriptor(@NonNull final ElementDescriptorView.Model elementDescriptorModel) {
+        summaryView.showHorizontalElementDescriptor(elementDescriptorModel);
     }
 
     @Override

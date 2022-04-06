@@ -159,7 +159,7 @@ internal class OneTapPresenter(
             }
         })
         view.configurePaymentMethodHeader(getVariants())
-        view.showToolbarElementDescriptor(elementDescriptorModel)
+        view.showHorizontalElementDescriptor(elementDescriptorModel)
         view.configureRenderMode(getVariants())
         view.configureAdapters(paymentSettingRepository.site, paymentSettingRepository.currency)
         view.updateAdapters(model)
