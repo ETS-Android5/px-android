@@ -1,3 +1,7 @@
+## Unreleased
+_XX_04_2022_
+* ENHANCEMENT - Migration of some utils methods to use the core ones
+
 ##  VERSION 4.109.0
 _31_03_2022_
 * FIX - Parameter specified as non-null is null - parameter state
