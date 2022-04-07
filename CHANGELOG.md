@@ -1,5 +1,5 @@
-## Unreleased
-_XX_04_2022_
+## VERSION 4.110.0
+_07_04_2022_
 * FIX - Crash when installments of payerCosts for credit cards is null.
 * ENHANCEMENT - Summary header logic refactor
 * ENHANCEMENT - Errors are handled in postPaymentFlow
