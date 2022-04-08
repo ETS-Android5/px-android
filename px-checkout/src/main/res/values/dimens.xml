@@ -88,4 +88,14 @@
     <dimen name="pulseStrokeWidth">2dp</dimen>
     <dimen name="pulseRadius">64dp</dimen>
 
+    <!-- Weight -->
+    <dimen name="weight_semi_bold">600</dimen>
+
+    <!-- Consumer Credits Tag -->
+    <dimen name="cc_tag_small_corner_radius">12dp</dimen>
+    <dimen name="cc_tag_medium_margin">8dp</dimen>
+    <dimen name="card_drawer_tag_vertical_padding">6dp</dimen>
+    <dimen name="card_drawer_tag_vertical_padding_small">2dp</dimen>
+    <dimen name="cc_tag_font">11dp</dimen>
+
 </resources>
