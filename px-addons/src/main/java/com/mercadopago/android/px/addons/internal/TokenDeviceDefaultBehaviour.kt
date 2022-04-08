@@ -9,9 +9,17 @@ import java.math.BigDecimal
 internal class TokenDeviceDefaultBehaviour : TokenDeviceBehaviour {
     override val isFeatureAvailable: Boolean = false
     override val tokensStatus: List<TokenState> = listOf()
-    override fun getTokenize(flowId: String, cardId: String) = Tokenize()
+    override fun getTokenize(
+        flowId: String,
+        cardId: String,
+        vProvisionedTokenId: String?
+    ) = Tokenize()
     override fun getTokenStatus(cardId: String) = TokenState(cardId, TokenState.State.NONE)
-    override suspend fun getRemotePaymentToken(cardId: String, amount: BigDecimal): RemotePaymentToken {
-        throw NotImplementedError("Remote payment is not implemented")
+    override suspend fun getRemotePaymentToken(
+        cardId: String,
+        amount: BigDecimal,
+        vProvisionedTokenId: String?
+    ): RemotePaymentToken {
+        TODO("Not yet implemented")
     }
 }

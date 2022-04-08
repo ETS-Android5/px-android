@@ -1,6 +1,6 @@
 package com.mercadopago.android.px.addons.tokenization
 
-import android.app.Activity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 
 const val TOKENIZATION_RESPONSE = "tokenization_response"
@@ -22,7 +22,7 @@ open class Tokenize {
         DummyTokenizationActivity.start(fragment, requestCode)
     }
 
-    open fun start(activity: Activity, requestCode: Int) {
+    open fun start(activity: AppCompatActivity, requestCode: Int) {
         DummyTokenizationActivity.start(activity, requestCode)
     }
 }
