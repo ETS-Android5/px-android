@@ -6,9 +6,22 @@ import com.mercadopago.android.px.addons.model.TokenState
 import java.math.BigDecimal
 
 interface TokenDeviceBehaviour {
+
     val isFeatureAvailable: Boolean
+
     val tokensStatus: List<TokenState>
+
     fun getTokenStatus(cardId: String): TokenState
-    fun getTokenize(flowId: String, cardId: String): Tokenize
-    suspend fun getRemotePaymentToken(cardId: String, amount: BigDecimal): RemotePaymentToken
+
+    fun getTokenize(
+        flowId: String,
+        cardId: String,
+        vProvisionedTokenId: String? = null
+    ): Tokenize
+
+    suspend fun getRemotePaymentToken(
+        cardId: String,
+        amount: BigDecimal,
+        vProvisionedTokenId: String? = null
+    ): RemotePaymentToken
 }
