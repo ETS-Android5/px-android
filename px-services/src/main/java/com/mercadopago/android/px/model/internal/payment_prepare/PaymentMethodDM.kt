@@ -1,21 +1,21 @@
 package com.mercadopago.android.px.model.internal.payment_prepare
 
 class PaymentMethodDM(
-    val paymentMethodType: String,
-    val paymentMethodId: String,
+    val id: String,
+    val paymentTypeId: String,
     val cardInfo: CardInfo?,
-    val source: Collection<String>,
-    val splitPaymentMethods: Collection<PaymentMethodDM>,
+    val source: List<String>,
+    val splitPaymentMethods: List<PaymentMethodDM>?,
     val discountInfo: DiscountInfo?
 ) {
     data class DiscountInfo(
         val campaignId: String? = null,
-        val discountToken: String? = null
+        val token: String? = null
     )
 
     data class CardInfo(
+        val id: String,
         val issuerId: Long,
-        val bin: String,
-        val cardId: String
+        val bin: String
     )
 }

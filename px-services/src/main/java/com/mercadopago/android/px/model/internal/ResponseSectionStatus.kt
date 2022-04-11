@@ -7,10 +7,11 @@ import com.google.gson.annotations.SerializedName
  */
 data class ResponseSectionStatus(
     val code: Code,
-    val message: String
+    val message: String?
 ) {
     enum class Code {
         @SerializedName("PX_OK") OK,
-        @SerializedName("PX_NON_RECOVERABLE") NON_RECOVERABLE,
+        @SerializedName("PX_MISMATCH") MISMATCH,
+        @SerializedName("PX_USE_FALLBACK") USE_FALLBACK,
     }
 }
