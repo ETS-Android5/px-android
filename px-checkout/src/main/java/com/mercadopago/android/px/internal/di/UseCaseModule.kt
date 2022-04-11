@@ -126,6 +126,9 @@ internal class UseCaseModule(
             val session = Session.getInstance()
             return PreparePaymentUseCase(
                 session.preparePaymentRepository,
+                session.paymentDiscountRepository,
+                session.discountRepository,
+                session.amountConfigurationRepository,
                 session.tracker
             )
         }

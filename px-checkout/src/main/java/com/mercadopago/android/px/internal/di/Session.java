@@ -26,6 +26,7 @@ import com.mercadopago.android.px.internal.datasource.ExperimentsRepositoryImpl;
 import com.mercadopago.android.px.internal.datasource.ModalRepositoryImpl;
 import com.mercadopago.android.px.internal.datasource.OneTapItemRepositoryImpl;
 import com.mercadopago.android.px.internal.datasource.PayerPaymentMethodRepositoryImpl;
+import com.mercadopago.android.px.internal.datasource.PaymentDiscountRepository;
 import com.mercadopago.android.px.internal.datasource.PaymentMethodRepositoryImpl;
 import com.mercadopago.android.px.internal.datasource.PaymentService;
 import com.mercadopago.android.px.internal.datasource.PrefetchInitService;
@@ -46,6 +47,7 @@ import com.mercadopago.android.px.internal.repository.ExperimentsRepository;
 import com.mercadopago.android.px.internal.repository.ModalRepository;
 import com.mercadopago.android.px.internal.repository.OneTapItemRepository;
 import com.mercadopago.android.px.internal.repository.PayerPaymentMethodRepository;
+import com.mercadopago.android.px.internal.repository.PaymentDiscountRepositoryImpl;
 import com.mercadopago.android.px.internal.repository.PaymentMethodRepository;
 import com.mercadopago.android.px.internal.repository.PaymentRepository;
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository;
@@ -92,6 +94,7 @@ public final class Session extends ApplicationModule {
     private ConfigurationSolver configurationSolver;
     private CardHolderAuthenticatorRepositoryImpl cardHolderAuthenticatorRepository;
     private PreparePaymentRepository preparePaymentRepository;
+    private PaymentDiscountRepository paymentDiscountRepository;
     private UseCaseModule useCaseModule;
     private FactoryModule factoryModule;
     private CustomOptionIdSolver customOptionIdSolver;
@@ -463,9 +466,22 @@ public final class Session extends ApplicationModule {
     @NonNull
     public PreparePaymentRepository getPreparePaymentRepository() {
         if (preparePaymentRepository == null) {
-            preparePaymentRepository = new PreparePaymentRepositoryImpl();
+            preparePaymentRepository = new PreparePaymentRepositoryImpl(
+                configurationModule.getPaymentSettings(),
+                configurationModule.getUserSelectionRepository(),
+                payerPaymentMethodRepository,
+                networkModule.getNetworkApi()
+            );
         }
         return preparePaymentRepository;
+    }
+
+    @NonNull
+    public PaymentDiscountRepository getPaymentDiscountRepository() {
+        if (paymentDiscountRepository == null) {
+            paymentDiscountRepository = new PaymentDiscountRepositoryImpl(getSharedPreferences());
+        }
+        return paymentDiscountRepository;
     }
 
     private void configIds(@NonNull final MercadoPagoCheckout checkout) {
