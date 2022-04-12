@@ -35,13 +35,13 @@ internal class PreparePaymentUseCase(
     }
 
     private fun handleDiscountsResponse(response: PreparePaymentResponse) = with(response) {
-        val status = status[SECTION_DISCOUNTS]
-        when (status?.code) {
+        val discountsStatus = status?.get(SECTION_DISCOUNTS)
+        when (discountsStatus?.code) {
             ResponseSectionStatus.Code.OK,
-            ResponseSectionStatus.Code.USE_FALLBACK -> configureDiscounts(paymentMethod)
+            ResponseSectionStatus.Code.USE_FALLBACK -> configureDiscounts(paymentMethod!!)
             ResponseSectionStatus.Code.MISMATCH ->
                 // Something happened with the discount that resulted in a mismatch with the one that we requested
-                status.message // This message has to be raised to the upper layer to show an recoverable error screen
+                discountsStatus.message // This message has to be raised to the upper layer to show an recoverable error screen
             else -> Unit // Empty status for discounts means we don't have to do anything
         }
     }
@@ -51,15 +51,13 @@ internal class PreparePaymentUseCase(
         paymentDiscountRepository.configure(
             PaymentDiscounts(
                 primaryPaymentMethodDiscount = mergePaymentMethodDiscount(paymentMethod, isSplit, false),
-                splitPaymentMethodsDiscounts = paymentMethod.splitPaymentMethods?.map {
-                    mergePaymentMethodDiscount(it, isSplit, true)
-                }
+                splitPaymentMethodDiscount = mergePaymentMethodDiscount(paymentMethod.splitPaymentMethods?.get(0), isSplit, true)
             )
         )
     }
 
     /**
-     * Merges the PaymentMethodDM discount with the discount info. his info is taken from DiscountRepository when it's not a
+     * Merges the PaymentMethodDM discount with the discount info. This info is taken from DiscountRepository when it's not a
      * split payment and from SplitConfiguration in AmountConfigurationRepository when it's a split payment.
      * In both cases we merge the token with this info so the object it's ready to be used without further processing.
      *
@@ -69,25 +67,23 @@ internal class PreparePaymentUseCase(
      * @param isSplit Represents if the payment is split.
      * @param isSplitPaymentMethod Represents if the received payment method is a split payment method.
      */
-    private fun mergePaymentMethodDiscount(paymentMethod: PaymentMethodDM, isSplit: Boolean, isSplitPaymentMethod: Boolean) =
-        with(paymentMethod) {
-            val discount = if (isSplit) {
-                mergeSplitPaymentMethodDiscount(isSplitPaymentMethod)
+    private fun mergePaymentMethodDiscount(paymentMethod: PaymentMethodDM?, isSplit: Boolean, isSplitPaymentMethod: Boolean) =
+        paymentMethod?.let {
+            if (isSplit) {
+                getSplitPaymentMethodDiscount(isSplitPaymentMethod)
             } else {
-                mergeRegularPaymentMethod(PayerPaymentMethodKey(id, paymentTypeId))
-            }
-            if (discountInfo?.token.isNotNull()) {
-                Discount.replaceWith(discount, discountInfo?.token)
-            } else {
-                // If token is null it means we need to use the fallback which is the discount as it came from checkout init
-                discount
+                getRegularPaymentMethodDiscount(PayerPaymentMethodKey(it.id, it.paymentTypeId))
+            }.run {
+                it.discountInfo?.token?.let { token ->
+                    Discount.replaceWith(this, token)
+                } ?: this // if discount info or token are null we use this as a fallback
             }
         }
 
     /**
      * Maps a payment method discount that is NOT for a split payment.
      */
-    private fun mergeRegularPaymentMethod(payerPaymentMethodKey: PayerPaymentMethodKey): Discount? {
+    private fun getRegularPaymentMethodDiscount(payerPaymentMethodKey: PayerPaymentMethodKey): Discount? {
         val checkoutInitDiscount = discountRepository.getConfigurationFor(payerPaymentMethodKey).discount
         return runCatching {
             // We replace discount token with the correct one for this configuration (this is used as a fallback)
@@ -98,7 +94,7 @@ internal class PreparePaymentUseCase(
     /**
      * Maps a payment method discount that is for a split payment
      */
-    private fun mergeSplitPaymentMethodDiscount(isSplitPaymentMethod: Boolean): Discount? {
+    private fun getSplitPaymentMethodDiscount(isSplitPaymentMethod: Boolean): Discount? {
         val splitConfiguration = amountConfigurationRepository.getCurrentConfiguration().splitConfiguration
         checkNotNull(splitConfiguration)
         return if (isSplitPaymentMethod) {
