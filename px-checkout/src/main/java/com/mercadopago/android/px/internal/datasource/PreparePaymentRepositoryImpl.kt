@@ -13,16 +13,19 @@ import com.mercadopago.android.px.internal.services.PreparePaymentService
 import com.mercadopago.android.px.internal.util.ApiUtil
 import com.mercadopago.android.px.model.Card
 import com.mercadopago.android.px.model.PaymentMethod
+import com.mercadopago.android.px.model.Split
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError
 import com.mercadopago.android.px.model.internal.DiscountParamsConfigurationDM
 import com.mercadopago.android.px.model.internal.payment_prepare.PaymentMethodDM
 import com.mercadopago.android.px.model.internal.payment_prepare.PreparePaymentBody
 import com.mercadopago.android.px.model.internal.payment_prepare.PreparePaymentResponse
+import java.math.BigDecimal
 
 internal class PreparePaymentRepositoryImpl(
     private val paymentSettingRepository: PaymentSettingRepository,
     private val userSelectionRepository: UserSelectionRepository,
     private val payerPaymentMethodRepository: PayerPaymentMethodRepository,
+    private val amountConfigurationRepository: AmountConfigurationRepository,
     private val networkApi: NetworkApi
 ) : PreparePaymentRepository {
 
@@ -39,8 +42,8 @@ internal class PreparePaymentRepositoryImpl(
             checkNotNull(customOptionId) { "User selected custom option id must not be null" }
             mapPaymentMethodDM(
                 paymentMethod!!,
-                // In future we might have more than one secondary payment method so we pass a list
-                if (secondaryPaymentMethod.isNotNull()) listOf(secondaryPaymentMethod!!) else null,
+                paymentSettingRepository.checkoutPreference?.totalAmount,
+                secondaryPaymentMethod,
                 card,
                 customOptionId!!
             )
@@ -72,16 +75,27 @@ internal class PreparePaymentRepositoryImpl(
 
     private fun mapPaymentMethodDM(
         primaryPaymentMethod: PaymentMethod,
-        splitPaymentMethods: List<PaymentMethod>? = null,
+        amount: BigDecimal?,
+        splitPaymentMethod: PaymentMethod? = null,
         card: Card? = null,
         customOptionId: String
     ): PaymentMethodDM {
         return PaymentMethodDM(
             primaryPaymentMethod.id,
             primaryPaymentMethod.paymentTypeId,
+            amount,
             card?.let { PaymentMethodDM.CardInfo(it.id!!, it.issuer?.id!!, it.firstSixDigits!!) },
             emptyList(), // TODO: Replace with source list for meli coins when it's added
-            splitPaymentMethods?.map { mapPaymentMethodDM(it, null, null, it.id) },
+            // We pass a list because this endpoint is prepared so in future we could have multiple split payment methods
+            listOfNotNull(splitPaymentMethod?.let {
+                mapPaymentMethodDM(
+                    it,
+                    amountConfigurationRepository.getCurrentConfiguration().splitConfiguration?.secondaryPaymentMethod?.amount,
+                    null,
+                    null,
+                    it.id
+                )
+            }),
             PaymentMethodDM.DiscountInfo(payerPaymentMethodRepository[customOptionId]?.defaultAmountConfiguration)
         )
     }

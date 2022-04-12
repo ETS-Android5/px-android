@@ -15,6 +15,6 @@ internal interface PaymentDiscountRepository {
 
     data class PaymentDiscounts(
         val primaryPaymentMethodDiscount: Discount?,
-        val splitPaymentMethodsDiscounts: List<Discount?>?
+        val splitPaymentMethodDiscount: Discount?
     )
 }

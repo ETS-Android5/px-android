@@ -1,8 +1,11 @@
 package com.mercadopago.android.px.model.internal.payment_prepare
 
+import java.math.BigDecimal
+
 class PaymentMethodDM(
     val id: String,
     val paymentTypeId: String,
+    val amount: BigDecimal?,
     val cardInfo: CardInfo?,
     val source: List<String>,
     val splitPaymentMethods: List<PaymentMethodDM>?,
