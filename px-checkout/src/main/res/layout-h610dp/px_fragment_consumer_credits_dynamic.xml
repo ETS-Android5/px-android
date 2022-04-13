@@ -76,7 +76,7 @@
 
             <include
                 android:id="@+id/card_tag_container"
-                layout="@layout/px_cc_drawer_medium_tag"
+                layout="@layout/px_cc_drawer_small_tag"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:visibility="gone"
