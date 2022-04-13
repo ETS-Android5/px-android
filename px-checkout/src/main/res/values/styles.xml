@@ -172,7 +172,7 @@
     <style name="background_consumer_credits">
         <item name="android:adjustViewBounds">true</item>
         <item name="android:scaleType">fitXY</item>
-        <item name="android:src">@drawable/px_card_shape_layer</item>
+        <item name="android:foreground">@drawable/px_background_cc</item>
     </style>
 
     <style name="logo_consumer_credits">
