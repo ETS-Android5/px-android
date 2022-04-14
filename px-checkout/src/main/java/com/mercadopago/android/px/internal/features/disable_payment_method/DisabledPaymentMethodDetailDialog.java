@@ -64,7 +64,7 @@ public class DisabledPaymentMethodDetailDialog extends MeliDialog {
 
         Session.getInstance().getTracker().track(new DisabledPaymentMethodDetailViewTracker());
 
-        content.setText(status != null && !status.isEnabled() ?
+        content.setText(status != null && !status.isEnabled() && status.getSecondaryMessage() != null ?
             status.getSecondaryMessage().getMessage() : getContent(statusDetail));
 
         final View linkText = view.findViewById(R.id.px_dialog_detail_payment_method_disable_link);
@@ -101,7 +101,7 @@ public class DisabledPaymentMethodDetailDialog extends MeliDialog {
             resId = R.string.px_dialog_detail_payment_method_disable_insufficient_amount;
             break;
         default:
-            resId = 0;
+            resId = R.string.px_payment_method_disable_title;
         }
 
         //noinspection ConstantConditions
