@@ -1,5 +1,5 @@
-## Unreleased
-_XX_04_2022
+##  VERSION 4.111.0
+_18_04_2022
 * FEATURE - New layout consumer credits and new tag.
 * FEATURE - Adjust tag card consumer credits with size medium.
 * FEATURE - New background consumer credits.
