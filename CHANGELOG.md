@@ -1,6 +1,7 @@
 ## Unreleased
 _XX_04_2022
 * FEATURE - Added view binding for OneTapFragment.
+* FEATURE - PX as payment method selector.
 
 ##  VERSION 4.111.0
 _18_04_2022

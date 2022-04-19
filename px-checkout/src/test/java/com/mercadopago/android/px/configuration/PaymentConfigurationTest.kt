@@ -6,6 +6,7 @@ import com.mercadopago.android.px.core.SplitPaymentProcessor
 import com.mercadopago.android.px.core.internal.NoOpPaymentProcessor
 import com.mercadopago.android.px.internal.datasource.DefaultPaymentProcessor
 import com.mercadopago.android.px.model.internal.CheckoutType
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -28,15 +29,16 @@ class PaymentConfigurationTest {
     fun v1ConstructorShouldSetBothPaymentProcessors() {
         val paymentConfiguration = PaymentConfiguration.Builder(splitPaymentProcessor).build()
         paymentConfiguration.paymentProcessor.assertEquals(splitPaymentProcessor)
-        paymentConfiguration.paymentProcessorV2.assertEquals(splitPaymentProcessor)
+        assertNotNull(paymentConfiguration.paymentProcessorV2)
+        paymentConfiguration.paymentProcessorV2?.assertEquals(splitPaymentProcessor)
     }
 
     @Test
     fun v2ConstructorShouldSetNoOpPaymentProcessorOnV1() {
         val paymentConfiguration = PaymentConfiguration.Builder(paymentProcessorV2).build()
         assertTrue(paymentConfiguration.paymentProcessor is NoOpPaymentProcessor)
-        paymentConfiguration.paymentProcessorV2.assertEquals(paymentProcessorV2)
-        paymentConfiguration.paymentProcessorV2.assertEquals(paymentProcessorV2)
+        assertNotNull(paymentConfiguration.paymentProcessorV2)
+        paymentConfiguration.paymentProcessorV2?.assertEquals(paymentProcessorV2)
     }
 
     @Test

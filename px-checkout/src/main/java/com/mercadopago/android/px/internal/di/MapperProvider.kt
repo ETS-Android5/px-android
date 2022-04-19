@@ -33,6 +33,7 @@ import com.mercadopago.android.px.internal.mappers.PaymentResultMethodMapper
 import com.mercadopago.android.px.internal.mappers.SummaryInfoMapper
 import com.mercadopago.android.px.internal.view.SummaryDetailDescriptorMapper
 import com.mercadopago.android.px.internal.viewmodel.drawables.PaymentMethodDrawableItemMapper
+import com.mercadopago.android.px.model.internal.PaymentConfigurationMapper
 import com.mercadopago.android.px.tracking.internal.mapper.FromApplicationToApplicationInfo
 
 internal object MapperProvider {
@@ -203,4 +204,17 @@ internal object MapperProvider {
                 paymentResultMethodMapper
             )
         }
+
+    val paymentConfigurationMapper: PaymentConfigurationMapper
+        get() {
+            val session = Session.getInstance()
+            val configurationModule = session.configurationModule
+            return PaymentConfigurationMapper(
+                session.amountConfigurationRepository,
+                configurationModule.payerCostSelectionRepository,
+                configurationModule.applicationSelectionRepository,
+                session.customOptionIdSolver
+            )
+        }
+
 }

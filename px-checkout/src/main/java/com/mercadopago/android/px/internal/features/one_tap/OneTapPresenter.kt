@@ -7,8 +7,10 @@ import com.mercadopago.android.px.addons.model.internal.Configuration
 import com.mercadopago.android.px.addons.model.internal.Experiment
 import com.mercadopago.android.px.configuration.DynamicDialogConfiguration
 import com.mercadopago.android.px.core.DynamicDialogCreator
+import com.mercadopago.android.px.core.internal.FlowConfigurationProvider
 import com.mercadopago.android.px.core.internal.TriggerableQueue
 import com.mercadopago.android.px.internal.base.BasePresenterWithState
+import com.mercadopago.android.px.internal.base.use_case.TokenizeWithEscUseCase
 import com.mercadopago.android.px.internal.core.AuthorizationProvider
 import com.mercadopago.android.px.internal.datasource.CustomOptionIdSolver
 import com.mercadopago.android.px.internal.domain.CheckoutUseCase
@@ -21,12 +23,10 @@ import com.mercadopago.android.px.internal.features.AmountDescriptorViewModelFac
 import com.mercadopago.android.px.internal.features.generic_modal.ActionType
 import com.mercadopago.android.px.internal.features.generic_modal.ActionTypeWrapper
 import com.mercadopago.android.px.internal.features.generic_modal.FromModalToGenericDialogItem
+import com.mercadopago.android.px.internal.features.one_tap.confirm_button.ConfirmButton
 import com.mercadopago.android.px.internal.features.one_tap.offline_methods.OfflineMethods.Companion.shouldLaunch
 import com.mercadopago.android.px.internal.features.one_tap.slider.HubAdapter
-import com.mercadopago.android.px.internal.features.pay_button.PayButton
-import com.mercadopago.android.px.internal.features.pay_button.PayButton.OnReadyForPaymentCallback
-import com.mercadopago.android.px.internal.features.pay_button.PayButton.StateChange
-import com.mercadopago.android.px.internal.features.pay_button.PayButton.ViewTrackPathCallback
+import com.mercadopago.android.px.internal.features.pay_button.PaymentState
 import com.mercadopago.android.px.internal.mappers.ConfirmButtonViewModelMapper
 import com.mercadopago.android.px.internal.mappers.ElementDescriptorMapper
 import com.mercadopago.android.px.internal.mappers.InstallmentViewModelMapper
@@ -56,6 +56,7 @@ import com.mercadopago.android.px.internal.view.AmountDescriptorView
 import com.mercadopago.android.px.internal.view.SummaryDetailDescriptorMapper
 import com.mercadopago.android.px.internal.view.experiments.ExperimentHelper
 import com.mercadopago.android.px.internal.view.experiments.ExperimentHelper.getVariantFrom
+import com.mercadopago.android.px.internal.viewmodel.FlowConfigurationModel
 import com.mercadopago.android.px.internal.viewmodel.PostPaymentAction
 import com.mercadopago.android.px.internal.viewmodel.PostPaymentAction.ActionController
 import com.mercadopago.android.px.internal.viewmodel.SummaryModel
@@ -65,8 +66,10 @@ import com.mercadopago.android.px.model.PayerCost
 import com.mercadopago.android.px.model.PaymentData
 import com.mercadopago.android.px.model.exceptions.ApiException
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError
-import com.mercadopago.android.px.model.internal.FromExpressMetadataToPaymentConfiguration
+import com.mercadopago.android.px.model.exceptions.SecurityCodeRequiredError
+import com.mercadopago.android.px.model.internal.PaymentConfigurationMapper
 import com.mercadopago.android.px.model.internal.PaymentConfiguration
+import com.mercadopago.android.px.model.internal.PaymentConfigurationData
 import com.mercadopago.android.px.model.one_tap.CheckoutBehaviour
 import com.mercadopago.android.px.tracking.internal.BankInfoHelper
 import com.mercadopago.android.px.tracking.internal.MPTracker
@@ -108,6 +111,9 @@ internal class OneTapPresenter(
     private val fromApplicationToApplicationInfo: FromApplicationToApplicationInfo,
     private val authorizationProvider: AuthorizationProvider,
     private val amountDescriptorViewModelFactory: AmountDescriptorViewModelFactory,
+    private val tokenizeUseCase: TokenizeWithEscUseCase,
+    private val paymentConfigurationMapper: PaymentConfigurationMapper,
+    private val flowConfigurationProvider: FlowConfigurationProvider,
     private val bankInfoHelper: BankInfoHelper,
     tracker: MPTracker
 ) : BasePresenterWithState<OneTap.View, OneTapState>(tracker), OneTap.Presenter, AmountDescriptorView.OnClickListener {
@@ -132,7 +138,7 @@ internal class OneTapPresenter(
     }
 
     private fun onFailToRetrieveInitResponse(apiException: ApiException) {
-        view.showError(MercadoPagoError.createNotRecoverable(apiException, ApiUtil.RequestOrigin.POST_INIT))
+        view.showErrorActivity(MercadoPagoError.createNotRecoverable(apiException, ApiUtil.RequestOrigin.POST_INIT))
     }
 
     override fun loadViewModel() {
@@ -152,17 +158,20 @@ internal class OneTapPresenter(
         val confirmButtonViewModels = ConfirmButtonViewModelMapper(
             disabledPaymentMethodRepository
         ).map(oneTapItemList)
+
         val model = HubAdapter.Model(paymentModels, summaryModels, splitHeaderModels, confirmButtonViewModels)
-        view.configurePayButton(object : StateChange {
-            override fun overrideStateChange(uiState: PayButton.State): Boolean {
+
+        view.configureFlow(flowConfigurationProvider.getFlowConfiguration())
+
+        view.configurePayButton(object : ConfirmButton.StateChange {
+            override fun overrideStateChange(uiState: ConfirmButton.State): Boolean {
                 return overridePayButtonStateChange(uiState)
             }
         })
         view.configurePaymentMethodHeader(getVariants())
         view.showHorizontalElementDescriptor(elementDescriptorModel)
         view.configureRenderMode(getVariants())
-        view.configureAdapters(paymentSettingRepository.site, paymentSettingRepository.currency)
-        view.updateAdapters(model)
+        view.configureAdapters(model)
         updateElements()
         view.updatePaymentMethods(paymentMethodDrawableItemMapper.map(oneTapItemList))
         if (shouldLaunch(oneTapItemList)) {
@@ -188,7 +197,7 @@ internal class OneTapPresenter(
         }
     }
 
-    override fun onGetViewTrackPath(callback: ViewTrackPathCallback) {
+    override fun onGetViewTrackPath(callback: ConfirmButton.ViewTrackPathCallback) {
         callback.call(viewTrack!!.getTrack()!!.path)
     }
 
@@ -212,7 +221,8 @@ internal class OneTapPresenter(
         updateInstallments()
         view.animateInstallmentsList()
         val oneTapItem = getCurrentOneTapItem()
-        val amountConfiguration = amountConfigurationRepository.getConfigurationSelectedFor(customOptionIdSolver[oneTapItem])
+        val amountConfiguration =
+            amountConfigurationRepository.getConfigurationSelectedFor(customOptionIdSolver[oneTapItem])
         track(InstallmentsEventTrack(oneTapItem, amountConfiguration!!))
     }
 
@@ -234,7 +244,8 @@ internal class OneTapPresenter(
 
     private fun getCurrentPayerCosts(): List<PayerCost> {
         val oneTapItem = getCurrentOneTapItem()
-        val amountConfiguration = amountConfigurationRepository.getConfigurationSelectedFor(customOptionIdSolver[oneTapItem])
+        val amountConfiguration =
+            amountConfigurationRepository.getConfigurationSelectedFor(customOptionIdSolver[oneTapItem])
         return amountConfiguration?.getAppliedPayerCost(state.splitSelectionState.userWantsToSplit()) ?: emptyList()
     }
 
@@ -359,7 +370,7 @@ internal class OneTapPresenter(
     }
 
     @SuppressLint("WrongConstant")
-    override fun handlePrePaymentAction(callback: OnReadyForPaymentCallback) {
+    override fun handlePrePaymentAction(callback: ConfirmButton.OnReadyForProcessCallback) {
         if (!handleBehaviour(CheckoutBehaviour.Type.TAP_PAY)) {
             requireCurrentConfiguration(callback)
         }
@@ -394,15 +405,9 @@ internal class OneTapPresenter(
         }
     }
 
-    private fun requireCurrentConfiguration(callback: OnReadyForPaymentCallback) {
-        val oneTapItem = getCurrentOneTapItem()
-        val configuration = FromExpressMetadataToPaymentConfiguration(
-            amountConfigurationRepository,
-            state.splitSelectionState,
-            payerCostSelectionRepository,
-            applicationSelectionRepository,
-            customOptionIdSolver
-        ).map(oneTapItem)
+    private fun requireCurrentConfiguration(callback: ConfirmButton.OnReadyForProcessCallback) {
+        val paymentConfigurationData = PaymentConfigurationData(getCurrentOneTapItem(), state.splitSelectionState)
+        val configuration = paymentConfigurationMapper.map(paymentConfigurationData)
         callback.call(configuration)
     }
 
@@ -422,7 +427,7 @@ internal class OneTapPresenter(
         }
     }
 
-    override fun onPaymentExecuted(configuration: PaymentConfiguration) {
+    override fun onProcessExecuted(configuration: PaymentConfiguration) {
         val experiments: MutableList<Experiment> = ArrayList()
         val confirmData = ConfirmData(
             ConfirmData.ReviewType.ONE_TAP, state.paymentMethodIndex,
@@ -442,11 +447,11 @@ internal class OneTapPresenter(
         track(ConfirmEvent(confirmData, experiments))
     }
 
-    private fun overridePayButtonStateChange(uiState: PayButton.State): Boolean {
+    private fun overridePayButtonStateChange(uiState: ConfirmButton.State): Boolean {
         val payerPaymentMethodId = customOptionIdSolver[getCurrentOneTapItem()]
         val paymentTypeId = applicationSelectionRepository[payerPaymentMethodId].paymentMethod.type
-        return uiState === PayButton.State.ENABLE && (getCurrentOneTapItem().isNewCard ||
-                getCurrentOneTapItem().isOfflineMethods || disabledPaymentMethodRepository.hasKey(
+        return uiState === ConfirmButton.State.ENABLE && (getCurrentOneTapItem().isNewCard ||
+            getCurrentOneTapItem().isOfflineMethods || disabledPaymentMethodRepository.hasKey(
             PayerPaymentMethodKey(payerPaymentMethodId, paymentTypeId)
         ))
     }
@@ -499,4 +504,27 @@ internal class OneTapPresenter(
     )
 
     private fun getVariant(knownVariant: KnownVariant) = getVariantFrom(experimentsRepository.experiments, knownVariant)
+
+    fun tokenize(callback: ConfirmButton.OnEnqueueResolvedCallback) {
+        tokenizeUseCase.execute(Unit,
+            success = { callback.success() },
+            failure = {
+                resolveTokenizationError(it)
+                callback.failure(it)
+            })
+    }
+
+    private fun resolveTokenizationError(error: MercadoPagoError) {
+        if (error is SecurityCodeRequiredError) {
+            val paymentConfigurationData = PaymentConfigurationData(getCurrentOneTapItem(), state.splitSelectionState)
+            val paymentState = PaymentState(
+                paymentConfigurationMapper.map(paymentConfigurationData),
+                card = error.card,
+                reason = error.reason
+            )
+            view.onSecurityCodeRequired(paymentState)
+        } else {
+            view.showError(error)
+        }
+    }
 }

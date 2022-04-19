@@ -82,7 +82,7 @@ class PaymentResultMethodTest : BasicRobolectricTest() {
         val infoTitle = "infoTitle"
         val infoSubtitle = "infoSubtitle"
         val paymentInfo = setupPaymentInfo(infoTitle, infoSubtitle, paymentMethodStatement, paymentMethodName, lastFourDigits)
-        methodView.setModel(PaymentResultMethodMapper(getContext(), PaymentResultAmountMapper).map(paymentInfo.build(), null))
+        methodView.setModel(PaymentResultMethodMapper(getContext(), PaymentResultAmountMapper).map(paymentInfo.build()))
         with(methodView) {
             getField<AdapterLinearLayout>("details").apply {
                 assertVisible()

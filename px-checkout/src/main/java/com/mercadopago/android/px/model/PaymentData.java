@@ -126,7 +126,7 @@ public final class PaymentData implements Serializable {
      * modify this class.
      */
     @Deprecated
-    public void setToken(final Token token) {
+    public void setToken(@Nullable final Token token) {
         this.token = token;
     }
 

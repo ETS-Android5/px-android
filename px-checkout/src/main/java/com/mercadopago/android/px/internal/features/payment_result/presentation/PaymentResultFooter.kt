@@ -38,7 +38,7 @@ internal class PaymentResultFooter(context: Context, attrs: AttributeSet?, defSt
         inflate(context, R.layout.px_payment_result_footer, this)
         primaryButton = findViewById(R.id.primary_button)
         secondaryButton = findViewById(R.id.secondary_button)
-        payButtonContainer = findViewById(R.id.pay_button)
+        payButtonContainer = findViewById(R.id.confirm_button_container)
         autoReturn = findViewById(R.id.auto_return)
         autoReturnLabel = autoReturn.findViewById(R.id.label)
         separator = findViewById(R.id.separator)

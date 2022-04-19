@@ -3,6 +3,7 @@ package com.mercadopago.android.px.internal.features.payment_congrats
 import com.mercadopago.android.px.internal.base.BaseState
 import com.mercadopago.android.px.internal.base.BaseViewModelWithState
 import com.mercadopago.android.px.internal.core.ConnectionHelper
+import com.mercadopago.android.px.internal.datasource.PaymentResultFactory
 import com.mercadopago.android.px.internal.features.checkout.PostCongratsDriver
 import com.mercadopago.android.px.internal.features.checkout.PostPaymentUrlsMapper
 import com.mercadopago.android.px.internal.livedata.MediatorSingleLiveData
@@ -26,6 +27,7 @@ internal class CongratsViewModel(
     private val connectionHelper: ConnectionHelper,
     private val paymentSettingRepository: PaymentSettingRepository,
     private val postPaymentUrlsMapper: PostPaymentUrlsMapper,
+    private val paymentResultFactory: PaymentResultFactory,
     tracker: MPTracker
 ) : BaseViewModelWithState<CongratsViewModel.State>(tracker), CongratsRepository.PostPaymentCallback {
 
@@ -42,7 +44,7 @@ internal class CongratsViewModel(
             val descriptor = iPaymentDescriptor ?: paymentRepository.payment
             if (descriptor != null) {
                 runCatching {
-                    val paymentResult = paymentRepository.createPaymentResult(descriptor)
+                    val paymentResult = paymentResultFactory.create(descriptor)
                     congratsRepository.getPostPaymentData(descriptor, paymentResult, this@CongratsViewModel)
                 }.onFailure {
                     track(

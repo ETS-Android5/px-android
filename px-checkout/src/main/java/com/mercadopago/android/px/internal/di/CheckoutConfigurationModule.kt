@@ -1,12 +1,16 @@
 package com.mercadopago.android.px.internal.di
 
 import android.content.Context
+import com.mercadopago.android.px.core.internal.FlowConfigurationProvider
 import com.mercadopago.android.px.internal.datasource.*
 import com.mercadopago.android.px.internal.repository.*
 
 internal class CheckoutConfigurationModule(context: Context) : ConfigurationModule(context) {
 
-    val userSelectionRepository: UserSelectionRepository by lazy { UserSelectionService(sharedPreferences, fileManager) }
+    val userSelectionRepository: UserSelectionRepository by lazy {
+        UserSelectionService(sharedPreferences,
+            fileManager)
+    }
     val paymentSettings: PaymentSettingRepository by lazy { PaymentSettingService(sharedPreferences, fileManager) }
     val disabledPaymentMethodRepository: DisabledPaymentMethodRepository by lazy {
         DisabledPaymentMethodRepositoryImpl(fileManager)
@@ -47,6 +51,15 @@ internal class CheckoutConfigurationModule(context: Context) : ConfigurationModu
                     internalPayerCostSelectionRepository = it
                 }
         }
+    private var internalFlowConfigurationProvider: FlowConfigurationProvider? = null
+    val flowConfigurationProvider: FlowConfigurationProvider
+        get() {
+            if (internalFlowConfigurationProvider == null) {
+                internalFlowConfigurationProvider = FlowConfigurationProvider(paymentSettings.paymentConfiguration)
+            }
+
+            return internalFlowConfigurationProvider!!
+        }
 
     override fun reset() {
         super.reset()
@@ -61,5 +74,6 @@ internal class CheckoutConfigurationModule(context: Context) : ConfigurationModu
         internalCustomTextsRepository = null
         internalApplicationSelectionRepository = null
         internalPayerCostSelectionRepository = null
+        internalFlowConfigurationProvider = null
     }
 }

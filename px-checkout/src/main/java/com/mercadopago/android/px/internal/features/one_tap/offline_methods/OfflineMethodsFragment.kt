@@ -14,35 +14,38 @@ import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentContainerView
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.mercadopago.android.px.R
 import com.mercadopago.android.px.core.BackHandler
-import com.mercadopago.android.px.internal.di.Session
+import com.mercadopago.android.px.internal.di.viewModel
 import com.mercadopago.android.px.internal.extensions.addOnLaidOutListener
 import com.mercadopago.android.px.internal.extensions.invisible
 import com.mercadopago.android.px.internal.extensions.setHeight
 import com.mercadopago.android.px.internal.extensions.visible
-import com.mercadopago.android.px.internal.features.pay_button.PayButton
-import com.mercadopago.android.px.internal.features.pay_button.PayButton.OnReadyForPaymentCallback
-import com.mercadopago.android.px.internal.features.pay_button.PayButtonFragment
+import com.mercadopago.android.px.internal.features.one_tap.confirm_button.ConfirmButton
+import com.mercadopago.android.px.internal.features.one_tap.confirm_button.ConfirmButtonFragment
 import com.mercadopago.android.px.internal.font.PxFont
 import com.mercadopago.android.px.internal.util.TextUtil
 import com.mercadopago.android.px.internal.util.ViewUtils
 import com.mercadopago.android.px.internal.util.nonNullObserve
-import com.mercadopago.android.px.internal.util.nonNullObserveOnce
 import com.mercadopago.android.px.internal.view.MPTextView
 import com.mercadopago.android.px.internal.viewmodel.AmountLocalized
 import com.mercadopago.android.px.model.internal.PaymentConfiguration
 
 internal class OfflineMethodsFragment : Fragment(), OfflineMethods.View, BackHandler {
+
+    private val viewModel by viewModel<OfflineMethodsViewModel>()
+
     private var fadeInAnimation: Animation? = null
     private var fadeOutAnimation: Animation? = null
 
     private lateinit var panIndicator: View
-    private lateinit var payButtonFragment: PayButtonFragment
+    private lateinit var confirmButtonContainer: FragmentContainerView
+    private lateinit var confirmButton: ConfirmButton.View
     private lateinit var totalAmountTextView: TextView
     private lateinit var header: View
     private lateinit var footer: View
@@ -52,7 +55,6 @@ internal class OfflineMethodsFragment : Fragment(), OfflineMethods.View, BackHan
 
     private lateinit var bottomSheet: View
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<View>
-    private lateinit var viewModel: OfflineMethodsViewModel
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.px_fragment_offline_methods, container, false)
@@ -60,7 +62,6 @@ internal class OfflineMethodsFragment : Fragment(), OfflineMethods.View, BackHan
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = Session.getInstance().viewModelModule.get(this, OfflineMethodsViewModel::class.java)
 
         with(view) {
             header = findViewById(R.id.header)
@@ -70,16 +71,32 @@ internal class OfflineMethodsFragment : Fragment(), OfflineMethods.View, BackHan
             bottomSheet = findViewById(R.id.offline_methods_bottom_sheet)
             totalAmountTextView = findViewById(R.id.total_amount)
             bottomDescription = findViewById(R.id.bottom_description)
+            confirmButtonContainer = view.findViewById(R.id.confirm_button_container)
             configureRecycler(findViewById(R.id.methods))
         }
-
-        payButtonFragment = childFragmentManager.findFragmentById(R.id.pay_button) as PayButtonFragment
-        payButtonFragment.disable()
 
         configureBottomSheet(savedInstanceState)
 
         with(viewModel) {
-            onViewLoaded().nonNullObserveOnce(viewLifecycleOwner) { model -> draw(model) }
+            offlineMethodsModelLiveData.nonNullObserve(viewLifecycleOwner, ::draw)
+            flowConfigurationLiveData.nonNullObserve(viewLifecycleOwner) {
+                val currentFragment = childFragmentManager
+                    .findFragmentByTag(ConfirmButtonFragment.TAG)
+                    as ConfirmButton.View?
+                if (currentFragment == null) {
+                    confirmButton = it.confirmButton
+
+                    childFragmentManager
+                        .beginTransaction()
+                        .add(R.id.confirm_button_container, confirmButton as Fragment, ConfirmButtonFragment.TAG)
+                        .commitAllowingStateLoss()
+                } else {
+                    confirmButton = currentFragment
+                }
+
+                confirmButton.disable()
+
+            }
             deepLinkLiveData.nonNullObserve(viewLifecycleOwner) { startKnowYourCustomerFlow(it) }
         }
     }
@@ -146,7 +163,7 @@ internal class OfflineMethodsFragment : Fragment(), OfflineMethods.View, BackHan
         adapter = OfflineMethodsAdapter(object : OfflineMethods.OnMethodSelectedListener {
             override fun onItemSelected(selectedItem: OfflineMethodItem) {
                 viewModel.onMethodSelected(selectedItem)
-                payButtonFragment.enable()
+                confirmButton.enable()
             }
         }).also { recycler.adapter = it }
     }
@@ -172,7 +189,7 @@ internal class OfflineMethodsFragment : Fragment(), OfflineMethods.View, BackHan
     }
 
     override fun handleBack(): Boolean {
-        val isExploding = payButtonFragment.isExploding()
+        val isExploding = confirmButton.isExploding()
         val isVisible = bottomSheetBehavior.state != BottomSheetBehavior.STATE_HIDDEN
         if (!isExploding && isVisible) {
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
@@ -209,15 +226,15 @@ internal class OfflineMethodsFragment : Fragment(), OfflineMethods.View, BackHan
         startActivity(intent)
     }
 
-    override fun getViewTrackPath(callback: PayButton.ViewTrackPathCallback) {
+    override fun getViewTrackPath(callback: ConfirmButton.ViewTrackPathCallback) {
         viewModel.onGetViewTrackPath(callback)
     }
 
-    override fun prePayment(callback: OnReadyForPaymentCallback) {
+    override fun onPreProcess(callback: ConfirmButton.OnReadyForProcessCallback) {
         viewModel.onPrePayment(callback)
     }
 
-    override fun onPaymentExecuted(configuration: PaymentConfiguration) {
+    override fun onProcessExecuted(configuration: PaymentConfiguration) {
         viewModel.onPaymentExecuted(configuration)
     }
 

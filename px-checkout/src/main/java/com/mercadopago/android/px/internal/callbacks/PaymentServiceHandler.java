@@ -11,12 +11,6 @@ import com.mercadopago.android.px.tracking.internal.model.Reason;
 public interface PaymentServiceHandler extends OnPaymentListener {
 
     /**
-     * When flow is a saved card that does not have token saved this method will be called to re-enter CVV and create
-     * the token again.
-     */
-    void onCvvRequired(@NonNull final Card card, @NonNull final Reason reason);
-
-    /**
      * When payment processor has visual interaction this method will be called.
      */
     void onVisualPayment();

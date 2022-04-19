@@ -1,6 +1,7 @@
 package com.mercadopago.android.px.internal.features.payment_result
 
 import com.mercadopago.android.px.configuration.AdvancedConfiguration
+import com.mercadopago.android.px.internal.features.security_code.RenderModeMapper
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository
 import com.mercadopago.android.px.internal.viewmodel.PaymentModel
 import com.mercadopago.android.px.model.PaymentData
@@ -23,6 +24,8 @@ class PaymentResultPresenterTest {
 
     @Mock
     private lateinit var tracker: MPTracker
+    @Mock
+    private lateinit var renderModeMapper: RenderModeMapper
 
     private lateinit var presenter: PaymentResultPresenter
 
@@ -54,6 +57,7 @@ class PaymentResultPresenterTest {
             true,
             mock(),
             mock(),
+            renderModeMapper,
             bankInfoHelper,
             tracker
         )

@@ -2,37 +2,36 @@ package com.mercadopago.android.px.internal.features.one_tap
 
 import com.mercadolibre.android.cardform.internal.LifecycleListener
 import com.mercadopago.android.px.internal.base.MvpView
-import com.mercadopago.android.px.internal.features.pay_button.PayButton.StateChange
 import com.mercadopago.android.px.internal.features.one_tap.slider.HubAdapter
 import com.mercadopago.android.px.internal.viewmodel.drawables.DrawableFragmentItem
 import com.mercadopago.android.px.internal.viewmodel.SplitSelectionState
 import com.mercadopago.android.px.internal.features.one_tap.installments.InstallmentRowHolder
 import com.mercadopago.android.px.internal.view.ElementDescriptorView
-import com.mercadopago.android.px.model.DiscountConfigurationModel
 import com.mercadopago.android.px.model.internal.DisabledPaymentMethod
-import com.mercadopago.android.px.model.StatusMetadata
 import com.mercadopago.android.px.core.DynamicDialogCreator
 import com.mercadopago.android.px.internal.experiments.Variant
 import com.mercadopago.android.px.internal.features.generic_modal.GenericDialogItem
 import com.mercadopago.android.px.internal.util.CardFormWrapper
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError
-import com.mercadopago.android.px.model.PayerCost
-import com.mercadopago.android.px.internal.features.pay_button.PayButton.OnReadyForPaymentCallback
 import com.mercadopago.android.px.internal.features.generic_modal.ActionType
+import com.mercadopago.android.px.internal.features.one_tap.confirm_button.ConfirmButton
 import com.mercadopago.android.px.internal.viewmodel.PostPaymentAction
-import com.mercadopago.android.px.internal.features.pay_button.PayButton.ViewTrackPathCallback
+import com.mercadopago.android.px.internal.viewmodel.FlowConfigurationModel
+import com.mercadopago.android.px.internal.features.pay_button.PaymentState
 import com.mercadopago.android.px.model.Currency
-import com.mercadopago.android.px.model.Site
+import com.mercadopago.android.px.model.PayerCost
+import com.mercadopago.android.px.model.DiscountConfigurationModel
+import com.mercadopago.android.px.model.StatusMetadata
 import com.mercadopago.android.px.model.internal.Application
 import com.mercadopago.android.px.model.internal.PaymentConfiguration
 
 internal interface OneTap {
     interface View : MvpView {
-        fun configurePayButton(listener: StateChange)
+        fun configurePayButton(listener: ConfirmButton.StateChange)
         fun clearAdapters()
         fun configureRenderMode(variants: List<@JvmSuppressWildcards Variant>)
-        fun configureAdapters(site: Site, currency: Currency)
-        fun updateAdapters(model: HubAdapter.Model)
+        fun configureFlow(flowConfigurationModel: FlowConfigurationModel)
+        fun configureAdapters(model: HubAdapter.Model)
         fun updatePaymentMethods(items: List<@JvmSuppressWildcards DrawableFragmentItem?>)
         fun cancel()
         fun updateViewForPosition(
@@ -59,6 +58,8 @@ internal interface OneTap {
         fun hideLoading()
         fun configurePaymentMethodHeader(variant: List<@JvmSuppressWildcards Variant>)
         fun showError(mercadoPagoError: MercadoPagoError)
+        fun showErrorActivity(mercadoPagoError: MercadoPagoError)
+        fun onSecurityCodeRequired(paymentState: PaymentState)
     }
 
     interface Presenter {
@@ -74,15 +75,15 @@ internal interface OneTap {
         fun onSplitChanged(isChecked: Boolean)
         fun onHeaderClicked()
         fun onOtherPaymentMethodClicked()
-        fun handlePrePaymentAction(callback: OnReadyForPaymentCallback)
+        fun handlePrePaymentAction(callback: ConfirmButton.OnReadyForProcessCallback)
         fun handleGenericDialogAction(type: ActionType)
-        fun onPaymentExecuted(paymentConfiguration: PaymentConfiguration)
+        fun onProcessExecuted(paymentConfiguration: PaymentConfiguration)
         fun handleDeepLink()
         fun onPostPaymentAction(postPaymentAction: PostPaymentAction)
         fun onCardAdded(cardId: String, callback: LifecycleListener.Callback)
         fun onCardFormResult()
         fun onApplicationChanged(paymentTypeId: String)
-        fun onGetViewTrackPath(callback: ViewTrackPathCallback)
+        fun onGetViewTrackPath(callback: ConfirmButton.ViewTrackPathCallback)
     }
 
     enum class NavigationState {

@@ -16,11 +16,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
+import com.mercadolibre.android.andesui.snackbar.action.AndesSnackbarAction;
+import com.mercadolibre.android.andesui.snackbar.duration.AndesSnackbarDuration;
+import com.mercadolibre.android.andesui.snackbar.type.AndesSnackbarType;
 import com.mercadolibre.android.cardform.CardForm;
 import com.mercadolibre.android.cardform.internal.CardFormWithFragment;
 import com.mercadolibre.android.cardform.internal.LifecycleListener;
@@ -36,6 +40,8 @@ import com.mercadopago.android.px.internal.di.Session;
 import com.mercadopago.android.px.internal.experiments.ScrolledVariant;
 import com.mercadopago.android.px.internal.experiments.Variant;
 import com.mercadopago.android.px.internal.experiments.VariantHandler;
+import com.mercadopago.android.px.internal.extensions.ViewExtensionsKt;
+import com.mercadopago.android.px.internal.features.Constants;
 import com.mercadopago.android.px.internal.features.TermsAndConditionsActivity;
 import com.mercadopago.android.px.internal.features.disable_payment_method.DisabledPaymentMethodDetailDialog;
 import com.mercadopago.android.px.internal.features.generic_modal.GenericDialog;
@@ -47,6 +53,8 @@ import com.mercadopago.android.px.internal.features.one_tap.add_new_card.sheet_o
 import com.mercadopago.android.px.internal.features.one_tap.animations.ExpandAndCollapseAnimation;
 import com.mercadopago.android.px.internal.features.one_tap.animations.FadeAnimationListener;
 import com.mercadopago.android.px.internal.features.one_tap.animations.FadeAnimator;
+import com.mercadopago.android.px.internal.features.one_tap.confirm_button.ConfirmButton;
+import com.mercadopago.android.px.internal.features.one_tap.confirm_button.ConfirmButtonFragment;
 import com.mercadopago.android.px.internal.features.one_tap.installments.InstallmentRowHolder;
 import com.mercadopago.android.px.internal.features.one_tap.installments.InstallmentsAdapter;
 import com.mercadopago.android.px.internal.features.one_tap.installments.InstallmentsAdapterV2;
@@ -61,8 +69,10 @@ import com.mercadopago.android.px.internal.features.one_tap.slider.SummaryViewAd
 import com.mercadopago.android.px.internal.features.one_tap.slider.TitlePagerAdapter;
 import com.mercadopago.android.px.internal.features.one_tap.slider.TitlePagerAdapterV2;
 import com.mercadopago.android.px.internal.features.pay_button.PayButton;
-import com.mercadopago.android.px.internal.features.pay_button.PayButtonFragment;
+import com.mercadopago.android.px.internal.features.pay_button.PaymentState;
+import com.mercadopago.android.px.internal.features.security_code.RenderModeMapper;
 import com.mercadopago.android.px.internal.features.security_code.SecurityCodeFragment;
+import com.mercadopago.android.px.internal.features.security_code.model.SecurityCodeParams;
 import com.mercadopago.android.px.internal.util.CardFormWrapper;
 import com.mercadopago.android.px.internal.util.ErrorUtil;
 import com.mercadopago.android.px.internal.util.Logger;
@@ -75,6 +85,7 @@ import com.mercadopago.android.px.internal.view.ScrollingPagerIndicator;
 import com.mercadopago.android.px.internal.view.TitlePager;
 import com.mercadopago.android.px.internal.view.animator.OneTapTransition;
 import com.mercadopago.android.px.internal.view.experiments.ExperimentHelper;
+import com.mercadopago.android.px.internal.viewmodel.FlowConfigurationModel;
 import com.mercadopago.android.px.internal.viewmodel.GenericColor;
 import com.mercadopago.android.px.internal.viewmodel.PostPaymentAction;
 import com.mercadopago.android.px.internal.viewmodel.SplitSelectionState;
@@ -82,7 +93,6 @@ import com.mercadopago.android.px.internal.viewmodel.drawables.DrawableFragmentI
 import com.mercadopago.android.px.model.Currency;
 import com.mercadopago.android.px.model.DiscountConfigurationModel;
 import com.mercadopago.android.px.model.PayerCost;
-import com.mercadopago.android.px.model.Site;
 import com.mercadopago.android.px.model.StatusMetadata;
 import com.mercadopago.android.px.model.TermsAndConditionsLinks;
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError;
@@ -97,6 +107,7 @@ import static android.app.Activity.RESULT_OK;
 import static android.view.View.GONE;
 import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
+import static com.mercadopago.android.px.internal.features.Constants.REQ_CODE_SECURITY_CODE;
 
 public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPager.OnPageChangeListener,
     SplitPaymentHeaderAdapter.SplitListener, PaymentMethodFragment.DisabledDetailDialogLauncher,
@@ -121,10 +132,9 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
 
     /* default */ OneTapPresenter presenter;
 
-    private View payButtonContainer;
+    private View confirmButtonContainer;
     private RecyclerView installmentsRecyclerView;
     /* default */ ViewPager paymentMethodPager;
-    /* default */ View pagerAndConfirmButtonContainer;
     /* default */ RenderMode renderMode;
     private ScrollingPagerIndicator indicator;
     @Nullable private ExpandAndCollapseAnimation expandAndCollapseAnimation;
@@ -139,11 +149,11 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
 
     private HubAdapter hubAdapter;
 
-    private PayButtonFragment payButtonFragment;
+    private ConfirmButton.View confirmButtonFragment;
     private OfflineMethodsFragment offlineMethodsFragment;
 
     private PxFragmentOneTapPaymentBinding binding;
-    
+
     public static Fragment getInstance(@NonNull final Variant variant, final boolean fromDeeplink) {
         final OneTapFragment oneTapFragment = new OneTapFragment();
         final Bundle bundle = new Bundle();
@@ -159,18 +169,23 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
     }
 
     @Override
-    public void getViewTrackPath(@NonNull final PayButton.ViewTrackPathCallback callback) {
+    public void getViewTrackPath(@NonNull final ConfirmButton.ViewTrackPathCallback callback) {
         presenter.onGetViewTrackPath(callback);
     }
 
     @Override
-    public void prePayment(@NonNull final PayButton.OnReadyForPaymentCallback callback) {
+    public void onPreProcess(@NonNull final ConfirmButton.OnReadyForProcessCallback callback) {
         presenter.handlePrePaymentAction(callback);
     }
 
     @Override
-    public void onPaymentExecuted(@NonNull final PaymentConfiguration configuration) {
-        presenter.onPaymentExecuted(configuration);
+    public void onEnqueueProcess(@NonNull final ConfirmButton.OnEnqueueResolvedCallback callback) {
+        presenter.tokenize(callback);
+    }
+
+    @Override
+    public void onProcessExecuted(@NonNull final PaymentConfiguration configuration) {
+        presenter.onProcessExecuted(configuration);
     }
 
     @Override
@@ -179,15 +194,46 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
         presenter.onPostPaymentAction(postPaymentAction);
     }
 
-    @NonNull
     @Override
-    public PayButton.CvvRequestedModel onCvvRequested() {
-        return new PayButton.CvvRequestedModel(R.id.one_tap_fragment, renderMode);
+    public void onCvvRequested(@NonNull final PaymentState paymentState) {
+        final RenderModeMapper mapper = MapperProvider.INSTANCE.getRenderModeMapper(requireContext());
+        final SecurityCodeParams params = new SecurityCodeParams(
+            paymentState.getPaymentConfiguration(),
+            mapper.map(renderMode),
+            paymentState.getCard(),
+            paymentState.getPaymentRecovery(),
+            paymentState.getReason()
+        );
+        showSecurityCodeScreen(params);
+    }
+
+    private void showSecurityCodeScreen(@NonNull final SecurityCodeParams securityCodeParams) {
+        final FragmentActivity activity = getActivity();
+        if (activity != null) {
+            final FragmentManager fragmentManager = activity.getSupportFragmentManager();
+            if (fragmentManager.findFragmentByTag(SecurityCodeFragment.TAG) == null) {
+                fragmentManager
+                    .beginTransaction()
+                    .setCustomAnimations(0, R.animator.px_onetap_cvv_dummy, 0, R.animator.px_onetap_cvv_dummy)
+                    .replace(
+                        R.id.one_tap_fragment,
+                        SecurityCodeFragment.newInstance(securityCodeParams),
+                        SecurityCodeFragment.TAG
+                    )
+                    .addToBackStack(SecurityCodeFragment.TAG)
+                    .commit();
+            }
+        }
+    }
+
+    @Override
+    public void onSecurityCodeRequired(@NonNull final PaymentState paymentState) {
+        onCvvRequested(paymentState);
     }
 
     @Override
     public boolean handleBack() {
-        final boolean isExploding = payButtonFragment.isExploding();
+        final boolean isExploding = confirmButtonFragment.isExploding();
         if (!isExploding) {
             presenter.onBack();
         }
@@ -248,7 +294,7 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         configureViews(view);
-        transition = new OneTapTransition(paymentMethodPager, binding.summaryView, payButtonContainer,
+        transition = new OneTapTransition(paymentMethodPager, binding.summaryView, confirmButtonContainer,
             paymentMethodHeaderView, indicator, binding.splitPaymentView, binding.oneTapContainer);
 
         presenter = createPresenter();
@@ -296,10 +342,9 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
 
     private void configureViews(@NonNull final View view) {
         configurePaymentMethodHeader(view);
-        payButtonFragment = (PayButtonFragment) getChildFragmentManager().findFragmentById(R.id.pay_button);
-        payButtonContainer = view.findViewById(R.id.pay_button);
-        offlineMethodsFragment = (OfflineMethodsFragment) getChildFragmentManager().findFragmentById(R.id.offline_methods);
-        pagerAndConfirmButtonContainer = view.findViewById(R.id.container);
+        confirmButtonContainer = view.findViewById(R.id.confirm_button_container);
+        offlineMethodsFragment =
+            (OfflineMethodsFragment) getChildFragmentManager().findFragmentById(R.id.offline_methods);
         paymentMethodPager = view.findViewById(R.id.payment_method_pager);
         indicator = view.findViewById(R.id.indicator);
 
@@ -312,18 +357,11 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
         if (getActivity() instanceof AppCompatActivity) {
             binding.summaryView.configureToolbar((AppCompatActivity) getActivity(), v -> presenter.cancel());
         }
-
-        hubAdapter = new HubAdapter(Arrays.asList(titlePagerAdapter,
-            new SummaryViewAdapter(binding.summaryView),
-            new SplitPaymentHeaderAdapter(binding.splitPaymentView, this),
-            new PaymentMethodHeaderAdapter(paymentMethodHeaderView),
-            new ConfirmButtonAdapter(payButtonFragment)
-        ));
     }
 
     @Override
-    public void configurePayButton(@NonNull final PayButton.StateChange listener) {
-        payButtonFragment.addOnStateChange(listener);
+    public void configurePayButton(@NonNull final ConfirmButton.StateChange listener) {
+        confirmButtonFragment.addOnStateChange(listener);
     }
 
     private void configurePaymentMethodHeader(@NonNull final View view) {
@@ -414,6 +452,9 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
             MapperProvider.INSTANCE.getFromApplicationToApplicationInfo(),
             configurationModule.getAuthorizationProvider(),
             FactoryProvider.INSTANCE.getAmountDescriptorViewModelFactory(),
+            session.getUseCaseModule().getTokenizeWithEscUseCase(),
+            MapperProvider.INSTANCE.getPaymentConfigurationMapper(),
+            configurationModule.getFlowConfigurationProvider(),
             Session.getInstance().getHelperModule().getBankInfoHelper(),
             session.getTracker()
         );
@@ -474,7 +515,19 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
     }
 
     @Override
-    public void configureAdapters(@NonNull final Site site, @NonNull final Currency currency) {
+    public void configureFlow(@NonNull final FlowConfigurationModel flowConfigurationModel) {
+        if (requireActivity().getSupportFragmentManager().findFragmentByTag(ConfirmButtonFragment.TAG) == null) {
+            confirmButtonFragment = flowConfigurationModel.getConfirmButton();
+
+            getChildFragmentManager()
+                .beginTransaction()
+                .replace(R.id.confirm_button_container, (Fragment) confirmButtonFragment, ConfirmButtonFragment.TAG)
+                .commitAllowingStateLoss();
+        }
+    }
+
+    @Override
+    public void configureAdapters(@NonNull final HubAdapter.Model model) {
 
         // Order is important, should update all others adapters before update paymentMethodAdapter
 
@@ -491,10 +544,14 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
             paymentMethodPager.setAdapter(paymentMethodFragmentAdapter);
             indicator.attachToPager(paymentMethodPager);
         }
-    }
 
-    @Override
-    public void updateAdapters(@NonNull final HubAdapter.Model model) {
+        hubAdapter = new HubAdapter(Arrays.asList(titlePagerAdapter,
+            new SummaryViewAdapter(binding.summaryView),
+            new SplitPaymentHeaderAdapter(binding.splitPaymentView, this),
+            new PaymentMethodHeaderAdapter(paymentMethodHeaderView),
+            new ConfirmButtonAdapter(confirmButtonFragment)
+        ));
+
         hubAdapter.update(model);
     }
 
@@ -529,7 +586,7 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
 
     private void animateViewPagerDown() {
         paymentMethodPager.startAnimation(slideDownAndFadeAnimation);
-        fadeAnimation.fadeOutFast(payButtonContainer);
+        fadeAnimation.fadeOutFast(confirmButtonContainer);
         fadeAnimation.fadeOutFast(indicator);
     }
 
@@ -549,7 +606,7 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
     public void collapseInstallmentsSelection() {
         if (expandAndCollapseAnimation != null && expandAndCollapseAnimation.shouldCollapse()) {
             paymentMethodPager.startAnimation(slideUpAndFadeAnimation);
-            fadeAnimation.fadeIn(payButtonContainer);
+            fadeAnimation.fadeIn(confirmButtonContainer);
             fadeAnimation.fadeIn(indicator);
             expandAndCollapseAnimation.collapse();
         }
@@ -566,8 +623,21 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
             handleCardFormResult(resultCode);
         } else if (requestCode == REQ_CARD_FORM_WEB_VIEW) {
             handlerCardFormWebViewResult(resultCode, data);
+        } else if (requestCode == REQ_CODE_SECURITY_CODE) {
+            if (resultCode == Constants.RESULT_ACTION) {
+                handleAction(data);
+            } else {
+                onPostCongrats(resultCode, data);
+            }
         } else {
             super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void handleAction(@NonNull final Intent intent) {
+        final Bundle extras = intent.getExtras();
+        if (extras != null) {
+            onPostPaymentAction(PostPaymentAction.fromBundle(extras));
         }
     }
 
@@ -739,6 +809,21 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
 
     @Override
     public void showError(@NonNull final MercadoPagoError mercadoPagoError) {
+        final AndesSnackbarAction action = new AndesSnackbarAction(
+            getString(R.string.px_snackbar_error_action),
+            v -> requireActivity().onBackPressed()
+        );
+        ViewExtensionsKt.showSnackBar(
+            getView(),
+            getString(R.string.px_error_title),
+            AndesSnackbarType.ERROR,
+            AndesSnackbarDuration.SHORT,
+            action
+        );
+    }
+
+    @Override
+    public void showErrorActivity(@NonNull final MercadoPagoError mercadoPagoError) {
         ErrorUtil.startErrorActivity(this, mercadoPagoError);
     }
 }

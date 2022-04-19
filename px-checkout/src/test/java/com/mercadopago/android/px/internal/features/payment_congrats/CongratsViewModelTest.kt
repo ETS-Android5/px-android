@@ -3,6 +3,7 @@ package com.mercadopago.android.px.internal.features.payment_congrats
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import com.mercadopago.android.px.internal.core.ConnectionHelper
+import com.mercadopago.android.px.internal.datasource.PaymentResultFactory
 import com.mercadopago.android.px.internal.features.checkout.PostPaymentUrlsMapper
 import com.mercadopago.android.px.internal.features.payment_congrats.model.PaymentCongratsModel
 import com.mercadopago.android.px.internal.repository.CongratsRepository
@@ -54,6 +55,8 @@ class CongratsViewModelTest {
     private lateinit var postPaymentUrlsLiveData: Observer<CongratsPostPaymentUrlsResponse>
     @Mock
     private lateinit var exitFlowLiveData: Observer<CongratsPostPaymentUrlsResponse>
+    @Mock
+    private lateinit var paymentResultFactory: PaymentResultFactory
 
     private val backUrl = "mercadopago://px/congrats"
     private val redirectUrl = "www.google.com"
@@ -67,6 +70,7 @@ class CongratsViewModelTest {
             connectionHelper,
             paymentSettingRepository,
             postPaymentUrlsMapper,
+            paymentResultFactory,
             mock()
         )
 
@@ -109,7 +113,7 @@ class CongratsViewModelTest {
         val paymentModel = mock<PaymentModel>{
             on { payment }.thenReturn(mock())
         }
-        whenever(paymentModel.payment?.let { paymentRepository.createPaymentResult(it) }).thenReturn(mock())
+        whenever(paymentModel.payment?.let { paymentResultFactory.create(it) }).thenReturn(mock())
         whenever(congratsResultFactory.create(paymentModel, null)).thenReturn(CongratsResult.PaymentResult(paymentModel))
 
         congratsViewModel.createCongratsResult(paymentModel.payment)
@@ -128,7 +132,7 @@ class CongratsViewModelTest {
             on { payment }.thenReturn(mock())
         }
         val paymentCongratsModel = mock<PaymentCongratsModel>{}
-        whenever(paymentRepository.createPaymentResult(businessModel.payment)).thenReturn(mock())
+        whenever(paymentResultFactory.create(businessModel.payment)).thenReturn(mock())
         whenever(congratsResultFactory.create(businessModel, null))
             .thenReturn(CongratsResult.BusinessPaymentResult(paymentCongratsModel))
 
@@ -152,7 +156,7 @@ class CongratsViewModelTest {
         whenever(paymentSettingRepository.checkoutPreference).thenReturn(mock())
         whenever(postPaymentUrlsMapper.map(any<PostPaymentUrlsMapper.Model>()))
             .thenReturn(PostPaymentUrlsMapper.Response(redirectUrl, null))
-        whenever(paymentModel.payment?.let { paymentRepository.createPaymentResult(it) }).thenReturn(mock())
+        whenever(paymentModel.payment?.let { paymentResultFactory.create(it) }).thenReturn(mock())
         whenever(congratsResultFactory.create(paymentModel, redirectUrl))
             .thenReturn(CongratsPaymentResult.SkipCongratsResult(paymentModel))
         whenever(congratsViewModel.state.redirectUrl).thenReturn(redirectUrl)
@@ -236,7 +240,7 @@ class CongratsViewModelTest {
         val paymentModel = mock<PaymentModel>{
             on { payment }.thenReturn(mock())
         }
-        whenever(paymentModel.payment?.let { paymentRepository.createPaymentResult(it) }).thenThrow(IllegalArgumentException())
+        whenever(paymentModel.payment?.let { paymentResultFactory.create(it) }).thenThrow(IllegalArgumentException())
 
         congratsViewModel.createCongratsResult(paymentModel.payment)
 
