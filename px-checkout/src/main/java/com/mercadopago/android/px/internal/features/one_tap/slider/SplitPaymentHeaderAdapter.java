@@ -7,6 +7,7 @@ import android.widget.CompoundButton;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import com.mercadopago.android.px.R;
+import com.mercadopago.android.px.core.presentation.extensions.SpannableExtKt;
 import com.mercadopago.android.px.internal.util.TextUtil;
 import com.mercadopago.android.px.internal.util.ViewUtils;
 import com.mercadopago.android.px.internal.util.textformatter.AmountLabeledFormatter;
@@ -77,9 +78,8 @@ public class SplitPaymentHeaderAdapter extends HubableAdapter<List<SplitPaymentH
                 .append(split.secondaryPaymentMethod.message);
 
             // added color
-            ViewUtils.setColorInSpannable(ContextCompat.getColor(labeledSwitch.getContext(),
-                R.color.px_checkout_secondary_color), 0, message.length(),
-                message);
+            SpannableExtKt.setColor(message, ContextCompat.getColor(labeledSwitch.getContext(),
+                    R.color.px_checkout_secondary_color), 0, message.length());
             // build definitive message
             labeledSwitch.setText(new SpannableStringBuilder(amount).append(message));
             labeledSwitch.setChecked(isChecked);

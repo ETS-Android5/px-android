@@ -5,6 +5,7 @@ import android.text.style.ForegroundColorSpan
 import androidx.core.content.ContextCompat
 import com.mercadopago.android.px.BasicRobolectricTest
 import com.mercadopago.android.px.R
+import com.mercadopago.android.px.core.presentation.extensions.setColor
 import com.mercadopago.android.px.internal.font.PxFont
 import com.mercadopago.android.px.internal.util.JsonUtil
 import com.mercadopago.android.px.internal.util.ViewUtils
@@ -100,7 +101,7 @@ class InterestRateFormatterTest : BasicRobolectricTest() {
         spannableStringBuilder.append(" ").append(text)
         val endIndex = spannableStringBuilder.length
 
-        ViewUtils.setColorInSpannable(color, startIndex, endIndex, spannableStringBuilder)
+        spannableStringBuilder.setColor(color, startIndex, endIndex)
         ViewUtils.setFontInSpannable(getContext(), font, spannableStringBuilder, startIndex, endIndex)
     }
 

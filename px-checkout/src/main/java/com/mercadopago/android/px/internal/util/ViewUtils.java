@@ -180,62 +180,12 @@ public final class ViewUtils {
         imm.showSoftInput(view.findFocus(), InputMethodManager.SHOW_IMPLICIT);
     }
 
-    public static void setColorInSpannable(final int color, final int indexStart, final int indexEnd,
-        @NonNull final Spannable spannable) {
-        if (color != 0) {
-            spannable.setSpan(new ForegroundColorSpan(color), indexStart, indexEnd,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        }
-    }
-
-    public static void setColorInSpannable(@Nullable final String color, final int indexStart, final int indexEnd,
-        @NonNull final Spannable spannable) {
-        if (TextUtil.isNotEmpty(color)) {
-            try {
-                setColorInSpannable(Color.parseColor(color), indexStart, indexEnd, spannable);
-            } catch (final Exception e) {
-                logParseColorError(color);
-            }
-        }
-    }
-
-    public static void setTextColor(@NonNull final TextView textView, @Nullable final String color) {
-        if (TextUtil.isNotEmpty(color)) {
-            try {
-                textView.setTextColor(Color.parseColor(color));
-            } catch (final Exception e) {
-                logParseColorError(color);
-            }
-        }
-    }
-
     public static void setBackgroundColor(@NonNull final View view, @Nullable final String color) {
         if (TextUtil.isNotEmpty(color)) {
             try {
                 view.setBackgroundColor(Color.parseColor(color));
             } catch (final Exception e) {
                 logParseColorError(color);
-            }
-        }
-    }
-
-    public static void resetDrawableBackgroundColor(@NonNull final View view) {
-        final int transparentColor = ContextCompat.getColor(view.getContext(), R.color.px_transparent);
-        final Drawable background = view.getBackground();
-
-        if (background != null) {
-            background.setColorFilter(transparentColor, PorterDuff.Mode.SRC);
-        }
-    }
-
-    public static void setDrawableBackgroundColor(@NonNull final View view, @Nullable final String color) {
-        final int transparentColor = ContextCompat.getColor(view.getContext(), R.color.px_transparent);
-        final Drawable background = view.getBackground();
-        if (background != null) {
-            try {
-                background.setColorFilter(Color.parseColor(color), PorterDuff.Mode.SRC);
-            } catch (final Exception e) {
-                background.setColorFilter(transparentColor, PorterDuff.Mode.SRC);
             }
         }
     }
@@ -291,21 +241,6 @@ public final class ViewUtils {
         final Animation animation = targetView.getAnimation();
         if (animation != null) {
             animation.cancel();
-        }
-    }
-
-    public static void grayScaleView(@NonNull final ImageView targetView) {
-        targetView.setColorFilter(DISABLED_FILTER);
-    }
-
-    public static void grayScaleViewGroup(@NonNull final ViewGroup viewGroup) {
-        for (int i = 0; i < viewGroup.getChildCount(); i++) {
-            final View view = viewGroup.getChildAt(i);
-            if (view instanceof ImageView) {
-                grayScaleView((ImageView) view);
-            } else if (view instanceof ViewGroup) {
-                grayScaleViewGroup((ViewGroup) view);
-            }
         }
     }
 

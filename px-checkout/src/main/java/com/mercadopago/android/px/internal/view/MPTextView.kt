@@ -10,6 +10,7 @@ import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import androidx.appcompat.widget.AppCompatTextView
 import com.mercadopago.android.px.R
 import com.mercadopago.android.px.core.commons.extensions.isNotNullNorEmpty
+import com.mercadopago.android.px.core.presentation.extensions.setColor
 import com.mercadopago.android.px.core.presentation.extensions.setTextColor
 import com.mercadopago.android.px.internal.extensions.toGravity
 import com.mercadopago.android.px.internal.features.payment_congrats.model.PaymentCongratsText
@@ -62,11 +63,10 @@ internal class MPTextView @JvmOverloads constructor(
                 startIndex,
                 endIndex
             )
-            ViewUtils.setColorInSpannable(
+            spannableStringBuilder.setColor(
                 textDescriptor.getTextColor(context),
                 startIndex,
-                endIndex,
-                spannableStringBuilder
+                endIndex
             )
             startIndex = spannableStringBuilder.length
             textDescriptor.getTextSize(context)?.let {

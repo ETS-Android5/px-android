@@ -11,6 +11,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.mercadopago.android.px.R;
+import com.mercadopago.android.px.core.presentation.extensions.ViewExtKt;
 import com.mercadopago.android.px.internal.experiments.Variant;
 import com.mercadopago.android.px.internal.util.TextUtil;
 import com.mercadopago.android.px.internal.util.ViewUtils;
@@ -81,7 +82,7 @@ public class PaymentMethodDescriptorView extends LinearLayout {
 
         @CallSuper
         public void updateDrawableBackground(@NonNull final TextView textView) {
-            ViewUtils.resetDrawableBackgroundColor(textView);
+            ViewExtKt.resetDrawableBackgroundColor(textView);
         }
 
         public int getCurrentInstalment() {

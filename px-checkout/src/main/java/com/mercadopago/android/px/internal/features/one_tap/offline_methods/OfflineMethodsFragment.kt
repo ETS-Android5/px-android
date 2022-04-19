@@ -160,6 +160,7 @@ internal class OfflineMethodsFragment : Fragment(), OfflineMethods.View, BackHan
                 .append(TextUtil.SPACE)
                 .append(amountLocalized[it])
             ViewUtils.setFontInSpannable(it, PxFont.SEMI_BOLD, editable)
+
             totalAmountTextView.text = editable
         }
         editableDescription
