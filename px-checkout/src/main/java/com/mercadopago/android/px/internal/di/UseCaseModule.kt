@@ -129,6 +129,7 @@ internal class UseCaseModule(
                 session.paymentDiscountRepository,
                 session.discountRepository,
                 session.amountConfigurationRepository,
+                session.configurationModule.userSelectionRepository,
                 session.tracker
             )
         }
