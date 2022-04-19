@@ -9,7 +9,6 @@ import com.mercadopago.android.px.core.v2.PaymentProcessor;
 import com.mercadopago.android.px.internal.callbacks.PaymentServiceEventHandler;
 import com.mercadopago.android.px.internal.callbacks.PaymentServiceHandlerWrapper;
 import com.mercadopago.android.px.internal.core.FileManager;
-import com.mercadopago.android.px.internal.domain.PreparePaymentUseCase;
 import com.mercadopago.android.px.internal.features.validation_program.ValidationProgramUseCase;
 import com.mercadopago.android.px.internal.repository.AmountConfigurationRepository;
 import com.mercadopago.android.px.internal.repository.CongratsRepository;
@@ -46,9 +45,7 @@ public class PaymentService implements PaymentRepository {
     @Nullable private PaymentWrapper payment;
     @NonNull private final File paymentFile;
     @NonNull private final ValidationProgramUseCase validationProgramUseCase;
-    @NonNull private final PreparePaymentUseCase preparePaymentUseCase;
     @NonNull private final PaymentDataFactory paymentDataFactory;
-    @NonNull private final TransactionInfoFactory transactionInfoFactory;
 
     public PaymentService(@NonNull final UserSelectionRepository userSelectionRepository,
         @NonNull final PaymentSettingRepository paymentSettingRepository,
@@ -59,10 +56,8 @@ public class PaymentService implements PaymentRepository {
         @NonNull final CongratsRepository congratsRepository,
         @NonNull final FileManager fileManager,
         @NonNull final ValidationProgramUseCase validationProgramUseCase,
-        @NonNull final PreparePaymentUseCase preparePaymentUseCase,
         @NonNull final PaymentResultFactory paymentResultFactory,
-        @NonNull final PaymentDataFactory paymentDataFactory,
-        @NonNull final TransactionInfoFactory transactionInfoFactory) {
+        @NonNull final PaymentDataFactory paymentDataFactory) {
         this.amountConfigurationRepository = amountConfigurationRepository;
         this.userSelectionRepository = userSelectionRepository;
         this.paymentSettingRepository = paymentSettingRepository;
@@ -70,8 +65,6 @@ public class PaymentService implements PaymentRepository {
         this.fileManager = fileManager;
         this.validationProgramUseCase = validationProgramUseCase;
         this.paymentDataFactory = paymentDataFactory;
-        this.preparePaymentUseCase = preparePaymentUseCase;
-        this.transactionInfoFactory = transactionInfoFactory;
 
         paymentFile = fileManager.create(FILE_PAYMENT);
 

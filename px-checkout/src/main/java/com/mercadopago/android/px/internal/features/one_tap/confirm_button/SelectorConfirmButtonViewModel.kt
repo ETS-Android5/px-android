@@ -2,18 +2,18 @@ package com.mercadopago.android.px.internal.features.one_tap.confirm_button
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.mercadopago.android.px.core.data.network.ConnectionHelper
 import com.mercadopago.android.px.core.v2.PaymentMethodsData
 import com.mercadopago.android.px.internal.base.BaseState
 import com.mercadopago.android.px.internal.base.use_case.UserSelectionUseCase
-import com.mercadopago.android.px.internal.core.ConnectionHelper
 import com.mercadopago.android.px.internal.datasource.PaymentDataFactory
+import com.mercadopago.android.px.internal.domain.PreparePaymentUseCase
 import com.mercadopago.android.px.internal.features.pay_button.UIError
 import com.mercadopago.android.px.internal.features.pay_button.UIProgress
 import com.mercadopago.android.px.internal.features.validation_program.ValidationProgramUseCase
 import com.mercadopago.android.px.internal.mappers.PayButtonViewModelMapper
 import com.mercadopago.android.px.internal.repository.CustomTextsRepository
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository
-import com.mercadopago.android.px.model.PaymentData
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError
 import com.mercadopago.android.px.model.internal.PaymentConfiguration
 import com.mercadopago.android.px.tracking.internal.MPTracker
@@ -24,14 +24,17 @@ private const val PROCESS_TIME_OUT = 10000
 
 internal class SelectorConfirmButtonViewModel(
     private val paymentSettingRepository: PaymentSettingRepository,
+    preparePaymentUseCase: PreparePaymentUseCase,
     private val userSelectionUseCase: UserSelectionUseCase,
     private val validationProgramUseCase: ValidationProgramUseCase,
     private val paymentDataFactory: PaymentDataFactory,
-    private val connectionHelper: ConnectionHelper,
+    connectionHelper: ConnectionHelper,
     customTextsRepository: CustomTextsRepository,
     payButtonViewModelMapper: PayButtonViewModelMapper,
     tracker: MPTracker
 ) : ConfirmButtonViewModel<SelectorConfirmButtonViewModel.State, ConfirmButton.Handler>(
+    preparePaymentUseCase,
+    connectionHelper,
     customTextsRepository,
     payButtonViewModelMapper,
     tracker
@@ -46,38 +49,21 @@ internal class SelectorConfirmButtonViewModel(
         onPreProcess()
     }
 
-    private fun onPreProcess() {
-        if (connectionHelper.hasConnection()) {
-            handler.onPreProcess(object : ConfirmButton.OnReadyForProcessCallback {
-                override fun call(paymentConfiguration: PaymentConfiguration) {
-                    state.paymentConfiguration = paymentConfiguration
-                    uiStateMutableLiveData.value = UIProgress.ButtonLoadingStarted(PROCESS_TIME_OUT, buttonConfig)
-                    userSelectionUseCase
-                        .execute(paymentConfiguration,
-                            success = { onEnqueueProcess(paymentConfiguration) },
-                            failure = {
-                                uiStateMutableLiveData.value = UIProgress.ButtonLoadingCanceled
-                                handler.onProcessError(it)
-                            }
-                        )
-                }
-            })
-        } else {
-            manageNoConnection()
-        }
-    }
-
-    private fun onEnqueueProcess(paymentConfiguration: PaymentConfiguration) {
-        handler.onEnqueueProcess(object : ConfirmButton.OnEnqueueResolvedCallback {
-            override fun success() = executeProcess(paymentConfiguration, paymentDataFactory.create())
-            override fun failure(error: MercadoPagoError) {
+    override fun executePreProcess(paymentConfiguration: PaymentConfiguration) {
+        state.paymentConfiguration = paymentConfiguration
+        uiStateMutableLiveData.value = UIProgress.ButtonLoadingStarted(PROCESS_TIME_OUT, buttonConfig)
+        userSelectionUseCase.execute(
+            paymentConfiguration,
+            success = { onEnqueueProcess(paymentConfiguration) },
+            failure = {
                 uiStateMutableLiveData.value = UIProgress.ButtonLoadingCanceled
-                handler.onProcessError(error)
+                handler.onProcessError(it)
             }
-        })
+        )
     }
 
-    private fun executeProcess(paymentConfiguration: PaymentConfiguration, paymentDataList: List<PaymentData>) {
+    override fun executeProcess(paymentConfiguration: PaymentConfiguration) {
+        val paymentDataList = paymentDataFactory.create()
         validationProgramUseCase.execute(paymentDataList, success = { validationProgramId ->
             val securityType = paymentSettingRepository.securityType.value
             val checkoutPreference = paymentSettingRepository.checkoutPreference
@@ -110,7 +96,7 @@ internal class SelectorConfirmButtonViewModel(
         })
     }
 
-    private fun manageNoConnection() {
+    override fun manageNoConnection() {
         track(NoConnectionFrictionTracker)
         uiStateMutableLiveData.value = UIError.ConnectionError(++state.retryCounter)
     }
@@ -122,7 +108,7 @@ internal class SelectorConfirmButtonViewModel(
         var paymentConfiguration: PaymentConfiguration? = null,
         var checkoutData: PaymentMethodsData? = null,
         var retryCounter: Int = 0
-        ) : BaseState
+    ) : BaseState
 
     override fun onStateRestored() {
         if (state.checkoutData != null) {

@@ -4,6 +4,7 @@ import com.mercadopago.android.px.R
 import com.mercadopago.android.px.addons.model.SecurityValidationData
 import com.mercadopago.android.px.internal.features.explode.ExplodeDecorator
 import com.mercadopago.android.px.model.IParcelablePaymentDescriptor
+import com.mercadopago.android.px.model.exceptions.MercadoPagoError
 import com.mercadopago.android.px.internal.viewmodel.PayButtonViewModel as ButtonConfig
 
 internal sealed class ConfirmButtonUiState
@@ -27,4 +28,5 @@ internal open class UIError : ConfirmButtonUiState() {
     }
     object BusinessError : UIError()
     class NotRecoverableError(val error: Throwable) : UIError()
+    class RecoverableError(val error: MercadoPagoError) : UIError()
 }

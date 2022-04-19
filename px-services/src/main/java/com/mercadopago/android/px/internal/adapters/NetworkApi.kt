@@ -1,12 +1,12 @@
 package com.mercadopago.android.px.internal.adapters
 
+import com.mercadopago.android.px.core.data.network.ConnectionHelper
 import com.mercadopago.android.px.internal.base.CoroutineContextProvider
 import com.mercadopago.android.px.internal.base.exception.ExceptionFactory
 import com.mercadopago.android.px.internal.base.exception.ExceptionParser
 import com.mercadopago.android.px.internal.callbacks.ApiResponse
 import com.mercadopago.android.px.internal.callbacks.ApiResponse.Failure
 import com.mercadopago.android.px.internal.callbacks.ApiResponse.Success
-import com.mercadopago.android.px.internal.core.ConnectionHelper
 import com.mercadopago.android.px.model.exceptions.ApiException
 import com.mercadopago.android.px.model.exceptions.SocketTimeoutApiException
 import kotlinx.coroutines.withContext

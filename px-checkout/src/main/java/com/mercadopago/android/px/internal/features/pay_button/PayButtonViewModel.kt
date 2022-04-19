@@ -5,14 +5,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.Transformations.map
 import com.mercadopago.android.px.addons.model.SecurityValidationData
+import com.mercadopago.android.px.core.data.network.ConnectionHelper
 import com.mercadopago.android.px.internal.audio.AudioPlayer
 import com.mercadopago.android.px.internal.audio.SelectPaymentSoundUseCase
 import com.mercadopago.android.px.internal.base.BaseState
 import com.mercadopago.android.px.internal.base.use_case.UserSelectionUseCase
 import com.mercadopago.android.px.internal.callbacks.PaymentServiceEventHandler
-import com.mercadopago.android.px.internal.core.ConnectionHelper
 import com.mercadopago.android.px.internal.core.ProductIdProvider
 import com.mercadopago.android.px.internal.datasource.PaymentDataFactory
+import com.mercadopago.android.px.internal.domain.PreparePaymentUseCase
 import com.mercadopago.android.px.internal.extensions.isNotNullNorEmpty
 import com.mercadopago.android.px.internal.features.PaymentResultViewModelFactory
 import com.mercadopago.android.px.internal.features.checkout.PostPaymentUrlsMapper
@@ -53,18 +54,22 @@ internal class PayButtonViewModel(
     private val congratsResultFactory: CongratsResultFactory,
     private val paymentService: PaymentRepository,
     private val productIdProvider: ProductIdProvider,
-    private val connectionHelper: ConnectionHelper,
+    connectionHelper: ConnectionHelper,
     private val paymentSettingRepository: PaymentSettingRepository,
     customTextsRepository: CustomTextsRepository,
     payButtonViewModelMapper: PayButtonViewModelMapper,
     private val postPaymentUrlsMapper: PostPaymentUrlsMapper,
+    preparePaymentUseCase: PreparePaymentUseCase,
     private val selectPaymentSoundUseCase: SelectPaymentSoundUseCase,
     private val userSelectionUseCase: UserSelectionUseCase,
     private val factory: PaymentResultViewModelFactory,
     private val paymentDataFactory: PaymentDataFactory,
     private val audioPlayer: AudioPlayer,
     tracker: MPTracker
-) : ConfirmButtonViewModel<PayButtonViewModel.State, PayButton.Handler>(customTextsRepository,
+) : ConfirmButtonViewModel<PayButtonViewModel.State, PayButton.Handler>(
+    preparePaymentUseCase,
+    connectionHelper,
+    customTextsRepository,
     payButtonViewModelMapper,
     tracker
 ), PayButton.ViewModel {
@@ -89,18 +94,7 @@ internal class PayButtonViewModel(
 
     override fun preparePayment() {
         state.paymentConfiguration = null
-        if (connectionHelper.hasConnection()) {
-            handler.onPreProcess(object : ConfirmButton.OnReadyForProcessCallback {
-                override fun call(paymentConfiguration: PaymentConfiguration) {
-                    if (paymentConfiguration.customOptionId.isNotNullNorEmpty()) {
-                        paymentSettingRepository.clearToken()
-                    }
-                    startAuthentication(paymentConfiguration)
-                }
-            })
-        } else {
-            manageNoConnection()
-        }
+        onPreProcess()
     }
 
     private fun startAuthentication(paymentConfiguration: PaymentConfiguration) {
@@ -138,24 +132,19 @@ internal class PayButtonViewModel(
         }.onFailure { uiStateMutableLiveData.value = UIError.NotRecoverableError(it) }
     }
 
-    private fun onEnqueueProcess(paymentConfiguration: PaymentConfiguration) {
-        handler.onEnqueueProcess(object : ConfirmButton.OnEnqueueResolvedCallback {
-            override fun success() {
-                executePayment(paymentConfiguration)
-            }
-
-            override fun failure(error: MercadoPagoError) {
-                uiStateMutableLiveData.value = ButtonLoadingCanceled
-            }
-        })
+    override fun executePreProcess(paymentConfiguration: PaymentConfiguration) {
+        if (paymentConfiguration.customOptionId.isNotNullNorEmpty()) {
+            paymentSettingRepository.clearToken()
+        }
+        startAuthentication(paymentConfiguration)
     }
 
-    private fun executePayment(configuration: PaymentConfiguration) {
+    override fun executeProcess(paymentConfiguration: PaymentConfiguration) {
         with(paymentService) {
             startExpressPayment()
             observableEvents?.also(::observeService)
         }
-        handler.onProcessExecuted(configuration)
+        handler.onProcessExecuted(paymentConfiguration)
     }
 
     private fun observeService(serviceLiveData: PaymentServiceEventHandler) {
@@ -233,7 +222,7 @@ internal class PayButtonViewModel(
 
     override fun skipRevealAnimation() =
         getPostPaymentConfiguration().hasPostPaymentUrl() &&
-            state.iParcelablePaymentDescriptor?.paymentStatus == Payment.StatusCodes.STATUS_APPROVED
+                state.iParcelablePaymentDescriptor?.paymentStatus == Payment.StatusCodes.STATUS_APPROVED
 
     private fun getPostPaymentConfiguration() = paymentSettingRepository
         .advancedConfiguration
@@ -255,18 +244,18 @@ internal class PayButtonViewModel(
         handler.onCvvRequested(PaymentState(state.paymentConfiguration!!, paymentRecovery = recovery))
     }
 
-    private fun manageNoConnection() {
-        trackNoConnectionFriction()
+    override fun manageNoConnection() {
+        track(NoConnectionFrictionTracker)
         uiStateMutableLiveData.value = UIError.ConnectionError(++state.retryCounter)
     }
 
     private fun trackNoRecoverableFriction(error: MercadoPagoError) {
-        track(FrictionEventTracker.with(OneTapViewTracker.PATH_REVIEW_ONE_TAP_VIEW,
-            FrictionEventTracker.Id.GENERIC, FrictionEventTracker.Style.CUSTOM_COMPONENT, error))
-    }
-
-    private fun trackNoConnectionFriction() {
-        track(NoConnectionFrictionTracker)
+        track(
+            FrictionEventTracker.with(
+                OneTapViewTracker.PATH_REVIEW_ONE_TAP_VIEW,
+                FrictionEventTracker.Id.GENERIC, FrictionEventTracker.Style.CUSTOM_COMPONENT, error
+            )
+        )
     }
 
     private fun noRecoverableError(error: MercadoPagoError) {
@@ -308,7 +297,8 @@ internal class PayButtonViewModel(
                         "/audio_player",
                         FrictionEventTracker.Id.GENERIC,
                         FrictionEventTracker.Style.SCREEN,
-                        it)
+                        it
+                    )
                     tracker.track(frictionTrack)
                 })
         }
@@ -327,13 +317,15 @@ internal class PayButtonViewModel(
     private fun resolvePostPaymentUrls(paymentModel: PaymentModel): PostPaymentUrlsMapper.Response? {
         return paymentSettingRepository.checkoutPreference?.let { preference ->
             val congratsResponse = paymentModel.congratsResponse
-            postPaymentUrlsMapper.map(PostPaymentUrlsMapper.Model(
-                congratsResponse.redirectUrl,
-                congratsResponse.backUrl,
-                paymentModel.payment,
-                preference,
-                paymentSettingRepository.site.id
-            ))
+            postPaymentUrlsMapper.map(
+                PostPaymentUrlsMapper.Model(
+                    congratsResponse.redirectUrl,
+                    congratsResponse.backUrl,
+                    paymentModel.payment,
+                    preference,
+                    paymentSettingRepository.site.id
+                )
+            )
         }
     }
 

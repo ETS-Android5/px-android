@@ -32,6 +32,7 @@ internal class ViewModelFactory : ViewModelProvider.Factory {
                     configurationModule.customTextsRepository,
                     PayButtonViewModelMapper(),
                     MapperProvider.getPostPaymentUrlsMapper(),
+                    useCaseModule.preparePaymentUseCase,
                     useCaseModule.selectPaymentSoundUseCase,
                     useCaseModule.userSelectionUseCase,
                     session.paymentResultViewModelFactory,
@@ -94,6 +95,7 @@ internal class ViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(SelectorConfirmButtonViewModel::class.java) -> {
                 SelectorConfirmButtonViewModel(
                     session.configurationModule.paymentSettings,
+                    session.useCaseModule.preparePaymentUseCase,
                     session.useCaseModule.userSelectionUseCase,
                     session.useCaseModule.validationProgramUseCase,
                     session.factoryModule.paymentDataFactory,

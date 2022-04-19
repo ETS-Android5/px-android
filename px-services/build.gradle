@@ -49,6 +49,7 @@ dependencies {
     testImplementation "org.mockito.kotlin:mockito-kotlin:$mockitoKotlin"
 
     implementation project(':px-addons')
+    implementation project(':px-core')
     implementation "androidx.appcompat:appcompat:$appcompat"
     implementation "com.google.code.gson:gson:$gson"
     api "com.squareup.retrofit2:retrofit:$retrofit"

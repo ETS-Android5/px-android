@@ -186,6 +186,7 @@ internal abstract class ConfirmButtonFragment<
     protected fun resolveError(uiError: UIError) {
         when (uiError) {
             is UIError.ConnectionError -> resolveConnectionError(uiError)
+            is UIError.RecoverableError -> ErrorUtil.startErrorActivity(this, uiError.error)
             is UIError.NotRecoverableError ->
                 ErrorUtil.startErrorActivity(this,
                     MercadoPagoError.createNotRecoverable(uiError.error.message.orEmpty()))

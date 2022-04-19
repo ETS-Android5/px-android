@@ -6,7 +6,6 @@ import com.mercadopago.android.px.preferences.CheckoutPreference
 data class PreparePaymentBody(
     val paymentMethod: PaymentMethodDM,
     val discountConfiguration: DiscountParamsConfigurationDM,
-    val preferenceId: String?,
-    val preference: CheckoutPreference?,
+    val marketplace: String,
     val publicKey: String
 )

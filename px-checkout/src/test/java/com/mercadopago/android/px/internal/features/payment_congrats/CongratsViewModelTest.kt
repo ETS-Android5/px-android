@@ -2,7 +2,7 @@ package com.mercadopago.android.px.internal.features.payment_congrats
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
-import com.mercadopago.android.px.internal.core.ConnectionHelper
+import com.mercadopago.android.px.core.data.network.ConnectionHelper
 import com.mercadopago.android.px.internal.datasource.PaymentResultFactory
 import com.mercadopago.android.px.internal.features.checkout.PostPaymentUrlsMapper
 import com.mercadopago.android.px.internal.features.payment_congrats.model.PaymentCongratsModel

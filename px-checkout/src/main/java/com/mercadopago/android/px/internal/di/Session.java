@@ -308,10 +308,9 @@ public final class Session extends ApplicationModule {
                 getCongratsRepository(),
                 getFileManager(),
                 getUseCaseModule().getValidationProgramUseCase(),
-                getUseCaseModule().getPreparePaymentUseCase(),
                 getFactoryModule().getPaymentResultFactory(),
-                getFactoryModule().getPaymentDataFactory(),
-                getFactoryModule().getTransactionInfoFactory());
+                getFactoryModule().getPaymentDataFactory()
+            );
         }
         return paymentRepository;
     }

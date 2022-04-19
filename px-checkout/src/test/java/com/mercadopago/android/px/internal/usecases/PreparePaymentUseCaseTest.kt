@@ -1,12 +1,12 @@
 package com.mercadopago.android.px.internal.usecases
 
+import com.mercadopago.android.px.CallbackTest
 import com.mercadopago.android.px.TestContextProvider
 import com.mercadopago.android.px.assertEquals
 import com.mercadopago.android.px.internal.callbacks.Response
 import com.mercadopago.android.px.internal.datasource.PaymentDiscountRepository
-import com.mercadopago.android.px.internal.datasource.PaymentDiscountRepository.*
+import com.mercadopago.android.px.internal.datasource.PaymentDiscountRepository.PaymentDiscounts
 import com.mercadopago.android.px.internal.domain.PreparePaymentUseCase
-import com.mercadopago.android.px.internal.domain.PreparePaymentUseCase.Companion.SECTION_DISCOUNTS
 import com.mercadopago.android.px.internal.repository.AmountConfigurationRepository
 import com.mercadopago.android.px.internal.repository.DiscountRepository
 import com.mercadopago.android.px.internal.repository.PayerPaymentMethodKey
@@ -21,9 +21,11 @@ import com.mercadopago.android.px.model.PaymentMethods
 import com.mercadopago.android.px.model.PaymentTypes
 import com.mercadopago.android.px.model.Split
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError
+import com.mercadopago.android.px.model.exceptions.PreparePaymentMismatchError
 import com.mercadopago.android.px.model.internal.ResponseSectionStatus
 import com.mercadopago.android.px.model.internal.payment_prepare.PaymentMethodDM
 import com.mercadopago.android.px.model.internal.payment_prepare.PreparePaymentResponse
+import com.mercadopago.android.px.model.internal.payment_prepare.PreparePaymentResponse.Companion.SECTION_DISCOUNTS
 import com.mercadopago.android.px.tracking.internal.MPTracker
 import io.mockk.CapturingSlot
 import io.mockk.MockKAnnotations
@@ -37,12 +39,19 @@ import io.mockk.verify
 import java.math.BigDecimal
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
 class PreparePaymentUseCaseTest {
 
     private lateinit var preparePaymentUseCase: PreparePaymentUseCase
+
+    @RelaxedMockK
+    private lateinit var success: CallbackTest<Unit>
+
+    @RelaxedMockK
+    private lateinit var failure: CallbackTest<MercadoPagoError>
 
     @MockK
     private lateinit var preparePaymentRepository: PreparePaymentRepository
@@ -100,8 +109,11 @@ class PreparePaymentUseCaseTest {
         val response = PreparePaymentResponse(null, null)
         coEvery { preparePaymentRepository.prepare() } returns Response.Success(response)
 
-        preparePaymentUseCase.execute(Unit)
+        preparePaymentUseCase.execute(Unit, success::invoke, failure::invoke)
 
+        verify {
+            success.invoke(Unit)
+        }
         verify {
             paymentDiscountRepository.reset()
         }
@@ -123,8 +135,11 @@ class PreparePaymentUseCaseTest {
         val response = PreparePaymentResponse(null, null)
         coEvery { preparePaymentRepository.prepare() } returns Response.Success(response)
 
-        preparePaymentUseCase.execute(Unit)
+        preparePaymentUseCase.execute(Unit, success::invoke, failure::invoke)
 
+        verify {
+            success.invoke(Unit)
+        }
         verify {
             paymentDiscountRepository.reset()
         }
@@ -150,8 +165,11 @@ class PreparePaymentUseCaseTest {
             every { amountConfiguration.discountToken } returns "00000"
             every { userSelectionRepository.secondaryPaymentMethod } returns null
 
-            preparePaymentUseCase.execute(Unit)
+            preparePaymentUseCase.execute(Unit, success::invoke, failure::invoke)
 
+            verify {
+                success.invoke(Unit)
+            }
             val configuredDiscounts = slot<PaymentDiscounts>()
             verify {
                 paymentDiscountRepository.configure(capture(configuredDiscounts))
@@ -178,8 +196,11 @@ class PreparePaymentUseCaseTest {
         setupSplitConfigurationMock(primaryPaymentMethodParams, splitPaymentMethodParams)
         every { userSelectionRepository.secondaryPaymentMethod } returns secondaryPaymentMethod
 
-        preparePaymentUseCase.execute(Unit)
+        preparePaymentUseCase.execute(Unit, success::invoke, failure::invoke)
 
+        verify {
+            success.invoke(Unit)
+        }
         val configuredDiscounts: CapturingSlot<PaymentDiscounts> = slot()
         verify {
             paymentDiscountRepository.configure(capture(configuredDiscounts))
@@ -209,8 +230,11 @@ class PreparePaymentUseCaseTest {
         setupSplitConfigurationMock(primaryPaymentMethodParams, splitPaymentMethodParams)
         every { userSelectionRepository.secondaryPaymentMethod } returns secondaryPaymentMethod
 
-        preparePaymentUseCase.execute(Unit)
+        preparePaymentUseCase.execute(Unit, success::invoke, failure::invoke)
 
+        verify {
+            success.invoke(Unit)
+        }
         val configuredDiscounts: CapturingSlot<PaymentDiscounts> = slot()
         verify {
             paymentDiscountRepository.configure(capture(configuredDiscounts))
@@ -237,8 +261,11 @@ class PreparePaymentUseCaseTest {
         setupSplitConfigurationMock(primaryPaymentMethodParams, splitPaymentMethodParams)
         every { userSelectionRepository.secondaryPaymentMethod } returns secondaryPaymentMethod
 
-        preparePaymentUseCase.execute(Unit)
+        preparePaymentUseCase.execute(Unit, success::invoke, failure::invoke)
 
+        verify {
+            success.invoke(Unit)
+        }
         val configuredDiscounts: CapturingSlot<PaymentDiscounts> = slot()
         verify {
             paymentDiscountRepository.configure(capture(configuredDiscounts))
@@ -273,8 +300,11 @@ class PreparePaymentUseCaseTest {
             every { amountConfiguration.discountToken } returns checkoutInitToken
             every { userSelectionRepository.secondaryPaymentMethod } returns null
 
-            preparePaymentUseCase.execute(Unit)
+            preparePaymentUseCase.execute(Unit, success::invoke, failure::invoke)
 
+            verify {
+                success.invoke(Unit)
+            }
             val configuredDiscounts = slot<PaymentDiscounts>()
             verify {
                 paymentDiscountRepository.configure(capture(configuredDiscounts))
@@ -302,8 +332,11 @@ class PreparePaymentUseCaseTest {
         setupSplitConfigurationMock(primaryPaymentMethodParams, splitPaymentMethodParams)
         every { userSelectionRepository.secondaryPaymentMethod } returns secondaryPaymentMethod
 
-        preparePaymentUseCase.execute(Unit)
+        preparePaymentUseCase.execute(Unit, success::invoke, failure::invoke)
 
+        verify {
+            success.invoke(Unit)
+        }
         val configuredDiscounts: CapturingSlot<PaymentDiscounts> = slot()
         verify {
             paymentDiscountRepository.configure(capture(configuredDiscounts))
@@ -332,8 +365,11 @@ class PreparePaymentUseCaseTest {
         setupSplitConfigurationMock(primaryPaymentMethodParams, splitPaymentMethodParams)
         every { userSelectionRepository.secondaryPaymentMethod } returns secondaryPaymentMethod
 
-        preparePaymentUseCase.execute(Unit)
+        preparePaymentUseCase.execute(Unit, success::invoke, failure::invoke)
 
+        verify {
+            success.invoke(Unit)
+        }
         val configuredDiscounts: CapturingSlot<PaymentDiscounts> = slot()
         verify {
             paymentDiscountRepository.configure(capture(configuredDiscounts))
@@ -360,8 +396,11 @@ class PreparePaymentUseCaseTest {
         setupSplitConfigurationMock(primaryPaymentMethodParams, splitPaymentMethodParams)
         every { userSelectionRepository.secondaryPaymentMethod } returns secondaryPaymentMethod
 
-        preparePaymentUseCase.execute(Unit)
+        preparePaymentUseCase.execute(Unit, success::invoke, failure::invoke)
 
+        verify {
+            success.invoke(Unit)
+        }
         val configuredDiscounts: CapturingSlot<PaymentDiscounts> = slot()
         verify {
             paymentDiscountRepository.configure(capture(configuredDiscounts))
@@ -377,6 +416,39 @@ class PreparePaymentUseCaseTest {
 
     //endregion
 
+    //region Status MISMATCH Tests
+
+    @Test
+    fun `given we request a prepare payment when status is MISTMATCH then it should not configure discounts and return recoverable error`() {
+        val paymentMethodParams = getAccountMoneyPaymentMethodParams(withPreparePaymentToken = false)
+        val checkoutInitToken = "checkout INIT token"
+        val statusMessage = "Error ocurred so we need to reload checkout"
+        with(paymentMethodParams) {
+            val response =
+                getPreparePaymentResponse(paymentMethodParams, null, ResponseSectionStatus.Code.MISMATCH, statusMessage)
+            coEvery { preparePaymentRepository.prepare() } returns Response.Success(response)
+            every { discountConfigurationModel.discount } returns checkoutInitDiscount
+            every { discountRepository.getCurrentConfiguration() } returns discountConfigurationModel
+            every { amountConfiguration.discountToken } returns checkoutInitToken
+            every { userSelectionRepository.secondaryPaymentMethod } returns null
+
+            preparePaymentUseCase.execute(Unit, success::invoke, failure::invoke)
+
+            verify(exactly = 0) {
+                paymentDiscountRepository.configure(any())
+            }
+            val error = slot<MercadoPagoError>()
+            verify {
+                failure.invoke(capture(error))
+            }
+            assertTrue(error.captured is PreparePaymentMismatchError)
+            assertTrue(error.captured.isRecoverable)
+            error.captured.message.assertEquals(statusMessage)
+        }
+    }
+
+    //endregion
+
     // region API Error Tests
 
     /**
@@ -386,12 +458,16 @@ class PreparePaymentUseCaseTest {
     fun `given it's split and we don't have discounts when api fails then it should configure null discounts`() {
         val primaryPaymentMethodParams = getDebitPaymentMethodParams(withPreparePaymentToken = false, withCheckoutDiscount = false)
         val splitPaymentMethodParams = getAccountMoneyPaymentMethodParams(withPreparePaymentToken = false, withCheckoutDiscount = false)
-        coEvery { preparePaymentRepository.prepare() } returns Response.Failure(MercadoPagoError.createRecoverable("Test"))
+        val error = MercadoPagoError.createRecoverable("Test")
+        coEvery { preparePaymentRepository.prepare() } returns Response.Failure(error)
         setupSplitConfigurationMock(primaryPaymentMethodParams, splitPaymentMethodParams)
         every { userSelectionRepository.secondaryPaymentMethod } returns secondaryPaymentMethod
 
-        preparePaymentUseCase.execute(Unit)
+        preparePaymentUseCase.execute(Unit, success::invoke, failure::invoke)
 
+        verify {
+            failure.invoke(error)
+        }
         verify {
             paymentDiscountRepository.reset()
             paymentDiscountRepository.configure(
@@ -405,15 +481,19 @@ class PreparePaymentUseCaseTest {
      */
     @Test
     fun `given it's a regular pm and we don't have discounts when api fails then it should configure null discounts`() {
-        coEvery { preparePaymentRepository.prepare() } returns Response.Failure(MercadoPagoError.createRecoverable("Test"))
+        val error = MercadoPagoError.createRecoverable("Test")
+        coEvery { preparePaymentRepository.prepare() } returns Response.Failure(error)
         every { amountConfiguration.splitConfiguration } returns null
         every { discountConfigurationModel.discount } returns null
         every { discountRepository.getCurrentConfiguration() } returns discountConfigurationModel
         every { amountConfiguration.discountToken } returns "hash_no_discount"
         every { userSelectionRepository.secondaryPaymentMethod } returns null
 
-        preparePaymentUseCase.execute(Unit)
+        preparePaymentUseCase.execute(Unit, success::invoke, failure::invoke)
 
+        verify {
+            failure.invoke(error)
+        }
         verify {
             paymentDiscountRepository.reset()
             paymentDiscountRepository.configure(
@@ -429,15 +509,19 @@ class PreparePaymentUseCaseTest {
     fun `given it's a regular pm and has discount when api fails then it should configure discount from discount repository with checkout init token`() {
         val paymentMethodParams = getAccountMoneyPaymentMethodParams(withPreparePaymentToken = false)
         val checkoutInitToken = "checkout INIT token"
+        val error = MercadoPagoError.createRecoverable("Test")
         with(paymentMethodParams) {
-            coEvery { preparePaymentRepository.prepare() } returns Response.Failure(MercadoPagoError.createRecoverable("Test"))
+            coEvery { preparePaymentRepository.prepare() } returns Response.Failure(error)
             every { discountConfigurationModel.discount } returns checkoutInitDiscount
             every { discountRepository.getCurrentConfiguration() } returns discountConfigurationModel
             every { amountConfiguration.discountToken } returns checkoutInitToken
             every { userSelectionRepository.secondaryPaymentMethod } returns null
 
-            preparePaymentUseCase.execute(Unit)
+            preparePaymentUseCase.execute(Unit, success::invoke, failure::invoke)
 
+            verify {
+                failure.invoke(error)
+            }
             val configuredDiscounts = slot<PaymentDiscounts>()
             verify {
                 paymentDiscountRepository.configure(capture(configuredDiscounts))
@@ -459,12 +543,16 @@ class PreparePaymentUseCaseTest {
     fun `given it's split with both discounts when api fails then it should configure discount from split configuration without merging`() {
         val primaryPaymentMethodParams = getDebitPaymentMethodParams(withPreparePaymentToken = false)
         val splitPaymentMethodParams = getAccountMoneyPaymentMethodParams(withPreparePaymentToken = false)
-        coEvery { preparePaymentRepository.prepare() } returns Response.Failure(MercadoPagoError.createRecoverable("Test"))
+        val error = MercadoPagoError.createRecoverable("Test")
+        coEvery { preparePaymentRepository.prepare() } returns Response.Failure(error)
         setupSplitConfigurationMock(primaryPaymentMethodParams, splitPaymentMethodParams)
         every { userSelectionRepository.secondaryPaymentMethod } returns secondaryPaymentMethod
 
-        preparePaymentUseCase.execute(Unit)
+        preparePaymentUseCase.execute(Unit, success::invoke, failure::invoke)
 
+        verify {
+            failure.invoke(error)
+        }
         val configuredDiscounts = slot<PaymentDiscounts>()
         verify {
             paymentDiscountRepository.configure(capture(configuredDiscounts))
@@ -487,12 +575,16 @@ class PreparePaymentUseCaseTest {
     fun `given it's split with discount for primary method when api fails then it should configure primary method discount from split configuration without merging`() {
         val primaryPaymentMethodParams = getDebitPaymentMethodParams(withPreparePaymentToken = false)
         val splitPaymentMethodParams = getAccountMoneyPaymentMethodParams(withCheckoutDiscount = false, withPreparePaymentToken = false)
-        coEvery { preparePaymentRepository.prepare() } returns Response.Failure(MercadoPagoError.createRecoverable("Test"))
+        val error = MercadoPagoError.createRecoverable("Test")
+        coEvery { preparePaymentRepository.prepare() } returns Response.Failure(error)
         setupSplitConfigurationMock(primaryPaymentMethodParams, splitPaymentMethodParams)
         every { userSelectionRepository.secondaryPaymentMethod } returns secondaryPaymentMethod
 
-        preparePaymentUseCase.execute(Unit)
+        preparePaymentUseCase.execute(Unit, success::invoke, failure::invoke)
 
+        verify {
+            failure.invoke(error)
+        }
         val configuredDiscounts: CapturingSlot<PaymentDiscounts> = slot()
         verify {
             paymentDiscountRepository.configure(capture(configuredDiscounts))
@@ -513,12 +605,16 @@ class PreparePaymentUseCaseTest {
     fun `given it's split with discount for split method when api fails then it should configure split method discount from split configuration without merging`() {
         val primaryPaymentMethodParams = getDebitPaymentMethodParams(withPreparePaymentToken = false, withCheckoutDiscount = false)
         val splitPaymentMethodParams = getAccountMoneyPaymentMethodParams(withPreparePaymentToken = false)
-        coEvery { preparePaymentRepository.prepare() } returns Response.Failure(MercadoPagoError.createRecoverable("Test"))
+        val error = MercadoPagoError.createRecoverable("Test")
+        coEvery { preparePaymentRepository.prepare() } returns Response.Failure(error)
         setupSplitConfigurationMock(primaryPaymentMethodParams, splitPaymentMethodParams)
         every { userSelectionRepository.secondaryPaymentMethod } returns secondaryPaymentMethod
 
-        preparePaymentUseCase.execute(Unit)
+        preparePaymentUseCase.execute(Unit, success::invoke, failure::invoke)
 
+        verify {
+            failure.invoke(error)
+        }
         val configuredDiscounts: CapturingSlot<PaymentDiscounts> = slot()
         verify {
             paymentDiscountRepository.configure(capture(configuredDiscounts))
@@ -548,9 +644,10 @@ class PreparePaymentUseCaseTest {
     private fun getPreparePaymentResponse(
         primaryPaymentMethodParams: PaymentMethodParameters,
         splitPaymentMethodParams: PaymentMethodParameters?,
-        responseSectionCode: ResponseSectionStatus.Code
+        responseSectionCode: ResponseSectionStatus.Code,
+        statusMessage: String? = null
     ) = PreparePaymentResponse(
-        mapOf(getDiscountStatus(responseSectionCode, null)),
+        mapOf(getDiscountStatus(responseSectionCode, statusMessage)),
         with(primaryPaymentMethodParams) {
             getPaymentMethodDM(id, type, token = preparePaymentToken, splitPaymentMethods = splitPaymentMethodParams?.let {
                 listOf(

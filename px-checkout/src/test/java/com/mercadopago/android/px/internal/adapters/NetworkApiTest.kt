@@ -3,9 +3,9 @@ package com.mercadopago.android.px.internal.adapters
 import com.mercadopago.android.px.ITestService
 import com.mercadopago.android.px.TestContextProvider
 import com.mercadopago.android.px.TestService
+import com.mercadopago.android.px.core.data.network.ConnectionHelper
 import com.mercadopago.android.px.internal.base.CoroutineContextProvider
 import com.mercadopago.android.px.internal.callbacks.ApiResponse
-import com.mercadopago.android.px.internal.core.ConnectionHelper
 import com.mercadopago.android.px.internal.services.CheckoutService
 import com.mercadopago.android.px.internal.util.ApiUtil;
 import com.mercadopago.android.px.mocks.CheckoutResponseStub

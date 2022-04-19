@@ -1,8 +1,8 @@
 package com.mercadopago.android.px.internal.features.payment_congrats
 
+import com.mercadopago.android.px.core.data.network.ConnectionHelper
 import com.mercadopago.android.px.internal.base.BaseState
 import com.mercadopago.android.px.internal.base.BaseViewModelWithState
-import com.mercadopago.android.px.internal.core.ConnectionHelper
 import com.mercadopago.android.px.internal.datasource.PaymentResultFactory
 import com.mercadopago.android.px.internal.features.checkout.PostCongratsDriver
 import com.mercadopago.android.px.internal.features.checkout.PostPaymentUrlsMapper

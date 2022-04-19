@@ -4,13 +4,14 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import com.mercadopago.android.px.assertEquals
 import com.mercadopago.android.px.configuration.AdvancedConfiguration
+import com.mercadopago.android.px.core.data.network.ConnectionHelper
 import com.mercadopago.android.px.internal.audio.AudioPlayer
 import com.mercadopago.android.px.internal.audio.SelectPaymentSoundUseCase
 import com.mercadopago.android.px.internal.base.use_case.CallBack
 import com.mercadopago.android.px.internal.base.use_case.UserSelectionUseCase
-import com.mercadopago.android.px.internal.core.ConnectionHelper
 import com.mercadopago.android.px.internal.core.ProductIdProvider
 import com.mercadopago.android.px.internal.datasource.PaymentDataFactory
+import com.mercadopago.android.px.internal.domain.PreparePaymentUseCase
 import com.mercadopago.android.px.internal.features.PaymentResultViewModelFactory
 import com.mercadopago.android.px.internal.features.checkout.PostPaymentUrlsMapper
 import com.mercadopago.android.px.internal.features.explode.ExplodeDecorator
@@ -117,6 +118,9 @@ internal class PayButtonViewModelTest {
     private lateinit var userSelectionUseCase: UserSelectionUseCase
 
     @Mock
+    private lateinit var preparePaymentUseCase: PreparePaymentUseCase
+
+    @Mock
     private lateinit var paymentConfiguration: PaymentConfiguration
 
     @Mock
@@ -132,6 +136,8 @@ internal class PayButtonViewModelTest {
     private val visualPaymentLiveData = MutableSingleLiveData<Unit>()
     private val userSelectionSuccessCallbackCaptor = argumentCaptor<CallBack<Unit>>()
     private val userSelectionFailureCallbackCaptor = argumentCaptor<CallBack<MercadoPagoError>>()
+    private val preparePaymentSuccessCallbackCaptor = argumentCaptor<CallBack<Unit>>()
+    private val preparePaymentFailureCallbackCaptor = argumentCaptor<CallBack<MercadoPagoError>>()
     private val audioPlayerSuccessCallbackCaptor = argumentCaptor<CallBack<AudioPlayer.Sound>>()
     private val audioPlayerFailureCallbackCaptor = argumentCaptor<CallBack<MercadoPagoError>>()
 
@@ -163,6 +169,7 @@ internal class PayButtonViewModelTest {
             customTextsRepository,
             payButtonViewModelMapper,
             postPaymentUrlsMapper,
+            preparePaymentUseCase,
             selectPaymentSoundUseCase,
             userSelectionUseCase,
             paymentResultViewModelFactory,
@@ -214,6 +221,14 @@ internal class PayButtonViewModelTest {
         userSelectionSuccessCallbackCaptor.firstValue.invoke(Unit)
         verify(handler).onEnqueueProcess(callback.capture())
         callback.firstValue.success()
+
+        verify(preparePaymentUseCase).execute(
+            any(),
+            preparePaymentSuccessCallbackCaptor.capture(),
+            preparePaymentFailureCallbackCaptor.capture()
+        )
+        preparePaymentSuccessCallbackCaptor.firstValue.invoke(Unit)
+
         verify(paymentService).startExpressPayment()
     }
 
@@ -257,6 +272,14 @@ internal class PayButtonViewModelTest {
         userSelectionSuccessCallbackCaptor.firstValue.invoke(Unit)
         verify(handler).onEnqueueProcess(callback.capture())
         callback.firstValue.success()
+
+        verify(preparePaymentUseCase).execute(
+            any(),
+            preparePaymentSuccessCallbackCaptor.capture(),
+            preparePaymentFailureCallbackCaptor.capture()
+        )
+        preparePaymentSuccessCallbackCaptor.firstValue.invoke(Unit)
+
         verify(payButtonViewModelSpy).onPostPayment(any())
         verify(uiStateObserver).onChanged(any<UIProgress.ButtonLoadingFinished>())
         verify(handler).onProcessError(error)
@@ -280,6 +303,14 @@ internal class PayButtonViewModelTest {
         userSelectionSuccessCallbackCaptor.firstValue.invoke(Unit)
         verify(handler).onEnqueueProcess(callback.capture())
         callback.firstValue.success()
+
+        verify(preparePaymentUseCase).execute(
+            any(),
+            preparePaymentSuccessCallbackCaptor.capture(),
+            preparePaymentFailureCallbackCaptor.capture()
+        )
+        preparePaymentSuccessCallbackCaptor.firstValue.invoke(Unit)
+
         verify(uiStateObserver).onChanged(any<UIError.BusinessError>())
         verify(handler).onProcessError(error)
         verify(uiStateObserver).onChanged(any<UIProgress.ButtonLoadingCanceled>())
@@ -299,6 +330,14 @@ internal class PayButtonViewModelTest {
         userSelectionSuccessCallbackCaptor.firstValue.invoke(Unit)
         verify(handler).onEnqueueProcess(callback.capture())
         callback.firstValue.success()
+
+        verify(preparePaymentUseCase).execute(
+            any(),
+            preparePaymentSuccessCallbackCaptor.capture(),
+            preparePaymentFailureCallbackCaptor.capture()
+        )
+        preparePaymentSuccessCallbackCaptor.firstValue.invoke(Unit)
+
         verify(uiStateObserver).onChanged(any<UIResult.VisualProcessorResult>())
     }
 
@@ -321,6 +360,14 @@ internal class PayButtonViewModelTest {
         userSelectionSuccessCallbackCaptor.firstValue.invoke(Unit)
         verify(handler).onEnqueueProcess(callback.capture())
         callback.firstValue.success()
+
+        verify(preparePaymentUseCase).execute(
+            any(),
+            preparePaymentSuccessCallbackCaptor.capture(),
+            preparePaymentFailureCallbackCaptor.capture()
+        )
+        preparePaymentSuccessCallbackCaptor.firstValue.invoke(Unit)
+
         verify(uiStateObserver).onChanged(any<UIProgress.ButtonLoadingFinished>())
 
         val actual = (payButtonViewModel.uiStateLiveData.value as UIProgress.ButtonLoadingFinished)
@@ -342,6 +389,14 @@ internal class PayButtonViewModelTest {
         userSelectionSuccessCallbackCaptor.firstValue.invoke(Unit)
         verify(handler).onEnqueueProcess(callback.capture())
         callback.firstValue.success()
+
+        verify(preparePaymentUseCase).execute(
+            any(),
+            preparePaymentSuccessCallbackCaptor.capture(),
+            preparePaymentFailureCallbackCaptor.capture()
+        )
+        preparePaymentSuccessCallbackCaptor.firstValue.invoke(Unit)
+
         verify(uiStateObserver).onChanged(any<UIProgress.ButtonLoadingFinished>())
     }
 
@@ -407,6 +462,14 @@ internal class PayButtonViewModelTest {
         userSelectionSuccessCallbackCaptor.firstValue.invoke(Unit)
         verify(handler).onEnqueueProcess(callback.capture())
         callback.firstValue.success()
+
+        verify(preparePaymentUseCase).execute(
+            any(),
+            preparePaymentSuccessCallbackCaptor.capture(),
+            preparePaymentFailureCallbackCaptor.capture()
+        )
+        preparePaymentSuccessCallbackCaptor.firstValue.invoke(Unit)
+
         verify(uiStateObserver).onChanged(any<UIProgress.ButtonLoadingFinished>())
 
         val actual = payButtonViewModel.uiStateLiveData.value as UIProgress.ButtonLoadingFinished
@@ -435,6 +498,14 @@ internal class PayButtonViewModelTest {
         userSelectionSuccessCallbackCaptor.firstValue.invoke(Unit)
         verify(handler).onEnqueueProcess(callback.capture())
         callback.firstValue.success()
+
+        verify(preparePaymentUseCase).execute(
+            any(),
+            preparePaymentSuccessCallbackCaptor.capture(),
+            preparePaymentFailureCallbackCaptor.capture()
+        )
+        preparePaymentSuccessCallbackCaptor.firstValue.invoke(Unit)
+
         verify(uiStateObserver).onChanged(any<UIProgress.ButtonLoadingFinished>())
     }
 
@@ -456,6 +527,14 @@ internal class PayButtonViewModelTest {
         userSelectionSuccessCallbackCaptor.firstValue.invoke(Unit)
         verify(handler).onEnqueueProcess(callback.capture())
         callback.firstValue.success()
+
+        verify(preparePaymentUseCase).execute(
+            any(),
+            preparePaymentSuccessCallbackCaptor.capture(),
+            preparePaymentFailureCallbackCaptor.capture()
+        )
+        preparePaymentSuccessCallbackCaptor.firstValue.invoke(Unit)
+
         verify(paymentService).startExpressPayment()
 
         verify(handler).onCvvRequested(any())

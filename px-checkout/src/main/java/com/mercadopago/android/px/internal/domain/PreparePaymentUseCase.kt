@@ -3,19 +3,20 @@ package com.mercadopago.android.px.internal.domain
 import com.mercadopago.android.px.internal.base.CoroutineContextProvider
 import com.mercadopago.android.px.internal.base.use_case.UseCase
 import com.mercadopago.android.px.internal.callbacks.Response
+import com.mercadopago.android.px.internal.callbacks.next
 import com.mercadopago.android.px.internal.datasource.PaymentDiscountRepository
-import com.mercadopago.android.px.internal.datasource.PaymentDiscountRepository.*
+import com.mercadopago.android.px.internal.datasource.PaymentDiscountRepository.PaymentDiscounts
 import com.mercadopago.android.px.internal.extensions.ifFailure
-import com.mercadopago.android.px.internal.extensions.ifSuccess
 import com.mercadopago.android.px.internal.repository.AmountConfigurationRepository
 import com.mercadopago.android.px.internal.repository.DiscountRepository
 import com.mercadopago.android.px.internal.repository.PreparePaymentRepository
 import com.mercadopago.android.px.internal.repository.UserSelectionRepository
 import com.mercadopago.android.px.model.Discount
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError
+import com.mercadopago.android.px.model.exceptions.PreparePaymentMismatchError
 import com.mercadopago.android.px.model.internal.ResponseSectionStatus
 import com.mercadopago.android.px.model.internal.payment_prepare.PaymentMethodDM
-import com.mercadopago.android.px.model.internal.payment_prepare.PreparePaymentResponse
+import com.mercadopago.android.px.model.internal.payment_prepare.getDiscountStatus
 import com.mercadopago.android.px.tracking.internal.MPTracker
 
 internal class PreparePaymentUseCase(
@@ -26,33 +27,26 @@ internal class PreparePaymentUseCase(
     private val userSelectionRepository: UserSelectionRepository,
     tracker: MPTracker,
     override val contextProvider: CoroutineContextProvider = CoroutineContextProvider()
-) : UseCase<Unit, PreparePaymentResponse>(tracker) {
-    override suspend fun doExecute(param: Unit): Response<PreparePaymentResponse, MercadoPagoError> {
+) : UseCase<Unit, Unit>(tracker) {
+    override suspend fun doExecute(param: Unit): Response<Unit, MercadoPagoError> {
         paymentDiscountRepository.reset()
         return preparePaymentRepository.prepare()
-            .ifSuccess {
-                handleDiscountsResponseSuccess(it)
-            }.ifFailure {
-                handleDiscountsResponseFailure(it)
+            .ifFailure {
+                configureDiscounts(null)
             }
-    }
-
-    private fun handleDiscountsResponseFailure(error: MercadoPagoError) {
-        configureDiscounts(null)
-    }
-
-    private fun handleDiscountsResponseSuccess(response: PreparePaymentResponse) {
-        with(response) {
-            val discountsStatus = status?.get(SECTION_DISCOUNTS)
-            when (discountsStatus?.code) {
-                ResponseSectionStatus.Code.OK,
-                ResponseSectionStatus.Code.USE_FALLBACK -> configureDiscounts(paymentMethod)
-                ResponseSectionStatus.Code.MISMATCH ->
-                    // Something happened with the discount that resulted in a mismatch with the one that we requested
-                    discountsStatus.message // This message has to be raised to the upper layer to show an recoverable error screen
-                else -> Unit // Empty status for discounts means we don't have to do anything (probably we didn't request discounts)
+            .next {
+                val discountStatus = it.getDiscountStatus()
+                when (discountStatus?.code) {
+                    ResponseSectionStatus.Code.OK,
+                    ResponseSectionStatus.Code.USE_FALLBACK -> {
+                        configureDiscounts(it.paymentMethod)
+                        Response.Success(Unit)
+                    }
+                    ResponseSectionStatus.Code.MISMATCH ->
+                        Response.Failure(PreparePaymentMismatchError(discountStatus.message))
+                    else -> Response.Success(Unit)
+                }
             }
-        }
     }
 
     private fun configureDiscounts(paymentMethod: PaymentMethodDM?) {
@@ -109,9 +103,5 @@ internal class PreparePaymentUseCase(
         } else {
             splitConfiguration.primaryPaymentMethod.discount
         }
-    }
-
-    companion object {
-        const val SECTION_DISCOUNTS = "discounts"
     }
 }
