@@ -4,21 +4,26 @@ import com.mercadopago.android.px.internal.base.CoroutineContextProvider
 import com.mercadopago.android.px.internal.base.use_case.UseCase
 import com.mercadopago.android.px.internal.callbacks.Response
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository
+import com.mercadopago.android.px.model.PaymentResult
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError
 import com.mercadopago.android.px.tracking.internal.MPTracker
 
-internal class PlaySoundUseCase(
+internal class SelectPaymentSoundUseCase(
     tracker: MPTracker,
     private val paymentSettingRepository: PaymentSettingRepository,
-    private val audioPlayer: AudioPlayer,
     override val contextProvider: CoroutineContextProvider = CoroutineContextProvider()
-)
-    : UseCase<AudioPlayer.Sound, Unit>(tracker) {
+) : UseCase<PaymentResult, AudioPlayer.Sound>(tracker) {
 
-    override suspend fun doExecute(param: AudioPlayer.Sound): Response<Unit, MercadoPagoError> {
+    override suspend fun doExecute(param: PaymentResult): Response<AudioPlayer.Sound, MercadoPagoError> {
+        var sound = AudioPlayer.Sound.NONE
         if (paymentSettingRepository.configuration.sonicBrandingEnabled()) {
-            audioPlayer.play(param)
+            sound = when {
+                param.isApproved -> AudioPlayer.Sound.SUCCESS
+                param.isRejected -> AudioPlayer.Sound.FAILURE
+                else -> AudioPlayer.Sound.NONE
+            }
         }
-        return Response.Success(Unit)
+
+        return Response.Success(sound)
     }
 }

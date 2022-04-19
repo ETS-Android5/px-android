@@ -16,7 +16,7 @@ internal open class CongratsPaymentResult : CongratsResult() {
 internal open class CongratsPostPaymentResult : CongratsResult() {
     object Loading : CongratsPostPaymentResult()
     object ConnectionError : CongratsPostPaymentResult()
-    object BusinessError : CongratsPostPaymentResult()
+    class BusinessError(val message: String? = null) : CongratsPostPaymentResult()
 }
 
 internal open class CongratsPostPaymentUrlsResponse : CongratsResult() {

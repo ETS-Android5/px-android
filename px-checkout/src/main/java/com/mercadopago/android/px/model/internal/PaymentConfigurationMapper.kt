@@ -11,31 +11,35 @@ import com.mercadopago.android.px.model.PayerCost
 import com.mercadopago.android.px.model.PaymentMethods
 import com.mercadopago.android.px.model.PaymentTypes
 
-internal class FromExpressMetadataToPaymentConfiguration(
+internal class PaymentConfigurationMapper(
     private val amountConfigurationRepository: AmountConfigurationRepository,
-    private val splitSelectionState: SplitSelectionState,
     private val payerCostSelectionRepository: PayerCostSelectionRepository,
     private val applicationSelectionRepository: ApplicationSelectionRepository,
     private val customOptionIdSolver: CustomOptionIdSolver
-) : Mapper<OneTapItem, PaymentConfiguration>() {
+) : Mapper<PaymentConfigurationData, PaymentConfiguration>() {
 
-    override fun map(value: OneTapItem): PaymentConfiguration {
+    override fun map(value: PaymentConfigurationData): PaymentConfiguration {
 
-        val customOptionId = customOptionIdSolver[value]
+        val customOptionId = customOptionIdSolver[value.oneTapItem]
         val (paymentMethodId, paymentTypeId) =
-            with(applicationSelectionRepository[value].paymentMethod) { id to type }
+            with(applicationSelectionRepository[value.oneTapItem].paymentMethod) { id to type }
 
         var payerCost: PayerCost? = null
         val amountConfiguration = amountConfigurationRepository.getConfigurationSelectedFor(customOptionId)
-        val splitPayment = splitSelectionState.userWantsToSplit() && amountConfiguration!!.allowSplit()
+        val splitPayment = value.splitSelectionState.userWantsToSplit() && amountConfiguration!!.allowSplit()
 
         if (PaymentTypes.isCardPaymentType(paymentTypeId) || PaymentMethods.CONSUMER_CREDITS == paymentMethodId) {
-            payerCost = amountConfiguration!!.getCurrentPayerCost(splitSelectionState.userWantsToSplit(),
+            payerCost = amountConfiguration!!.getCurrentPayerCost(value.splitSelectionState.userWantsToSplit(),
                 payerCostSelectionRepository.get(customOptionId))
         }
 
         return PaymentConfiguration(paymentMethodId, paymentTypeId, customOptionId,
-            SecurityCodeHelper.isRequired(value.card?.displayInfo?.securityCode),
+            SecurityCodeHelper.isRequired(value.oneTapItem.card?.displayInfo?.securityCode),
             splitPayment, payerCost)
     }
 }
+
+internal data class PaymentConfigurationData @JvmOverloads constructor(
+    val oneTapItem: OneTapItem,
+    val splitSelectionState: SplitSelectionState = SplitSelectionState()
+)

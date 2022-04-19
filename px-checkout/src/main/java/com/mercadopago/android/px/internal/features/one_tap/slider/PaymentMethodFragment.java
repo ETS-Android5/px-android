@@ -12,6 +12,7 @@ import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import com.meli.android.carddrawer.model.CardDrawerView;
 import com.meli.android.carddrawer.model.Label;
@@ -308,14 +309,8 @@ public abstract class PaymentMethodFragment<T extends DrawableFragmentItem>
 
     protected void tintBackground(@NonNull final ImageView background, @NonNull final String color) {
         final int backgroundColor = Color.parseColor(color);
+        final int lighterBackgroundColor = ContextCompat.getColor(background.getContext(), R.color.design_mp_blue);
 
-        final int alpha = Color.alpha(backgroundColor);
-        final int blue = Color.blue(backgroundColor);
-        final int green = Color.green(backgroundColor);
-        final int red = Color.red(backgroundColor);
-
-        final int lighterBackgroundColor =
-            Color.argb((int) (alpha * 0.7f), (int) (red * 0.8f), (int) (green * 0.8f), (int) (blue * 0.8f));
         Color.argb(0, 0, 0, 0);
         final int[] ints = { backgroundColor, lighterBackgroundColor };
         final GradientDrawable gradientDrawable = new GradientDrawable(GradientDrawable.Orientation.BL_TR,

@@ -98,18 +98,19 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/shadow"
-            app:layout_constraintBottom_toTopOf="@id/pay_button"
+            app:layout_constraintBottom_toTopOf="@id/confirm_button_container"
             tools:text="Procesado por Mercado Pago Estándar"/>
 
-        <fragment
-            android:name="com.mercadopago.android.px.internal.features.pay_button.PayButtonFragment"
-            android:id="@+id/pay_button"
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/confirm_button_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/ui_3m"
             android:layout_marginHorizontal="@dimen/ui_3m"
             app:layout_constraintTop_toBottomOf="@id/bottom_description"
             app:layout_constraintBottom_toBottomOf="parent"
-            tools:layout="@layout/px_fragment_pay_button" />
+            tools:layout="@layout/px_fragment_confirm_button"
+            />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

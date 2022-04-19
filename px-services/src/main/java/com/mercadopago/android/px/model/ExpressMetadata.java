@@ -81,7 +81,11 @@ public class ExpressMetadata implements Parcelable, Serializable, ExpressPayment
     }
 
     public CheckoutBehaviour getBehaviour(@NonNull @CheckoutBehaviour.Type final String type) {
-        return behaviours != null ? behaviours.get(type) : null;
+        return hasBehaviours() ? behaviours.get(type) : null;
+    }
+
+    public Boolean hasBehaviours() {
+        return behaviours != null && !behaviours.isEmpty();
     }
 
     public boolean isAccountMoney() {

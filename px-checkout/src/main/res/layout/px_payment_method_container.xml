@@ -7,7 +7,8 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     app:layout_constraintBottom_toBottomOf="parent"
-    tools:showIn="@layout/px_fragment_one_tap_payment">
+    tools:showIn="@layout/px_fragment_one_tap_payment"
+    tools:viewBindingIgnore="true">
 
     <com.mercadopago.android.px.internal.view.DynamicHeightViewPager
         android:id="@+id/payment_method_pager"
@@ -24,15 +25,16 @@
         app:px_spi_dotColor="@color/px_expressCheckoutScrollIndicatorColor"
         app:px_spi_dotSelectedColor="@color/ui_components_primary_color" />
 
-    <fragment
-        tools:layout="@layout/px_fragment_pay_button"
-        android:id="@+id/pay_button"
-        android:name="com.mercadopago.android.px.internal.features.pay_button.PayButtonFragment"
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/confirm_button_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/px_m_margin"
         android:layout_marginTop="@dimen/px_s_margin"
         android:layout_marginEnd="@dimen/px_m_margin"
-        android:layout_marginBottom="@dimen/px_m_margin" />
+        android:layout_marginBottom="@dimen/px_m_margin"
+        tools:layout="@layout/px_fragment_confirm_button"
+        />
 
 </LinearLayout>

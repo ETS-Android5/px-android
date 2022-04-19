@@ -1,6 +1,7 @@
 package com.mercadopago.android.px.internal.features.one_tap.offline_methods
 
 import androidx.lifecycle.LiveData
+import com.mercadopago.android.px.internal.features.one_tap.confirm_button.ConfirmButton
 import com.mercadopago.android.px.internal.features.pay_button.PayButton
 import com.mercadopago.android.px.internal.viewmodel.AmountLocalized
 import com.mercadopago.android.px.model.ExpressMetadata
@@ -18,10 +19,9 @@ internal interface OfflineMethods {
     interface ViewModel {
         val deepLinkLiveData: LiveData<String>
         fun onSheetShowed()
-        fun onViewLoaded(): LiveData<Model>
         fun onMethodSelected(selectedItem: OfflineMethodItem)
-        fun onGetViewTrackPath(callback: PayButton.ViewTrackPathCallback)
-        fun onPrePayment(callback: PayButton.OnReadyForPaymentCallback)
+        fun onGetViewTrackPath(callback: ConfirmButton.ViewTrackPathCallback)
+        fun onPrePayment(callback: ConfirmButton.OnReadyForProcessCallback)
         fun onBack()
         fun onPaymentExecuted(configuration: PaymentConfiguration)
     }

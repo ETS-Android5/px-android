@@ -1,6 +1,6 @@
 package com.mercadopago.android.px.internal.features.security_code
 
-import java.util.*
+import java.util.Locale
 
 enum class RenderMode {
     HIGH_RES, MEDIUM_RES, LOW_RES, NO_CARD;

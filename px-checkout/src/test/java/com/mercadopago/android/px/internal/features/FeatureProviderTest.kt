@@ -30,9 +30,6 @@ internal class FeatureProviderTest {
     lateinit var paymentConfiguration: PaymentConfiguration
 
     @Mock
-    lateinit var splitPaymentProcessor: PaymentProcessor
-
-    @Mock
     lateinit var checkoutPreference: CheckoutPreference
 
     @Mock
@@ -42,7 +39,6 @@ internal class FeatureProviderTest {
     fun setUp() {
         whenever(configurationProvider.paymentConfiguration).thenReturn(paymentConfiguration)
         whenever(configurationProvider.checkoutPreference).thenReturn(checkoutPreference)
-        whenever(paymentConfiguration.paymentProcessorV2).thenReturn(splitPaymentProcessor)
         whenever(mercadoPagoCheckout.paymentConfiguration).thenReturn(paymentConfiguration)
         whenever(mercadoPagoCheckout.checkoutPreference).thenReturn(checkoutPreference)
     }
@@ -62,21 +58,21 @@ internal class FeatureProviderTest {
 
     @Test
     fun testWhenPaymentProcessorDoesNotSupportSplit_thenNoSplitFeature() {
-        whenever(splitPaymentProcessor.supportsSplitPayment(checkoutPreference)).thenReturn(false)
+        whenever(paymentConfiguration.getSupportsSplit(checkoutPreference)).thenReturn(false)
         val checkoutFeatures = FeatureProviderImpl(configurationProvider, tokenDeviceBehaviour).availableFeatures
         Assert.assertFalse(checkoutFeatures.split)
     }
 
     @Test
     fun testWhenPaymentProcessorSupportSplit_thenSplitFeature() {
-        whenever(splitPaymentProcessor.supportsSplitPayment(checkoutPreference)).thenReturn(true)
+        whenever(paymentConfiguration.getSupportsSplit(checkoutPreference)).thenReturn(true)
         val checkoutFeatures = FeatureProviderImpl(configurationProvider, tokenDeviceBehaviour).availableFeatures
         Assert.assertTrue(checkoutFeatures.split)
     }
 
     @Test
     fun testWhenCheckoutIsLazyInitAndPaymentProcessorSupportSplit_thenSplitFeature() {
-        whenever(splitPaymentProcessor.supportsSplitPayment(checkoutPreference)).thenReturn(true)
+        whenever(paymentConfiguration.getSupportsSplit(checkoutPreference)).thenReturn(true)
         val checkoutFeatures = FeatureProviderImpl(mercadoPagoCheckout, tokenDeviceBehaviour).availableFeatures
         Assert.assertTrue(checkoutFeatures.split)
     }

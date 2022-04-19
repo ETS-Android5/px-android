@@ -13,24 +13,28 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentContainerView
 import com.meli.android.carddrawer.model.CardDrawerView
 import com.mercadolibre.android.andesui.snackbar.action.AndesSnackbarAction
 import com.mercadolibre.android.andesui.textfield.AndesTextfieldCode
 import com.mercadolibre.android.andesui.textfield.style.AndesTextfieldCodeStyle
 import com.mercadopago.android.px.R
 import com.mercadopago.android.px.core.BackHandler
+import com.mercadopago.android.px.core.presentation.extensions.nonNullObserve
 import com.mercadopago.android.px.internal.base.BaseFragment
 import com.mercadopago.android.px.internal.di.viewModel
 import com.mercadopago.android.px.internal.extensions.postDelayed
 import com.mercadopago.android.px.internal.extensions.runWhenLaidOut
 import com.mercadopago.android.px.internal.extensions.showSnackBar
 import com.mercadopago.android.px.internal.features.Constants
+import com.mercadopago.android.px.internal.features.one_tap.confirm_button.ConfirmButton
+import com.mercadopago.android.px.internal.features.one_tap.confirm_button.ConfirmButtonFragment
 import com.mercadopago.android.px.internal.features.pay_button.PayButton
-import com.mercadopago.android.px.internal.features.pay_button.PayButtonFragment
 import com.mercadopago.android.px.internal.features.security_code.model.SecurityCodeParams
 import com.mercadopago.android.px.internal.util.ViewUtils
-import com.mercadopago.android.px.internal.util.nonNullObserve
 import com.mercadopago.android.px.internal.view.animator.SecurityCodeTransition
+import com.mercadopago.android.px.internal.viewmodel.FlowConfigurationModel
 import com.mercadopago.android.px.internal.viewmodel.PostPaymentAction
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError
 
@@ -43,27 +47,25 @@ internal class SecurityCodeFragment : BaseFragment(), PayButton.Handler, BackHan
 
     private lateinit var cvvEditText: AndesTextfieldCode
     private lateinit var cvvTitle: TextView
-    private lateinit var payButtonFragment: PayButtonFragment
+    private lateinit var confirmButton: ConfirmButton.View
+    private lateinit var confirmButtonContainer: FragmentContainerView
     private lateinit var cvvToolbar: Toolbar
     private lateinit var cardDrawer: CardDrawerView
     private lateinit var cvvSubtitle: TextView
     private lateinit var transition: SecurityCodeTransition
-    private var fragmentContainer: Int = 0
     private var shouldAnimate = true
     private var backEnabled = false
     private var cvvIsFull = false
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         arguments?.getParcelable<SecurityCodeParams>(ARG_PARAMS)?.let {
-            fragmentContainer = it.fragmentContainer
-
 
             val view = inflater.inflate(
-                    when (it.renderMode) {
-                        RenderMode.LOW_RES -> R.layout.px_fragment_security_code_lowres
-                        RenderMode.MEDIUM_RES -> R.layout.px_fragment_security_code_mediumres
-                        else -> R.layout.px_fragment_security_code
-                    },
+                when (it.renderMode) {
+                    RenderMode.LOW_RES -> R.layout.px_fragment_security_code_lowres
+                    RenderMode.MEDIUM_RES -> R.layout.px_fragment_security_code_mediumres
+                    else -> R.layout.px_fragment_security_code
+                },
                 container, false
             ) as ConstraintLayout
 
@@ -72,9 +74,10 @@ internal class SecurityCodeFragment : BaseFragment(), PayButton.Handler, BackHan
             cvvEditText = view.findViewById(R.id.cvv_edit_text)
             cvvTitle = view.findViewById(R.id.cvv_title)
             cvvSubtitle = view.findViewById(R.id.cvv_subtitle)
+            confirmButtonContainer = view.findViewById(R.id.confirm_button_container)
 
             transition = SecurityCodeTransition(view, cardDrawer, cvvToolbar, cvvTitle, cvvSubtitle, cvvEditText,
-                view.findViewById(R.id.pay_button))
+                confirmButtonContainer)
 
             if (it.renderMode == RenderMode.NO_CARD) {
                 cardDrawer.visibility = GONE
@@ -130,13 +133,11 @@ internal class SecurityCodeFragment : BaseFragment(), PayButton.Handler, BackHan
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        payButtonFragment = childFragmentManager.findFragmentById(R.id.pay_button) as PayButtonFragment
-
         savedInstanceState?.let {
             cvvIsFull = it.getBoolean(CVV_IS_FULL, false)
             transition.fromBundle(it)
             shouldAnimate = false
-        } ?: payButtonFragment.disable()
+        }
 
         (activity as? AppCompatActivity?)?.apply {
             setSupportActionBar(cvvToolbar)
@@ -149,30 +150,10 @@ internal class SecurityCodeFragment : BaseFragment(), PayButton.Handler, BackHan
             }
         }
 
-        payButtonFragment.addOnStateChange(object : PayButton.StateChange {
-            override fun overrideStateChange(uiState: PayButton.State): Boolean {
-                return when(uiState) {
-                    PayButton.State.ENABLE -> !cvvIsFull
-                    else -> false
-                }
-            }
-        })
-
         arguments?.getParcelable<SecurityCodeParams>(ARG_PARAMS)?.let {
             securityCodeViewModel.init(it.paymentConfiguration, it.card, it.paymentRecovery, it.reason)
         } ?: error("Arguments should not be null")
 
-        cvvEditText.setOnCompleteListener(object : AndesTextfieldCode.OnCompletionListener {
-            override fun onComplete(isFull: Boolean) {
-                cvvIsFull = isFull
-                if (cvvIsFull) payButtonFragment.enable() else payButtonFragment.disable()
-            }
-        })
-        cvvEditText.setOnTextChangeListener(object : AndesTextfieldCode.OnTextChangeListener {
-            override fun onChange(text: String) {
-                cardDrawer.card.secCode = text
-            }
-        })
         observeViewModel()
     }
 
@@ -184,6 +165,7 @@ internal class SecurityCodeFragment : BaseFragment(), PayButton.Handler, BackHan
 
     private fun observeViewModel() {
         with(securityCodeViewModel) {
+            securityCodeViewModel.flowConfigurationLiveData.nonNullObserve(viewLifecycleOwner, ::configureViews)
             displayModelLiveData.nonNullObserve(viewLifecycleOwner) { model ->
                 with(cardDrawer) {
                     model.cardUiConfiguration?.let {
@@ -212,26 +194,57 @@ internal class SecurityCodeFragment : BaseFragment(), PayButton.Handler, BackHan
             tokenizeErrorApiLiveData.nonNullObserve(viewLifecycleOwner) {
                 val action = AndesSnackbarAction(
                     getString(R.string.px_snackbar_error_action), View.OnClickListener {
-                    activity?.onBackPressed()
-                })
+                        activity?.onBackPressed()
+                    })
                 view.showSnackBar(getString(R.string.px_error_title), andesSnackbarAction = action)
             }
         }
     }
 
-    override fun getViewTrackPath(callback: PayButton.ViewTrackPathCallback) {
+    private fun configureViews(flowConfigurationModel: FlowConfigurationModel) {
+        val currentFragment = childFragmentManager
+            .findFragmentByTag(ConfirmButtonFragment.TAG)
+            as ConfirmButton.View?
+        if (currentFragment == null) {
+            confirmButton = flowConfigurationModel.confirmButton
+            childFragmentManager
+                .beginTransaction()
+                .add(R.id.confirm_button_container, confirmButton as Fragment, ConfirmButtonFragment.TAG)
+                .commitAllowingStateLoss()
+        } else {
+            confirmButton = currentFragment
+        }
+
+        with(cvvEditText) {
+            setOnCompleteListener(object : AndesTextfieldCode.OnCompletionListener {
+                override fun onComplete(isFull: Boolean) {
+                    cvvIsFull = isFull
+                    if (cvvIsFull) confirmButton.enable() else confirmButton.disable()
+                }
+            })
+            setOnTextChangeListener(object : AndesTextfieldCode.OnTextChangeListener {
+                override fun onChange(text: String) {
+                    cardDrawer.card.secCode = text
+                }
+            })
+        }
+
+        confirmButton.disable()
+    }
+
+    override fun getViewTrackPath(callback: ConfirmButton.ViewTrackPathCallback) {
         securityCodeViewModel.onGetViewTrackPath(callback)
     }
 
-    override fun prePayment(callback: PayButton.OnReadyForPaymentCallback) {
+    override fun onPreProcess(callback: ConfirmButton.OnReadyForProcessCallback) {
         securityCodeViewModel.handlePrepayment(callback)
     }
 
-    override fun enqueueOnExploding(callback: PayButton.OnEnqueueResolvedCallback) {
+    override fun onEnqueueProcess(callback: ConfirmButton.OnEnqueueResolvedCallback) {
         securityCodeViewModel.enqueueOnExploding(cvvEditText.text.toString(), callback)
     }
 
-    override fun onPaymentError(error: MercadoPagoError) {
+    override fun onProcessError(error: MercadoPagoError) {
         securityCodeViewModel.onPaymentError()
     }
 
@@ -243,6 +256,7 @@ internal class SecurityCodeFragment : BaseFragment(), PayButton.Handler, BackHan
     }
 
     override fun onPostPaymentAction(postPaymentAction: PostPaymentAction) {
+        fragmentCommunicationViewModel?.postPaymentActionLiveData?.value = postPaymentAction
         if (activity is SecurityCodeActivity) {
             activity?.apply {
                 setResult(Constants.RESULT_ACTION, postPaymentAction.addToIntent(Intent()))
@@ -250,7 +264,6 @@ internal class SecurityCodeFragment : BaseFragment(), PayButton.Handler, BackHan
             }
         } else {
             activity?.supportFragmentManager?.apply {
-                fragmentCommunicationViewModel?.postPaymentActionLiveData?.value = postPaymentAction
                 beginTransaction().apply {
                     remove(this@SecurityCodeFragment)
                     commit()
@@ -260,10 +273,8 @@ internal class SecurityCodeFragment : BaseFragment(), PayButton.Handler, BackHan
         }
     }
 
-    override fun onCvvRequested() = PayButton.CvvRequestedModel(fragmentContainer)
-
     override fun handleBack(): Boolean {
-        if (backEnabled && !payButtonFragment.isExploding()) {
+        if (backEnabled && !confirmButton.isExploding()) {
             securityCodeViewModel.onBack()
             transition.prepareForExit()
             ViewUtils.hideKeyboard(activity)

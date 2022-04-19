@@ -12,8 +12,9 @@ internal class AudioPlayer(context: Context) {
         MediaPlayer.create(context, sound.id).start()
     }
 
-    enum class Sound(val id: Int) {
+    enum class Sound(val id: Int = 0) {
         SUCCESS(R.raw.congrats_success),
-        FAILURE(R.raw.congrats_failure)
+        FAILURE(R.raw.congrats_failure),
+        NONE
     }
 }

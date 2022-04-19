@@ -2,9 +2,10 @@ package com.mercadopago.android.px.securitycode
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
+import com.mercadopago.android.px.core.internal.FlowConfigurationProvider
 import com.mercadopago.android.px.internal.base.use_case.CallBack
-import com.mercadopago.android.px.internal.base.use_case.TokenizeUseCase
-import com.mercadopago.android.px.internal.features.pay_button.PayButton
+import com.mercadopago.android.px.internal.base.use_case.TokenizeWithCvvUseCase
+import com.mercadopago.android.px.internal.features.one_tap.confirm_button.ConfirmButton
 import com.mercadopago.android.px.internal.features.security_code.SecurityCodeViewModel
 import com.mercadopago.android.px.internal.features.security_code.domain.model.BusinessSecurityCodeDisplayData
 import com.mercadopago.android.px.internal.features.security_code.domain.use_case.DisplayDataUseCase
@@ -35,7 +36,7 @@ import org.mockito.kotlin.whenever
 class SecurityCodeViewModelTest {
 
     @Mock
-    private lateinit var tokenizeUseCaseTest: TokenizeUseCase
+    private lateinit var tokenizeUseCaseTest: TokenizeWithCvvUseCase
 
     @Mock
     private lateinit var trackModelUseCase: SecurityTrackModelUseCase
@@ -63,6 +64,8 @@ class SecurityCodeViewModelTest {
 
     @Mock
     private lateinit var tokenizeErrorApiObserver: Observer<Unit>
+    @Mock
+    private lateinit var flowConfigurationProvider: FlowConfigurationProvider
     private lateinit var securityCodeViewModel: SecurityCodeViewModel
 
     @get:Rule
@@ -76,6 +79,7 @@ class SecurityCodeViewModelTest {
             trackModelUseCase,
             trackingParamModelMapper,
             cardUiMapper,
+            flowConfigurationProvider,
             mock()
         )
 
@@ -146,7 +150,7 @@ class SecurityCodeViewModelTest {
 
     @Test
     fun whenSecurityCodeViewModelTokenizeAndSuccess() {
-        val callbackMock = mock<PayButton.OnEnqueueResolvedCallback>()
+        val callbackMock = mock<ConfirmButton.OnEnqueueResolvedCallback>()
         val successTokenCaptor = argumentCaptor<CallBack<Token>>()
         val tokenMock = mock<Token>()
         securityCodeViewModel.init(
@@ -165,7 +169,7 @@ class SecurityCodeViewModelTest {
     @Test
     fun whenSecurityCodeViewModelTokenizeAndFail() {
         val successTrackerCaptor = argumentCaptor<CallBack<SecurityCodeTracker>>()
-        val callbackMock = mock<PayButton.OnEnqueueResolvedCallback>()
+        val callbackMock = mock<ConfirmButton.OnEnqueueResolvedCallback>()
         val failureTokenCaptor = argumentCaptor<CallBack<MercadoPagoError>>()
         val securityCodeTrackerMock = mock<SecurityCodeTracker>()
         val errorMock = mock<MercadoPagoError>()
@@ -184,14 +188,14 @@ class SecurityCodeViewModelTest {
         verify(tokenizeUseCaseTest).execute(any(), any(), failureTokenCaptor.capture())
         failureTokenCaptor.firstValue.invoke(errorMock)
         verify(tokenizeErrorApiObserver).onChanged(any())
-        verify(callbackMock).failure()
+        verify(callbackMock).failure(any())
     }
 
     @Test
     fun whenSecurityCodeViewModelAndHandlePrepayment() {
         val successTrackerCaptor = argumentCaptor<CallBack<SecurityCodeTracker>>()
         val securityCodeTrackerMock = mock<SecurityCodeTracker>()
-        val callback = mock<PayButton.OnReadyForPaymentCallback>()
+        val callback = mock<ConfirmButton.OnReadyForProcessCallback>()
 
         securityCodeViewModel.init(
             paymentConfiguration,

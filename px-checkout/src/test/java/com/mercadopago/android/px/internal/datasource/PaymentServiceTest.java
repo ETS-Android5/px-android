@@ -5,33 +5,24 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 import androidx.lifecycle.Observer;
-import com.mercadopago.android.px.addons.ESCManagerBehaviour;
 import com.mercadopago.android.px.configuration.AdvancedConfiguration;
 import com.mercadopago.android.px.configuration.PostPaymentConfiguration;
 import com.mercadopago.android.px.core.internal.CheckoutData;
 import com.mercadopago.android.px.core.internal.PaymentWrapper;
 import com.mercadopago.android.px.core.v2.PaymentProcessor;
-import com.mercadopago.android.px.internal.callbacks.MPCall;
+import com.mercadopago.android.px.internal.callbacks.PaymentServiceHandler;
 import com.mercadopago.android.px.internal.core.FileManager;
-import com.mercadopago.android.px.internal.datasource.mapper.FromPayerPaymentMethodToCardMapper;
 import com.mercadopago.android.px.internal.features.validation_program.ValidationProgramUseCase;
-import com.mercadopago.android.px.internal.mappers.PaymentMethodMapper;
 import com.mercadopago.android.px.internal.model.SecurityType;
 import com.mercadopago.android.px.internal.repository.AmountConfigurationRepository;
-import com.mercadopago.android.px.internal.repository.AmountRepository;
 import com.mercadopago.android.px.internal.repository.ApplicationSelectionRepository;
 import com.mercadopago.android.px.internal.repository.CongratsRepository;
 import com.mercadopago.android.px.internal.repository.DisabledPaymentMethodRepository;
-import com.mercadopago.android.px.internal.repository.DiscountRepository;
 import com.mercadopago.android.px.internal.repository.EscPaymentManager;
 import com.mercadopago.android.px.internal.repository.PayerCostSelectionRepository;
-import com.mercadopago.android.px.internal.repository.PayerPaymentMethodKey;
-import com.mercadopago.android.px.internal.repository.PaymentMethodRepository;
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository;
-import com.mercadopago.android.px.internal.repository.TokenRepository;
 import com.mercadopago.android.px.internal.repository.UserSelectionRepository;
 import com.mercadopago.android.px.internal.util.PaymentConfigurationUtil;
-import com.mercadopago.android.px.internal.viewmodel.SplitSelectionState;
 import com.mercadopago.android.px.mocks.CheckoutResponseStub;
 import com.mercadopago.android.px.model.AmountConfiguration;
 import com.mercadopago.android.px.model.Card;
@@ -40,22 +31,20 @@ import com.mercadopago.android.px.model.CustomSearchItem;
 import com.mercadopago.android.px.model.DiscountConfigurationModel;
 import com.mercadopago.android.px.model.IPaymentDescriptor;
 import com.mercadopago.android.px.model.PayerCost;
+import com.mercadopago.android.px.model.PaymentData;
 import com.mercadopago.android.px.model.PaymentMethod;
 import com.mercadopago.android.px.model.PaymentMethods;
 import com.mercadopago.android.px.model.PaymentTypes;
-import com.mercadopago.android.px.model.Token;
-import com.mercadopago.android.px.model.exceptions.ApiException;
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError;
 import com.mercadopago.android.px.model.internal.Application;
 import com.mercadopago.android.px.model.internal.CheckoutResponse;
-import com.mercadopago.android.px.model.internal.FromExpressMetadataToPaymentConfiguration;
+import com.mercadopago.android.px.model.internal.PaymentConfigurationData;
+import com.mercadopago.android.px.model.internal.PaymentConfigurationMapper;
 import com.mercadopago.android.px.model.internal.OneTapItem;
 import com.mercadopago.android.px.model.internal.PaymentConfiguration;
 import com.mercadopago.android.px.preferences.CheckoutPreference;
-import com.mercadopago.android.px.tracking.internal.model.Reason;
-import com.mercadopago.android.px.utils.StubFailMpCall;
+import java.util.Collections;
 import java.util.List;
-import kotlin.Pair;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import org.junit.Before;
@@ -67,7 +56,6 @@ import org.mockito.Mock;
 import org.mockito.internal.matchers.apachecommons.ReflectionEquals;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.mercadopago.android.px.utils.ReflectionArgumentMatchers.reflectionEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -76,14 +64,11 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PaymentServiceTest {
 
-    private static final String CARD_ID_ESC_APPROVED = "122232111";
-    private static final String CARD_ID_ESC_REJECTED = "113210123";
     private static final String CARD_ID_ESC_NOT_AVAILABLE = "113210124";
 
     @Rule
@@ -92,32 +77,26 @@ public class PaymentServiceTest {
     @Mock private UserSelectionRepository userSelectionRepository;
     @Mock private PaymentSettingRepository paymentSettingRepository;
     @Mock private DisabledPaymentMethodRepository disabledPaymentMethodRepository;
-    @Mock private DiscountRepository discountRepository;
-    @Mock private AmountRepository amountRepository;
     @Mock private PaymentProcessor paymentProcessor;
     @Mock private Context context;
     @Mock private EscPaymentManager escPaymentManager;
-    @Mock private ESCManagerBehaviour escManagerBehaviour;
-    @Mock private TokenRepository tokenRepository;
     @Mock private AmountConfigurationRepository amountConfigurationRepository;
     @Mock private CongratsRepository congratsRepository;
-    @Mock private SplitSelectionState splitSelectionState;
     @Mock private PayerCostSelectionRepository payerCostSelectionRepository;
     @Mock private ApplicationSelectionRepository applicationSelectionRepository;
     @Mock private AdvancedConfiguration advancedConfiguration;
     @Mock private PostPaymentConfiguration postPaymentConfiguration;
+    @Mock private com.mercadopago.android.px.configuration.PaymentConfiguration paymentConfiguration;
 
     @Mock private OneTapItem node;
     @Mock private PayerCost payerCost;
     @Mock private PaymentMethod paymentMethod;
     @Mock private Application application;
     @Mock private FileManager fileManager;
-    @Mock private FromPayerPaymentMethodToCardMapper fromPayerPaymentMethodToCardMapper;
-    @Mock private PaymentMethodMapper paymentMethodMapper;
-    @Mock private PaymentMethodRepository paymentMethodRepository;
     @Mock private ValidationProgramUseCase validationProgramUseCase;
     @Mock private CustomOptionIdSolver customOptionIdSolver;
-    @Mock private TransactionInfoFactory transactionInfoFactory;
+    @Mock private PaymentResultFactory paymentResultFactory;
+    @Mock private PaymentDataFactory paymentDataFactory;
 
     private PaymentService paymentService;
 
@@ -132,23 +111,20 @@ public class PaymentServiceTest {
         paymentService = new PaymentService(userSelectionRepository,
             paymentSettingRepository,
             disabledPaymentMethodRepository,
-            discountRepository,
-            amountRepository,
             context,
             escPaymentManager,
-            escManagerBehaviour,
-            tokenRepository,
             amountConfigurationRepository,
             congratsRepository,
             fileManager,
-            fromPayerPaymentMethodToCardMapper,
-            paymentMethodMapper,
-            paymentMethodRepository,
             validationProgramUseCase,
-            transactionInfoFactory
+            paymentResultFactory,
+            paymentDataFactory
         );
 
         application = mock(Application.class);
+        final PaymentData paymentDataMock = mock(PaymentData.class);
+        when(paymentDataMock.getPaymentMethod()).thenReturn(paymentMethod);
+        when(paymentDataMock.getPayerCost()).thenReturn(payerCost);
         final Application.PaymentMethod applicationPaymentMethod = mock(Application.PaymentMethod.class);
         when(applicationPaymentMethod.getId()).thenReturn(PaymentMethods.ARGENTINA.AMEX);
         when(applicationPaymentMethod.getType()).thenReturn(PaymentTypes.CREDIT_CARD);
@@ -158,12 +134,11 @@ public class PaymentServiceTest {
             .thenReturn(mock(com.mercadopago.android.px.configuration.PaymentConfiguration.class));
         when(PaymentConfigurationUtil.getPaymentProcessor(paymentSettingRepository.getPaymentConfiguration()))
             .thenReturn(paymentProcessor);
-        when(discountRepository.getCurrentConfiguration()).thenReturn(WITHOUT_DISCOUNT);
-        when(userSelectionRepository.getPaymentMethod()).thenReturn(paymentMethod);
         when(paymentMethod.getId()).thenReturn(PaymentMethods.ARGENTINA.AMEX);
         when(paymentMethod.getPaymentTypeId()).thenReturn(PaymentTypes.CREDIT_CARD);
+        when(paymentDataFactory.create()).thenReturn(Collections.singletonList(paymentDataMock));
         //noinspection unchecked
-        when(paymentMethodMapper.map((Pair<String, String>) any())).thenReturn(paymentMethod);
+        when(paymentSettingRepository.getSecurityType()).thenReturn(SecurityType.SECOND_FACTOR);
     }
 
     private PaymentConfiguration mockPaymentConfiguration(@NonNull final OneTapItem oneTapItem,
@@ -172,8 +147,9 @@ public class PaymentServiceTest {
         when(amountConfigurationRepository.getConfigurationSelectedFor(anyString())).thenReturn(amountConfiguration);
         when(amountConfiguration.getCurrentPayerCost(anyBoolean(), anyInt())).thenReturn(payerCost);
         when(applicationSelectionRepository.get(oneTapItem)).thenReturn(application);
-        return new FromExpressMetadataToPaymentConfiguration(amountConfigurationRepository, splitSelectionState,
-            payerCostSelectionRepository, applicationSelectionRepository, customOptionIdSolver).map(oneTapItem);
+        return new PaymentConfigurationMapper(amountConfigurationRepository,
+            payerCostSelectionRepository, applicationSelectionRepository, customOptionIdSolver).map(
+            new PaymentConfigurationData(oneTapItem));
     }
 
     @Test
@@ -191,142 +167,34 @@ public class PaymentServiceTest {
     }
 
     @Test
-    public void whenOneTapPaymentIsCardSelectCard() {
-        final Card card = creditCardPresetMock(CARD_ID_ESC_APPROVED);
-
-        when(amountConfigurationRepository.getCurrentConfiguration()).thenThrow(IllegalStateException.class);
-        paymentService.startExpressPayment(mockPaymentConfiguration(node, payerCost));
-
-        verify(userSelectionRepository).select(reflectionEquals(card), any());
-    }
-
-    @Test
-    public void whenOneTapPaymentIsCardSelectPayerCost() {
-        creditCardPresetMock(CARD_ID_ESC_APPROVED);
-        when(amountConfigurationRepository.getCurrentConfiguration()).thenThrow(IllegalStateException.class);
-        paymentService.startExpressPayment(mockPaymentConfiguration(node, payerCost));
-
-        verify(userSelectionRepository).select(payerCost);
-    }
-
-    @Test
-    public void whenOneTapPaymentIsCardPayerCostAndCardSet() {
-        final Card card = creditCardPresetMock(CARD_ID_ESC_APPROVED);
-        when(amountConfigurationRepository.getCurrentConfiguration()).thenThrow(IllegalStateException.class);
-        paymentService.startExpressPayment(mockPaymentConfiguration(node, payerCost));
-
-        verify(userSelectionRepository).select(reflectionEquals(card), any());
-        verify(userSelectionRepository).select(payerCost);
-    }
-
-    @Test
-    public void whenSavedCardAndESCSavedThenAskTokenButFailApiCallThenCVVIsRequiered() {
-        final Observer<Pair<Card, Reason>> cvvRequiredObserver = mock(Observer.class);
-        final Card card = savedCreditCardOneTapPresent(CARD_ID_ESC_APPROVED);
-        when(escPaymentManager.hasEsc(card)).thenReturn(true);
-        when(tokenRepository.createToken(card)).thenReturn(new StubFailMpCall(mock(ApiException.class)));
-        when(escManagerBehaviour.isESCEnabled()).thenReturn(true);
-
-        paymentService.startExpressPayment(mockPaymentConfiguration(node, payerCost));
-        paymentService.getObservableEvents().getRequireCvvLiveData().observeForever(cvvRequiredObserver);
-        verify(escPaymentManager).hasEsc(card);
-        verifyNoMoreInteractions(escPaymentManager);
-
-        verify(tokenRepository).createToken(card);
-        verifyNoMoreInteractions(tokenRepository);
-
-        // if api call to tokenize fails, then ask for CVV.
-        verify(cvvRequiredObserver).onChanged(any(Pair.class));
-        verifyNoMoreInteractions(cvvRequiredObserver);
-    }
-
-    @Test
-    public void whenOneTapPaymentWhenSavedCardAndESCSavedThenAskTokenSuccess() {
-        final Card card = savedCreditCardOneTapPresent(CARD_ID_ESC_APPROVED);
-        when(escPaymentManager.hasEsc(card)).thenReturn(true);
-        final MPCall<Token> tokenMPCall = mock(MPCall.class);
-        when(tokenRepository.createToken(card)).thenReturn(tokenMPCall);
-        when(escManagerBehaviour.isESCEnabled()).thenReturn(true);
-
-        paymentService.startExpressPayment(mockPaymentConfiguration(node, payerCost));
-
-        verify(escPaymentManager).hasEsc(card);
-        verifyNoMoreInteractions(escPaymentManager);
-        verify(tokenRepository).createToken(card);
-        verifyNoMoreInteractions(tokenRepository);
-    }
-
-    @Test
-    public void whenOneTapPaymentWhenNotSavedCardAndESCSavedThenAskCVV() {
-        final Card card = savedCreditCardOneTapPresent(CARD_ID_ESC_APPROVED);
-        when(escPaymentManager.hasEsc(card)).thenReturn(false);
-        when(escManagerBehaviour.isESCEnabled()).thenReturn(true);
-
-        paymentService.startExpressPayment(mockPaymentConfiguration(node, payerCost));
-
-        verify(escPaymentManager).hasEsc(card);
-        verifyNoMoreInteractions(escPaymentManager);
-        verifyNoMoreInteractions(tokenRepository);
-    }
-
-    @Test
-    public void whenOneTapPaymentWhenCapExceededThenAskCVV() {
-        final Observer<Pair<Card, Reason>> cvvRequiredObserver = mock(Observer.class);
-        final Card card = savedCreditCardOneTapPresent(CARD_ID_ESC_REJECTED);
-        when(escPaymentManager.hasEsc(card)).thenReturn(true);
-        when(escManagerBehaviour.isESCEnabled()).thenReturn(true);
-
-        paymentService.startExpressPayment(mockPaymentConfiguration(node, payerCost));
-        paymentService.getObservableEvents().getRequireCvvLiveData().observeForever(cvvRequiredObserver);
-
-        verify(escPaymentManager).hasEsc(card);
-        verify(cvvRequiredObserver).onChanged(any(Pair.class));
-        verifyNoMoreInteractions(cvvRequiredObserver);
-        verifyNoMoreInteractions(escPaymentManager);
-        verifyNoMoreInteractions(tokenRepository);
-    }
-
-    @Test
-    public void whenOneTapPaymentWhenCapNotExceededAndNotApproved() {
-        final Card card = savedCreditCardOneTapPresent(CARD_ID_ESC_NOT_AVAILABLE);
-        final MPCall<Token> tokenMPCall = mock(MPCall.class);
-        when(tokenRepository.createToken(card)).thenReturn(tokenMPCall);
-        when(escPaymentManager.hasEsc(card)).thenReturn(true);
-        when(escManagerBehaviour.isESCEnabled()).thenReturn(true);
-
-        paymentService.startExpressPayment(mockPaymentConfiguration(node, payerCost));
-        verify(escPaymentManager).hasEsc(card);
-        verifyNoMoreInteractions(escPaymentManager);
-        verify(tokenRepository).createToken(card);
-        verifyNoMoreInteractions(tokenRepository);
-    }
-
-    @Test
     public void whenOneTapStartPaymentAndPaymentError() {
         final Observer<MercadoPagoError> errorObserver = mock(Observer.class);
-        when(userSelectionRepository.getPaymentMethod().getPaymentTypeId()).thenReturn(PaymentTypes.CREDIT_CARD);
-        when(userSelectionRepository.getPayerCost()).thenReturn(null);
-        when(amountConfigurationRepository.getCurrentConfiguration()).thenReturn(mock(AmountConfiguration.class));
+        final ArgumentCaptor<PaymentServiceHandler> paymentServiceHandlerCaptor =
+            ArgumentCaptor.forClass(PaymentServiceHandler.class);
+        final ArgumentCaptor<Function1> validationProgramSuccessCaptor =
+            ArgumentCaptor.forClass(Function1.class);
 
-        paymentService.handlerWrapper.createTransactionLiveData();
+        paymentService.startExpressPayment();
         paymentService.getObservableEvents().getPaymentErrorLiveData().observeForever(errorObserver);
-        paymentService.startPayment();
 
-        verify(errorObserver).onChanged(any());
+        verify(validationProgramUseCase).execute(any(), validationProgramSuccessCaptor.capture());
+        final Function1<String, Unit> mockExecute = validationProgramSuccessCaptor.getValue();
+        mockExecute.invoke(null);
+        verify(paymentProcessor).startPayment(any(), any(), paymentServiceHandlerCaptor.capture());
+
+        final PaymentServiceHandler paymentServiceHandlerMock = paymentServiceHandlerCaptor.getValue();
+        final MercadoPagoError error = MercadoPagoError.createNotRecoverable("error");
+        paymentServiceHandlerMock.onPaymentError(error);
+        verify(errorObserver).onChanged(error);
     }
 
     @Test
     public void whenOneTapStartPaymentAndShouldShowVisualPayment() {
         final Observer<Unit> visualPaymentObserver = mock(Observer.class);
-        when(userSelectionRepository.getCard()).thenReturn(mock(Card.class));
-        when(userSelectionRepository.getPayerCost()).thenReturn(mock(PayerCost.class));
-        when(paymentSettingRepository.hasToken()).thenReturn(true);
-        when(paymentSettingRepository.getSecurityType()).thenReturn(SecurityType.SECOND_FACTOR);
         when(paymentProcessor.shouldShowFragmentOnPayment(any(CheckoutPreference.class))).thenReturn(true);
 
-        paymentService.handlerWrapper.createTransactionLiveData();
+        paymentService.startExpressPayment();
         paymentService.getObservableEvents().getVisualPaymentLiveData().observeForever(visualPaymentObserver);
-        paymentService.startPayment();
 
         verify(visualPaymentObserver).onChanged(any());
     }
@@ -340,13 +208,10 @@ public class PaymentServiceTest {
             ArgumentCaptor.forClass(Function1.class);
 
         savedCreditCardOneTapPresent(CARD_ID_ESC_NOT_AVAILABLE);
-        when(paymentSettingRepository.hasToken()).thenReturn(true);
-        when(paymentSettingRepository.getSecurityType()).thenReturn(SecurityType.SECOND_FACTOR);
         when(paymentProcessor.shouldShowFragmentOnPayment(any(CheckoutPreference.class))).thenReturn(false);
-        when(amountConfigurationRepository.getCurrentConfiguration()).thenReturn(mock(AmountConfiguration.class));
 
         final PaymentConfiguration configuration = mockPaymentConfiguration(node, payerCost);
-        paymentService.startExpressPayment(configuration);
+        paymentService.startExpressPayment();
         verify(validationProgramUseCase).execute(any(), validationProgramSuccessCaptor.capture());
         final Function1<String, Unit> mockExecute = validationProgramSuccessCaptor.getValue();
         mockExecute.invoke(null);
@@ -363,9 +228,6 @@ public class PaymentServiceTest {
     @NonNull
     private Card savedCreditCardOneTapPresent(final String cardId) {
         final Card card = creditCardPresetMock(cardId);
-        when(userSelectionRepository.getPayerCost()).thenReturn(mock(PayerCost.class));
-        when(userSelectionRepository.getCard()).thenReturn(card);
-        when(paymentMethod.getId()).thenReturn(PaymentMethods.ARGENTINA.AMEX);
         when(paymentMethod.getPaymentTypeId()).thenReturn(PaymentTypes.CREDIT_CARD);
         return card;
     }
@@ -408,9 +270,6 @@ public class PaymentServiceTest {
         final CardMetadata cardMetadata = mock(CardMetadata.class);
         when(node.getCard()).thenReturn(cardMetadata);
         when(customOptionIdSolver.get(node)).thenReturn(cardId);
-        when(fromPayerPaymentMethodToCardMapper
-            .map(new PayerPaymentMethodKey(cardId, PaymentTypes.CREDIT_CARD)))
-            .thenReturn(card);
         return card;
     }
 }

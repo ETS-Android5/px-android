@@ -98,7 +98,9 @@ public final class PaymentProcessorActivity extends PXActivity
             session.getEscPaymentManager(), session.getCongratsRepository(),
             session.getConfigurationModule().getUserSelectionRepository(),
             session.getConfigurationModule().getPaymentSettings().getAdvancedConfiguration()
-                .getPostPaymentConfiguration());
+                .getPostPaymentConfiguration(),
+            session.getFactoryModule().getPaymentResultFactory(),
+            session.getFactoryModule().getPaymentDataFactory());
 
         if (getFragmentByTag() == null) { // if fragment is not added, then create it.
             addPaymentProcessorFragment(session);
@@ -118,12 +120,9 @@ public final class PaymentProcessorActivity extends PXActivity
             session.getUseCaseModule().getValidationProgramUseCase();
 
         final com.mercadopago.android.px.core.v2.PaymentProcessor paymentProcessor =
-            PaymentConfigurationUtil.getPaymentProcessor(paymentSettings
-                .getPaymentConfiguration());
+            PaymentConfigurationUtil.getPaymentProcessor(paymentSettings.getPaymentConfiguration());;
 
-        final List<PaymentData> paymentData = session
-            .getPaymentRepository()
-            .getPaymentDataList();
+        final List<PaymentData> paymentData = session.getFactoryModule().getPaymentDataFactory().create();
 
         final CheckoutPreference checkoutPreference = paymentSettings.getCheckoutPreference();
         final String securityType = paymentSettings.getSecurityType().getValue();
@@ -165,10 +164,6 @@ public final class PaymentProcessorActivity extends PXActivity
     @NonNull
     private PaymentServiceHandler createWrapper() {
         return new PaymentServiceHandler() {
-            @Override
-            public void onCvvRequired(@NonNull final Card card, @NonNull final Reason reason) {
-                // do nothing
-            }
 
             @Override
             public void onVisualPayment() {

@@ -28,7 +28,7 @@ class PaymentRecovery(private val statusDetail: String, val token: Token?, val c
 
     constructor(parcel: Parcel) : this(
         parcel.readString()!!,
-        parcel.readSerializable() as Token,
+        parcel.readSerializable() as Token?,
         parcel.readParcelable(Card::class.java.classLoader),
         parcel.readParcelable(PaymentMethod::class.java.classLoader))
 
