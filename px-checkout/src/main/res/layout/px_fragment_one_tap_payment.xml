@@ -13,11 +13,11 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipChildren="false"
-        app:layout_constraintBottom_toTopOf="@id/labeledSwitch"
+        app:layout_constraintBottom_toTopOf="@id/split_payment_view"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.mercadopago.android.px.internal.view.LabeledSwitch
-        android:id="@+id/labeledSwitch"
+        android:id="@+id/split_payment_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingLeft="@dimen/px_m_margin"
@@ -31,8 +31,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/labeledSwitch" />
-
+        app:layout_constraintTop_toBottomOf="@id/split_payment_view" />
 
     <FrameLayout
         android:id="@+id/loading"
@@ -56,7 +55,7 @@
         tools:layout="@layout/px_fragment_offline_methods" />
 
     <com.mercadolibre.android.andesui.bottomsheet.AndesBottomSheet
-        android:id="@+id/new_card_sheet_options"
+        android:id="@+id/card_form_bottom_sheet"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:andesBottomSheetState="collapsed"

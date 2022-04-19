@@ -21,13 +21,13 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
-import com.mercadolibre.android.andesui.bottomsheet.AndesBottomSheet;
 import com.mercadolibre.android.cardform.CardForm;
 import com.mercadolibre.android.cardform.internal.CardFormWithFragment;
 import com.mercadolibre.android.cardform.internal.LifecycleListener;
 import com.mercadopago.android.px.R;
 import com.mercadopago.android.px.core.BackHandler;
 import com.mercadopago.android.px.core.DynamicDialogCreator;
+import com.mercadopago.android.px.databinding.PxFragmentOneTapPaymentBinding;
 import com.mercadopago.android.px.internal.base.BaseFragment;
 import com.mercadopago.android.px.internal.di.CheckoutConfigurationModule;
 import com.mercadopago.android.px.internal.di.FactoryProvider;
@@ -69,11 +69,9 @@ import com.mercadopago.android.px.internal.util.Logger;
 import com.mercadopago.android.px.internal.util.VibrationUtils;
 import com.mercadopago.android.px.internal.view.DiscountDetailDialog;
 import com.mercadopago.android.px.internal.view.ElementDescriptorView;
-import com.mercadopago.android.px.internal.view.LabeledSwitch;
 import com.mercadopago.android.px.internal.view.LinkableTextView;
 import com.mercadopago.android.px.internal.view.PaymentMethodHeaderView;
 import com.mercadopago.android.px.internal.view.ScrollingPagerIndicator;
-import com.mercadopago.android.px.internal.view.SummaryView;
 import com.mercadopago.android.px.internal.view.TitlePager;
 import com.mercadopago.android.px.internal.view.animator.OneTapTransition;
 import com.mercadopago.android.px.internal.view.experiments.ExperimentHelper;
@@ -123,9 +121,7 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
 
     /* default */ OneTapPresenter presenter;
 
-    private SummaryView summaryView;
     private View payButtonContainer;
-    private View oneTapContainer;
     private RecyclerView installmentsRecyclerView;
     /* default */ ViewPager paymentMethodPager;
     /* default */ View pagerAndConfirmButtonContainer;
@@ -138,10 +134,7 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
     private InstallmentsAdapter installmentsAdapter;
     private PaymentMethodHeaderView paymentMethodHeaderView;
     private TitlePagerAdapter titlePagerAdapter;
-    private LabeledSwitch splitPaymentView;
     private PaymentMethodFragmentAdapter paymentMethodFragmentAdapter;
-    private View loading;
-    private AndesBottomSheet cardFormBottomSheet;
     private OneTapTransition transition;
 
     private HubAdapter hubAdapter;
@@ -149,6 +142,8 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
     private PayButtonFragment payButtonFragment;
     private OfflineMethodsFragment offlineMethodsFragment;
 
+    private PxFragmentOneTapPaymentBinding binding;
+    
     public static Fragment getInstance(@NonNull final Variant variant, final boolean fromDeeplink) {
         final OneTapFragment oneTapFragment = new OneTapFragment();
         final Bundle bundle = new Bundle();
@@ -245,15 +240,16 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
     public View onCreateView(@NonNull final LayoutInflater inflater,
         @Nullable final ViewGroup container,
         @Nullable final Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.px_fragment_one_tap_payment, container, false);
+        binding = PxFragmentOneTapPaymentBinding.inflate(inflater, container, false);
+        return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         configureViews(view);
-        transition = new OneTapTransition(paymentMethodPager, summaryView, payButtonContainer,
-            paymentMethodHeaderView, indicator, splitPaymentView, oneTapContainer);
+        transition = new OneTapTransition(paymentMethodPager, binding.summaryView, payButtonContainer,
+            paymentMethodHeaderView, indicator, binding.splitPaymentView, binding.oneTapContainer);
 
         presenter = createPresenter();
         if (savedInstanceState != null) {
@@ -270,7 +266,7 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
 
         presenter.attachView(this);
 
-        summaryView.setOnLogoClickListener(v -> presenter.onHeaderClicked());
+        binding.summaryView.setOnLogoClickListener(v -> presenter.onHeaderClicked());
 
         paymentMethodPager.addOnPageChangeListener(this);
 
@@ -295,19 +291,14 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
         if (fragmentLifecycleCallbacks != null) {
             getActivity().getSupportFragmentManager().unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks);
         }
+        binding = null;
     }
 
     private void configureViews(@NonNull final View view) {
         configurePaymentMethodHeader(view);
-        oneTapContainer = view.findViewById(R.id.one_tap_container);
         payButtonFragment = (PayButtonFragment) getChildFragmentManager().findFragmentById(R.id.pay_button);
         payButtonContainer = view.findViewById(R.id.pay_button);
-        offlineMethodsFragment =
-            (OfflineMethodsFragment) getChildFragmentManager().findFragmentById(R.id.offline_methods);
-        splitPaymentView = view.findViewById(R.id.labeledSwitch);
-        summaryView = view.findViewById(R.id.summary_view);
-        loading = view.findViewById(R.id.loading);
-        cardFormBottomSheet = view.findViewById(R.id.new_card_sheet_options);
+        offlineMethodsFragment = (OfflineMethodsFragment) getChildFragmentManager().findFragmentById(R.id.offline_methods);
         pagerAndConfirmButtonContainer = view.findViewById(R.id.container);
         paymentMethodPager = view.findViewById(R.id.payment_method_pager);
         indicator = view.findViewById(R.id.indicator);
@@ -319,12 +310,12 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
         slideUpAndFadeAnimation.setAnimationListener(new FadeAnimationListener(paymentMethodPager, VISIBLE));
 
         if (getActivity() instanceof AppCompatActivity) {
-            summaryView.configureToolbar((AppCompatActivity) getActivity(), v -> presenter.cancel());
+            binding.summaryView.configureToolbar((AppCompatActivity) getActivity(), v -> presenter.cancel());
         }
 
         hubAdapter = new HubAdapter(Arrays.asList(titlePagerAdapter,
-            new SummaryViewAdapter(summaryView),
-            new SplitPaymentHeaderAdapter(splitPaymentView, this),
+            new SummaryViewAdapter(binding.summaryView),
+            new SplitPaymentHeaderAdapter(binding.splitPaymentView, this),
             new PaymentMethodHeaderAdapter(paymentMethodHeaderView),
             new ConfirmButtonAdapter(payButtonFragment)
         ));
@@ -341,8 +332,7 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
             throw new IllegalStateException("One tap should have a variant to display");
         }
         final Variant variant = Objects.requireNonNull(arguments.getParcelable(EXTRA_VARIANT));
-        ExperimentHelper.INSTANCE.applyExperimentViewBy(
-            view.findViewById(R.id.installments_header_experiment_container), variant, getLayoutInflater());
+        ExperimentHelper.INSTANCE.applyExperimentViewBy(binding.installmentsHeaderExperimentContainer, variant, getLayoutInflater());
 
         paymentMethodHeaderView = view.findViewById(R.id.installments_header);
         paymentMethodHeaderView.setListener(new PaymentMethodHeaderView.Listener() {
@@ -491,7 +481,7 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
         if (paymentMethodPager.getAdapter() == null) {
             paymentMethodFragmentAdapter = new PaymentMethodFragmentAdapter(getChildFragmentManager());
             if (renderMode == null) {
-                summaryView.setMeasureListener((itemsClipped) -> {
+                binding.summaryView.setMeasureListener((itemsClipped) -> {
                     renderMode = itemsClipped ? RenderMode.LOW_RES : RenderMode.HIGH_RES;
                     onRenderModeDecided();
                 });
@@ -545,7 +535,7 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
 
     @Override
     public void showHorizontalElementDescriptor(@NonNull final ElementDescriptorView.Model elementDescriptorModel) {
-        summaryView.showHorizontalElementDescriptor(elementDescriptorModel);
+        binding.summaryView.showHorizontalElementDescriptor(elementDescriptorModel);
     }
 
     @Override
@@ -673,8 +663,8 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
     public void onLoadCardFormSheetOptions(final CardFormBottomSheetModel cardFormBottomSheetModel) {
         final CardFormBottomSheetFragment cardFormSheetContainer =
             CardFormBottomSheetFragment.newInstance(cardFormBottomSheetModel);
-        cardFormSheetContainer.setCardFormOptionClick(() -> cardFormBottomSheet.collapse());
-        cardFormBottomSheet.setContent(
+        cardFormSheetContainer.setCardFormOptionClick(() -> binding.cardFormBottomSheet.collapse());
+        binding.cardFormBottomSheet.setContent(
             getChildFragmentManager(),
             cardFormSheetContainer,
             null);
@@ -682,7 +672,7 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
 
     @Override
     public void onNewCardWithSheetOptions() {
-        new Handler(Looper.getMainLooper()).postDelayed(() -> cardFormBottomSheet.expand(), 200);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> binding.cardFormBottomSheet.expand(), 200);
     }
 
     @Override
@@ -734,12 +724,12 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
 
     @Override
     public void showLoading() {
-        loading.setVisibility(VISIBLE);
+        binding.loading.setVisibility(VISIBLE);
     }
 
     @Override
     public void hideLoading() {
-        loading.setVisibility(GONE);
+        binding.loading.setVisibility(GONE);
     }
 
     @Override

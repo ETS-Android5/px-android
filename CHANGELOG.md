@@ -1,3 +1,7 @@
+## Unreleased
+_XX_04_2022
+* FEATURE - Added view binding for OneTapFragment.
+
 ##  VERSION 4.111.0
 _18_04_2022
 * FEATURE - New layout consumer credits and new tag.
