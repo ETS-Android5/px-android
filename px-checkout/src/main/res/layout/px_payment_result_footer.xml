@@ -22,7 +22,7 @@
         tools:visibility="visible" />
 
     <FrameLayout
-        android:id="@+id/pay_button"
+        android:id="@+id/confirm_button_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/ui_1m"

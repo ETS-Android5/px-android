@@ -30,8 +30,8 @@
             app:titleTextColor="@color/px_expressCheckoutTextColor"
             tools:layout_height="50dp">
 
-            <com.mercadopago.android.px.internal.view.ElementDescriptorView
-                android:id="@+id/element_descriptor_toolbar"
+            <com.mercadopago.android.px.internal.view.HorizontalElementDescriptorView
+                android:id="@+id/horizontal_element_descriptor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/px_m_margin"
@@ -44,12 +44,15 @@
                 app:px_element_title_max_lines="1"
                 app:px_element_title_size="@dimen/px_m_text"
                 app:px_element_title_text_color="@color/px_expressCheckoutTextColor"
+                app:px_appear_animation="@anim/px_toolbar_appear"
+                app:px_disappear_animation="@anim/px_toolbar_disappear"
+                app:px_exit_animation="@anim/px_summary_slide_up_out"
                 tools:visibility="visible" />
 
         </androidx.appcompat.widget.Toolbar>
 
-        <com.mercadopago.android.px.internal.view.ElementDescriptorView
-            android:id="@+id/bigElementDescriptor"
+        <com.mercadopago.android.px.internal.view.VerticalElementDescriptorView
+            android:id="@+id/vertical_element_descriptor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/px_m_margin"
@@ -66,7 +69,10 @@
             app:px_element_subtitle_size="@dimen/px_xs_text"
             app:px_element_subtitle_text_color="@color/px_expressCheckoutTextColor"
             app:px_element_title_size="@dimen/px_l_text"
-            app:px_element_title_text_color="@color/px_expressCheckoutTextColor" />
+            app:px_element_title_text_color="@color/px_expressCheckoutTextColor"
+            app:px_appear_animation="@anim/px_summary_logo_appear"
+            app:px_disappear_animation="@anim/px_summary_logo_disappear"
+            app:px_exit_animation="@anim/px_fade_out" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler"

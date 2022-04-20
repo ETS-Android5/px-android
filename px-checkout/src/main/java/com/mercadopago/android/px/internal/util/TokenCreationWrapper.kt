@@ -6,59 +6,45 @@ import com.mercadopago.android.px.internal.callbacks.awaitTaggedCallback
 import com.mercadopago.android.px.internal.extensions.isNotNullNorEmpty
 import com.mercadopago.android.px.internal.repository.CardTokenRepository
 import com.mercadopago.android.px.internal.callbacks.Response
-import com.mercadopago.android.px.model.*
+import com.mercadopago.android.px.internal.extensions.ifSuccess
+import com.mercadopago.android.px.model.Card
+import com.mercadopago.android.px.model.Token
+import com.mercadopago.android.px.model.PaymentMethod
+import com.mercadopago.android.px.model.SavedESCCardToken
+import com.mercadopago.android.px.model.CardToken
+import com.mercadopago.android.px.model.PaymentRecovery
 import com.mercadopago.android.px.model.exceptions.CardTokenException
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError
 import com.mercadopago.android.px.tracking.internal.model.Reason
 
 internal class TokenCreationWrapper private constructor(builder: Builder) {
 
-    private val cardTokenRepository: CardTokenRepository
-    private val escManagerBehaviour: ESCManagerBehaviour
-    private val card: Card?
-    private val token: Token?
-    private val paymentMethod: PaymentMethod
-    private val reason: Reason
+    private val cardTokenRepository = builder.cardTokenRepository
+    private val escManagerBehaviour = builder.escManagerBehaviour
+    private val card = builder.card
+    private val token = builder.token
+    private val paymentMethod = builder.paymentMethod
+    private val reason = builder.reason
 
-    init {
-        cardTokenRepository = builder.cardTokenRepository
-        escManagerBehaviour = builder.escManagerBehaviour
-        card = builder.card
-        token = builder.token
-        paymentMethod = builder.paymentMethod!!
-        reason = builder.reason!!
+    suspend fun createTokenWithEsc(esc: String): Response<Token, MercadoPagoError> {
+        val cardId = if (card != null) card.id!! else token!!.cardId
+        val body = SavedESCCardToken.createWithEsc(cardId, esc)
+
+        return createESCToken(body)
     }
 
-    suspend fun createToken(cvv: String): Response<Token, MercadoPagoError> {
-        return if (escManagerBehaviour.isESCEnabled) {
-            createTokenWithEsc(cvv)
-        } else {
-            createTokenWithoutEsc(cvv)
-        }
+    suspend fun createTokenWithCvv(cvv: String): Response<Token, MercadoPagoError> {
+        val body = SavedESCCardToken.createWithSecurityCode(card!!.id.orEmpty(), cvv)
+            .also { it.validateSecurityCode(card) }
+
+        return createESCToken(body)
     }
 
-    suspend fun createTokenWithEsc(cvv: String): Response<Token, MercadoPagoError> {
-        return if (card != null) {
-            SavedESCCardToken.createWithSecurityCode(card.id!!, cvv).run {
-                validateSecurityCode(card)
-                createESCToken(this).apply {
-                    resolve(success = { token -> token.lastFourDigits = card.lastFourDigits })
-                }
-            }
-        } else {
-            SavedESCCardToken.createWithSecurityCode(token!!.cardId, cvv).run {
-                validateCVVFromToken(cvv)
-                createESCToken(this)
-            }
-        }
-    }
+    suspend fun createTokenWithoutCvv(): Response<Token, MercadoPagoError> {
+        val body = SavedESCCardToken.createWithoutSecurityCode(card!!.id.orEmpty())
 
-    suspend fun createTokenWithoutEsc(cvv: String) = SavedCardToken(card!!.id, cvv).run {
-            validateSecurityCode(card)
-            createToken(this).apply {
-                resolve(success = { token -> token.lastFourDigits = card.lastFourDigits })
-            }
-        }
+        return createESCToken(body)
+    }
 
     suspend fun cloneToken(cvv: String) = when (val response = doCloneToken()) {
         is Response.Success -> putCVV(cvv, response.result.id)
@@ -77,18 +63,12 @@ internal class TokenCreationWrapper private constructor(builder: Builder) {
 
     private suspend fun createESCToken(savedESCCardToken: SavedESCCardToken) = cardTokenRepository
         .createToken(savedESCCardToken)
-        .awaitTaggedCallback(ApiUtil.RequestOrigin.CREATE_TOKEN).apply {
-            resolve(success = {
-                if (Reason.ESC_CAP == reason) { // Remove previous esc for tracking purpose
-                    escManagerBehaviour.deleteESCWith(savedESCCardToken.cardId, EscDeleteReason.ESC_CAP, null)
-                }
-                cardTokenRepository.clearCap(savedESCCardToken.cardId) {}
-            })
-        }
-
-    private suspend fun createToken(savedCardToken: SavedCardToken) = cardTokenRepository
-        .createToken(savedCardToken)
-        .awaitTaggedCallback(ApiUtil.RequestOrigin.CREATE_TOKEN)
+        .awaitTaggedCallback(ApiUtil.RequestOrigin.CREATE_TOKEN).ifSuccess {
+            if (Reason.ESC_CAP == reason) { // Remove previous esc for tracking purpose
+                escManagerBehaviour.deleteESCWith(savedESCCardToken.cardId, EscDeleteReason.ESC_CAP, null)
+            }
+            cardTokenRepository.clearCap(savedESCCardToken.cardId) {}
+        }.ifSuccess { token -> if (card != null) token.lastFourDigits = card.lastFourDigits }
 
     private suspend fun doCloneToken() = cardTokenRepository
         .cloneToken(token!!.id)

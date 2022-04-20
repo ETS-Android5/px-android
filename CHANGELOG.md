@@ -1,3 +1,23 @@
+## Unreleased
+_XX_04_2022_
+* ENHANCEMENT - Migration of some utils methods to use the core ones.
+
+_XX_04_2022
+* FEATURE - Added view binding for OneTapFragment.
+* FEATURE - PX as payment method selector.
+
+##  VERSION 4.111.0
+_18_04_2022
+* FEATURE - New layout consumer credits and new tag.
+* FEATURE - Adjust tag card consumer credits with size medium.
+* FEATURE - New background consumer credits.
+
+## VERSION 4.110.0
+_07_04_2022_
+* FIX - Crash when installments of payerCosts for credit cards is null.
+* ENHANCEMENT - Summary header logic refactor
+* ENHANCEMENT - Errors are handled in postPaymentFlow
+
 ##  VERSION 4.109.0
 _31_03_2022_
 * FIX - Parameter specified as non-null is null - parameter state

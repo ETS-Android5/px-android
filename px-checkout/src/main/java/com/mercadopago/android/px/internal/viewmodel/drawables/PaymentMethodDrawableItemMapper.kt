@@ -7,20 +7,26 @@ import com.mercadopago.android.px.internal.features.generic_modal.GenericDialogI
 import com.mercadopago.android.px.internal.mappers.CardDrawerCustomViewModelMapper
 import com.mercadopago.android.px.internal.mappers.CardUiMapper
 import com.mercadopago.android.px.internal.mappers.NonNullMapper
-import com.mercadopago.android.px.internal.repository.*
+import com.mercadopago.android.px.internal.repository.ApplicationSelectionRepository
+import com.mercadopago.android.px.internal.repository.ChargeRepository
+import com.mercadopago.android.px.internal.repository.DisabledPaymentMethodRepository
+import com.mercadopago.android.px.internal.repository.ModalRepository
+import com.mercadopago.android.px.internal.repository.PayerPaymentMethodRepository
 import com.mercadopago.android.px.internal.util.TextUtil
 import com.mercadopago.android.px.internal.viewmodel.CardDrawerConfiguration
 import com.mercadopago.android.px.internal.viewmodel.drawables.DrawableFragmentItem.Parameters
-import com.mercadopago.android.px.model.*
+import com.mercadopago.android.px.model.AccountMoneyMetadata
+import com.mercadopago.android.px.model.CardMetadata
+import com.mercadopago.android.px.model.CustomSearchItem
+import com.mercadopago.android.px.model.PaymentTypes
 import com.mercadopago.android.px.model.internal.Application
+import com.mercadopago.android.px.model.internal.BankTransfer
 import com.mercadopago.android.px.model.internal.OfflineMethodCard
 import com.mercadopago.android.px.model.internal.OneTapItem
 import com.mercadopago.android.px.model.internal.Text
-import com.mercadopago.android.px.model.internal.BankTransfer
 import com.mercadopago.android.px.model.one_tap.CheckoutBehaviour
 import com.mercadopago.android.px.internal.repository.PayerPaymentMethodKey as Key
-import com.mercadopago.android.px.internal.viewmodel.drawables.DrawableFragmentCommons.ByApplication
-as CommonsByApplication
+import com.mercadopago.android.px.internal.viewmodel.drawables.DrawableFragmentCommons.ByApplication as CommonsByApplication
 
 internal class PaymentMethodDrawableItemMapper(
     private val chargeRepository: ChargeRepository,
@@ -42,7 +48,7 @@ internal class PaymentMethodDrawableItemMapper(
         with(value) {
             return when {
                 isCard || isAccountMoney || isOfflineMethodCard() || isBankTransfer() -> DrawableFragmentItem(parameters)
-                isConsumerCredits -> ConsumerCreditsDrawableFragmentItem(parameters, consumerCredits)
+                isConsumerCredits -> ConsumerCreditsDrawableFragmentItem(parameters, consumerCredits, displayInfo?.tag)
                 isNewCard || isOfflineMethods -> OtherPaymentMethodFragmentItem(parameters, newCard, offlineMethods)
                 else -> null
             }

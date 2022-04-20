@@ -17,7 +17,7 @@ internal class CustomInitializationViewModel(private val preferences: Initializa
 
     private val initializationData = preferences.getInitializationData()
 
-    val stateUILiveData = MutableLiveData<CustomInitializeState>()
+    val uiStateLiveData = MutableLiveData<CustomInitializeState>()
 
     fun recoverFromBundle(bundle: Bundle) {
         initializationData.updateModel(
@@ -48,7 +48,7 @@ internal class CustomInitializationViewModel(private val preferences: Initializa
     }
 
     private fun updateView() {
-        stateUILiveData.value = CustomInitializeState.LoadData(initializationData)
+        uiStateLiveData.value = CustomInitializeState.LoadData(initializationData)
     }
 
     fun onClear() {
@@ -79,7 +79,7 @@ internal class CustomInitializationViewModel(private val preferences: Initializa
             paymentConfiguration)
             .setPrivateKey(initializationData.accessToken.value.replace(TAGGED_INPUT_REGEX, TextUtil.EMPTY))
             .setAdvancedConfiguration(advancedConfiguration)
-        stateUILiveData.value = CustomInitializeState.InitCheckout(builder)
+        uiStateLiveData.value = CustomInitializeState.InitCheckout(builder)
     }
 
     companion object {

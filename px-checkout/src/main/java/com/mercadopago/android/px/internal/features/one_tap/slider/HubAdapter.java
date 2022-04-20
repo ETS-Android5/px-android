@@ -20,10 +20,12 @@ public class HubAdapter extends ViewAdapter<HubAdapter.Model, View> {
         @NonNull public final List<SplitPaymentHeaderAdapter.Model> splitModels;
         @NonNull public final List<ConfirmButtonViewModel.ByApplication> confirmButtonViewModels;
 
-        public Model(@NonNull final List<PaymentMethodDescriptorModelByApplication> paymentMethodDescriptorModels,
+        public Model(
+            @NonNull final List<PaymentMethodDescriptorModelByApplication> paymentMethodDescriptorModels,
             @NonNull final List<SummaryModel> summaryViewModels,
             @NonNull final List<SplitPaymentHeaderAdapter.Model> splitModels,
-            @NonNull final List<ConfirmButtonViewModel.ByApplication> confirmButtonViewModels) {
+            @NonNull final List<ConfirmButtonViewModel.ByApplication> confirmButtonViewModels
+        ) {
             this.paymentMethodDescriptorModels = paymentMethodDescriptorModels;
             this.summaryViewModels = summaryViewModels;
             this.splitModels = splitModels;

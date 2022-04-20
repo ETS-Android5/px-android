@@ -13,7 +13,8 @@ import java.util.Locale
 internal class PaymentResultMethodMapper(context: Context, private val paymentResultAmountMapper: PaymentResultAmountMapper) {
     private val context = context.applicationContext
 
-    fun map(value: PaymentInfo, statement: String?): PaymentResultMethod.Model = value.run {
+    @JvmOverloads
+    fun map(value: PaymentInfo, statement: String? = null): PaymentResultMethod.Model = value.run {
         val amountModel = paymentResultAmountMapper.map(this)
 
         val builder = if (details?.isNotEmpty() == true) {

@@ -250,9 +250,7 @@ internal class ExplodingFragment : Fragment() {
 
                     override fun onAnimationEnd(animation: Animator) {
                         animation.removeAllListeners()
-                        explodeDecorator?.let {
-                            createCircularReveal(it)
-                        }
+                        explodeDecorator?.let(::createCircularReveal)
                     }
                 }).start()
         }

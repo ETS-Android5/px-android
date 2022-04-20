@@ -8,8 +8,28 @@ import com.mercadopago.android.px.model.internal.PaymentConfiguration;
 import java.math.BigDecimal;
 
 public final class SecurityValidationDataFactory {
+    @NonNull final ProductIdProvider productIdProvider;
+    @NonNull final BigDecimal totalAmount;
+    private static final String AMOUNT_PARAM  = "amount";
 
-    private SecurityValidationDataFactory() {
+    private SecurityValidationDataFactory(
+        @NonNull final ProductIdProvider productIdProvider,
+        @NonNull final BigDecimal totalAmount
+    ) {
+        this.productIdProvider = productIdProvider;
+        this.totalAmount = totalAmount;
+    }
+
+    public SecurityValidationData create(@NonNull final PaymentConfiguration paymentConfiguration) {
+        final boolean securityCodeRequired = paymentConfiguration.getSecurityCodeRequired();
+        final EscValidationData escValidationData = new EscValidationData
+            .Builder(paymentConfiguration.getCustomOptionId(), securityCodeRequired)
+            .build();
+        return new SecurityValidationData
+            .Builder(productIdProvider.getProductId())
+            .putParam(AMOUNT_PARAM, totalAmount)
+            .setEscValidationData(escValidationData)
+            .build();
     }
 
     public static SecurityValidationData create(@NonNull final ProductIdProvider productIdProvider,
@@ -19,7 +39,7 @@ public final class SecurityValidationDataFactory {
         final boolean securityCodeRequired = paymentConfiguration.getSecurityCodeRequired();
         final EscValidationData escValidationData = new EscValidationData.Builder(customOptionId, securityCodeRequired)
             .build();
-        return new SecurityValidationData.Builder(productId).putParam("amount", totalAmount)
+        return new SecurityValidationData.Builder(productId).putParam(AMOUNT_PARAM, totalAmount)
             .setEscValidationData(escValidationData).build();
     }
 }

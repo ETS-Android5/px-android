@@ -11,13 +11,17 @@ import com.mercadopago.android.px.tracking.internal.MPTracker
 import com.mercadopago.android.px.tracking.internal.events.CVVRecoveryFrictionTrack
 import com.mercadopago.android.px.tracking.internal.model.Reason
 
-internal class CVVRecoveryWrapper(cardTokenRepository: CardTokenRepository,
-    private val escManagerBehaviour: ESCManagerBehaviour,
+internal class CVVRecoveryWrapper(
+    cardTokenRepository: CardTokenRepository,
+    escManagerBehaviour: ESCManagerBehaviour,
     private val paymentRecovery: PaymentRecovery,
-    private val tracker: MPTracker) {
+    private val tracker: MPTracker
+) {
 
-    private val tokenCreationWrapper: TokenCreationWrapper =
-        TokenCreationWrapper.Builder(cardTokenRepository, escManagerBehaviour).with(paymentRecovery).build()
+    private val tokenCreationWrapper: TokenCreationWrapper = TokenCreationWrapper
+        .Builder(cardTokenRepository, escManagerBehaviour)
+        .with(paymentRecovery)
+        .build()
     private val card = paymentRecovery.card
     private val token = paymentRecovery.token
 
@@ -26,15 +30,15 @@ internal class CVVRecoveryWrapper(cardTokenRepository: CardTokenRepository,
 
         if (hasToCloneToken() && tokenCreationWrapper.validateCVVFromToken(cvv)) {
             response = tokenCreationWrapper.cloneToken(cvv)
-        } else if (isSavedCardWithESC() || hasToRecoverTokenFromESC()) {
-            response = tokenCreationWrapper.createTokenWithEsc(cvv)
-        } else if (isSavedCardWithoutESC()) {
-            response = tokenCreationWrapper.createTokenWithoutEsc(cvv)
+        } else if (hasToRecoverTokenFromESC()) {
+            response = tokenCreationWrapper.createTokenWithCvv(cvv)
         }
 
-        response.resolve(error = { CVVRecoveryFrictionTrack.with(card, Reason.from(paymentRecovery))?.let {
-            tracker.track(it)
-        } })
+        response.resolve(error = {
+            CVVRecoveryFrictionTrack.with(card, Reason.from(paymentRecovery))?.let {
+                tracker.track(it)
+            }
+        })
 
         return response
     }
@@ -42,9 +46,5 @@ internal class CVVRecoveryWrapper(cardTokenRepository: CardTokenRepository,
     private fun hasToCloneToken() = token?.run { cardId.isNullOrEmpty() } ?: false
 
     private fun hasToRecoverTokenFromESC() = paymentRecovery.isStatusDetailInvalidESC &&
-            (token?.cardId.isNotNullNorEmpty() || card?.id.isNotNullNorEmpty())
-
-    private fun isSavedCardWithESC() = card != null && escManagerBehaviour.isESCEnabled
-
-    private fun isSavedCardWithoutESC() = card != null && !escManagerBehaviour.isESCEnabled
+        (token?.cardId.isNotNullNorEmpty() || card?.id.isNotNullNorEmpty())
 }

@@ -69,7 +69,7 @@
         app:card_header_behaviour="responsive"
         app:card_header_internal_padding="0dp"
         app:layout_constraintVertical_bias="0.0"
-        app:layout_constraintBottom_toTopOf="@+id/pay_button"
+        app:layout_constraintBottom_toTopOf="@+id/confirm_button_container"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -90,13 +90,12 @@
         android:inputType="number"
         app:andesTextfieldCodeLabel="@string/px_security_code"
         app:layout_constraintTop_toBottomOf="@id/cvv_edit_text_top"
-        app:layout_constraintBottom_toTopOf="@id/pay_button"
+        app:layout_constraintBottom_toTopOf="@id/confirm_button_container"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <fragment
-        android:id="@+id/pay_button"
-        android:name="com.mercadopago.android.px.internal.features.pay_button.PayButtonFragment"
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/confirm_button_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
@@ -105,6 +104,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        tools:layout="@layout/px_fragment_pay_button" />
+        tools:layout="@layout/px_fragment_confirm_button"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

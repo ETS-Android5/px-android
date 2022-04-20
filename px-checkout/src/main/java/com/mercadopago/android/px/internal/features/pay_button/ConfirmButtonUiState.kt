@@ -6,24 +6,20 @@ import com.mercadopago.android.px.internal.features.explode.ExplodeDecorator
 import com.mercadopago.android.px.model.IParcelablePaymentDescriptor
 import com.mercadopago.android.px.internal.viewmodel.PayButtonViewModel as ButtonConfig
 
-internal sealed class PayButtonUiState
+internal sealed class ConfirmButtonUiState
 
-internal open class UIProgress : PayButtonUiState() {
+internal open class UIProgress : ConfirmButtonUiState() {
     data class FingerprintRequired(val validationData: SecurityValidationData) : UIProgress()
     data class ButtonLoadingStarted(val timeOut: Int, val buttonConfig: ButtonConfig) : UIProgress()
     data class ButtonLoadingFinished(val explodeDecorator: ExplodeDecorator? = null) : UIProgress()
     object ButtonLoadingCanceled : UIProgress()
-    data class PostPaymentFlowStarted(
-        val iParcelablePaymentDescriptor: IParcelablePaymentDescriptor,
-        val postPaymentDeepLinkUrl: String
-    ) : UIProgress()
 }
 
-internal open class UIResult : PayButtonUiState() {
+internal open class UIResult : ConfirmButtonUiState() {
     object VisualProcessorResult : UIResult()
 }
 
-internal open class UIError : PayButtonUiState() {
+internal open class UIError : ConfirmButtonUiState() {
     class ConnectionError(retriesCount: Int) : UIError() {
         private val maxRetries = 3
         val message = if (retriesCount <= maxRetries) R.string.px_connectivity_neutral_error else R.string.px_connectivity_error

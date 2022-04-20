@@ -6,7 +6,7 @@ import com.mercadopago.android.px.internal.util.TextUtil;
 import java.io.Serializable;
 
 public class MercadoPagoError implements Serializable {
-
+    private static final long serialVersionUID = 8365047557796395851L;
     private String message;
     private String errorDetail;
     private String requestOrigin;

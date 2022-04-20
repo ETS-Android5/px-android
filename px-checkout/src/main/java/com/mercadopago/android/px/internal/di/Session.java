@@ -29,7 +29,6 @@ import com.mercadopago.android.px.internal.datasource.PayerPaymentMethodReposito
 import com.mercadopago.android.px.internal.datasource.PaymentMethodRepositoryImpl;
 import com.mercadopago.android.px.internal.datasource.PaymentService;
 import com.mercadopago.android.px.internal.datasource.PrefetchInitService;
-import com.mercadopago.android.px.internal.datasource.TokenizeService;
 import com.mercadopago.android.px.internal.features.PaymentResultViewModelFactory;
 import com.mercadopago.android.px.internal.features.payment_congrats.CongratsResultFactory;
 import com.mercadopago.android.px.internal.features.payment_congrats.model.PXPaymentCongratsTracking;
@@ -49,7 +48,6 @@ import com.mercadopago.android.px.internal.repository.PayerPaymentMethodReposito
 import com.mercadopago.android.px.internal.repository.PaymentMethodRepository;
 import com.mercadopago.android.px.internal.repository.PaymentRepository;
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository;
-import com.mercadopago.android.px.internal.repository.TokenRepository;
 import com.mercadopago.android.px.internal.services.CardHolderAuthenticatorService;
 import com.mercadopago.android.px.internal.services.CongratsService;
 import com.mercadopago.android.px.internal.services.GatewayService;
@@ -298,20 +296,14 @@ public final class Session extends ApplicationModule {
             paymentRepository = new PaymentService(configurationModule.getUserSelectionRepository(),
                 configurationModule.getPaymentSettings(),
                 configurationModule.getDisabledPaymentMethodRepository(),
-                getDiscountRepository(),
-                getAmountRepository(),
                 getApplicationContext(),
                 getEscPaymentManager(),
-                getMercadoPagoESC(),
-                getTokenRepository(),
                 getAmountConfigurationRepository(),
                 getCongratsRepository(),
                 getFileManager(),
-                MapperProvider.INSTANCE.getFromPayerPaymentMethodToCardMapper(),
-                MapperProvider.INSTANCE.getPaymentMethodMapper(),
-                getPaymentMethodRepository(),
                 getUseCaseModule().getValidationProgramUseCase(),
-                getFactoryModule().getTransactionInfoFactory());
+                getFactoryModule().getPaymentResultFactory(),
+                getFactoryModule().getPaymentDataFactory());
         }
 
         return paymentRepository;
@@ -323,12 +315,6 @@ public final class Session extends ApplicationModule {
             escPaymentManager = new EscPaymentManagerImp(getMercadoPagoESC(), configurationModule.getPaymentSettings());
         }
         return escPaymentManager;
-    }
-
-    @NonNull
-    private TokenRepository getTokenRepository() {
-        return new TokenizeService(networkModule.getRetrofitClient().create(GatewayService.class),
-            getConfigurationModule().getPaymentSettings(), getMercadoPagoESC(), getDevice(), getTracker());
     }
 
     @NonNull
@@ -486,7 +472,7 @@ public final class Session extends ApplicationModule {
         }
     }
 
-    private FactoryModule getFactoryModule() {
+    public FactoryModule getFactoryModule() {
         if (factoryModule == null) {
             factoryModule = new FactoryModule();
         }
