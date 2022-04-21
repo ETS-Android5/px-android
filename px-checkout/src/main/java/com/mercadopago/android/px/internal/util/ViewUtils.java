@@ -180,6 +180,16 @@ public final class ViewUtils {
         imm.showSoftInput(view.findFocus(), InputMethodManager.SHOW_IMPLICIT);
     }
 
+    public static void setTextColor(@NonNull final TextView textView, @Nullable final String color) {
+        if (TextUtil.isNotEmpty(color)) {
+            try {
+                textView.setTextColor(Color.parseColor(color));
+            } catch (final Exception e) {
+                logParseColorError(color);
+            }
+        }
+    }
+
     public static void setBackgroundColor(@NonNull final View view, @Nullable final String color) {
         if (TextUtil.isNotEmpty(color)) {
             try {

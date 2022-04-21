@@ -14,6 +14,7 @@ import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.fragment.app.Fragment;
 import com.meli.android.carddrawer.model.CardDrawerView;
 import com.mercadopago.android.px.R;
+import com.mercadopago.android.px.core.presentation.extensions.DrawableExtKt;
 import com.mercadopago.android.px.core.presentation.extensions.ViewExtKt;
 import com.mercadopago.android.px.internal.di.MapperProvider;
 import com.mercadopago.android.px.internal.features.payment_result.remedies.RemediesLinkableMapper;
@@ -111,7 +112,7 @@ public class ConsumerCreditsFragment extends PaymentMethodFragment<ConsumerCredi
     public void disable() {
         super.disable();
         final DisableConfiguration disableConfiguration = new DisableConfiguration(getContext());
-        ViewExtKt.grayScaleViewGroup(creditsLagout);
+        ViewExtKt.grayScaleViewGroup(creditsLayout);
         background.clearColorFilter();
         background.setImageResource(0);
         background.setBackgroundColor(disableConfiguration.getBackgroundColor());
