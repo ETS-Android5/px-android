@@ -2,7 +2,8 @@
 _XX_04_2022_
 * ENHANCEMENT - Migration of some utils methods to use the core ones.
 
-_XX_04_2022
+##  VERSION 4.112.0
+_19_04_2022
 * FEATURE - Added view binding for OneTapFragment.
 * FEATURE - PX as payment method selector.
 
