@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import com.mercadopago.android.px.R;
+import com.mercadopago.android.px.core.presentation.extensions.ImageViewExtKt;
 import com.mercadopago.android.px.internal.base.BasePagerFragment;
 import com.mercadopago.android.px.internal.di.CheckoutConfigurationModule;
 import com.mercadopago.android.px.internal.di.Session;
@@ -171,7 +172,7 @@ public class OtherPaymentMethodFragment
 
     protected void loadImage(@NonNull final View view, @DrawableRes final int imageResId) {
         final ImageView image = view.findViewById(R.id.other_payment_method_image);
-        ViewUtils.loadOrGone(imageResId, image);
+        ImageViewExtKt.loadOrGone(image, imageResId);
     }
 
     @Override
