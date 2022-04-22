@@ -83,7 +83,8 @@ public final class ResultViewTrackModel extends TrackingMapModel {
             TrackingHelper.getPaymentStatus(paymentCongratsModel),
             paymentCongratsModel.getPxPaymentCongratsTracking().getPaymentStatusDetail(),
             PaymentDataHelper.isSplitPaymentInfo(paymentCongratsModel.getPaymentsInfo()),
-            paymentCongratsModel.getPxPaymentCongratsTracking().getTotalAmount(),
+            paymentCongratsModel.getPxPaymentCongratsTracking().getTotalAmount() != null ?
+                 paymentCongratsModel.getPxPaymentCongratsTracking().getTotalAmount() : BigDecimal.ZERO,
             paymentCongratsModel.getDiscountCouponsAmount(),
             paymentCongratsModel.getPaymentCongratsResponse().getLoyalty() != null ? paymentCongratsModel
                 .getPaymentCongratsResponse().getLoyalty()
