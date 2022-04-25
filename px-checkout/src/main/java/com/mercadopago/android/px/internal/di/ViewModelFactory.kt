@@ -80,14 +80,13 @@ internal class ViewModelFactory : ViewModelProvider.Factory {
 
             modelClass.isAssignableFrom(RemediesViewModel::class.java) -> {
                 RemediesViewModel(session.paymentRepository,
-                    session.configurationModule.paymentSettings,
-                    session.cardTokenRepository,
-                    session.mercadoPagoESC,
                     session.amountConfigurationRepository,
                     session.configurationModule.applicationSelectionRepository,
                     session.useCaseModule.tokenizeWithPaymentRecoveryUseCase,
                     session.oneTapItemRepository,
                     MapperProvider.getFromPayerPaymentMethodToCardMapper(),
+                    session.useCaseModule.tokenizeWithEscUseCase,
+                    session.useCaseModule.tokenizeWithCvvUseCase,
                     session.tracker
                 )
             }
@@ -100,20 +99,6 @@ internal class ViewModelFactory : ViewModelProvider.Factory {
                     session.networkModule.connectionHelper,
                     session.configurationModule.customTextsRepository,
                     PayButtonViewModelMapper(),
-                    session.tracker
-                )
-            }
-
-            modelClass.isAssignableFrom(RemediesViewModel::class.java) -> {
-                RemediesViewModel(session.paymentRepository,
-                    session.configurationModule.paymentSettings,
-                    session.cardTokenRepository,
-                    session.mercadoPagoESC,
-                    session.amountConfigurationRepository,
-                    session.configurationModule.applicationSelectionRepository,
-                    session.useCaseModule.tokenizeWithPaymentRecoveryUseCase,
-                    session.oneTapItemRepository,
-                    MapperProvider.getFromPayerPaymentMethodToCardMapper(),
                     session.tracker
                 )
             }

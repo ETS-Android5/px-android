@@ -1,3 +1,7 @@
+##  VERSION 4.112.1
+_25_04_2022
+* FIX - Esc tokenization in remedies.
+
 ##  VERSION 4.112.0
 _19_04_2022
 * FEATURE - Added view binding for OneTapFragment.
