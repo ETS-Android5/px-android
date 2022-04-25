@@ -47,7 +47,7 @@ internal class TokenDeviceUseCase(
     companion object {
         fun buildParams(card: Card): Params {
             return Params(
-                cardId = card.id ?: throw IllegalStateException("Cannot tokenize a card without id"),
+                cardId = card.id ?: error("Cannot tokenize a card without id"),
                 vProvisionedTokenId = card.vProvisionedTokenId
             )
         }
