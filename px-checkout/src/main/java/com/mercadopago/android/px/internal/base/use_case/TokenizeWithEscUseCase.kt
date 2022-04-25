@@ -24,7 +24,7 @@ internal class TokenizeWithEscUseCase(
     override suspend fun doExecute(param: Card): Response<Token, MercadoPagoError> {
         return suspendCoroutine { continuation ->
             tokenDeviceUseCase.execute(
-                TokenDeviceUseCase.createParams(param),
+                TokenDeviceUseCase.buildParams(param),
                 success = { remotePaymentToken ->
                     tokenRepository.createToken(param, remotePaymentToken).enqueue(object : Callback<Token>() {
                         override fun success(token: Token) {

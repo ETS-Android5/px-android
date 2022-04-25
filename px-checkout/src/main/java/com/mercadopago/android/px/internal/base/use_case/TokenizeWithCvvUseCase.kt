@@ -23,7 +23,7 @@ internal class TokenizeWithCvvUseCase(
 
     override suspend fun doExecute(param: Params): Response<Token, MercadoPagoError> {
         return suspendCoroutine { continuation ->
-            val tokenDeviceParams = TokenDeviceUseCase.createParams(param.card)
+            val tokenDeviceParams = TokenDeviceUseCase.buildParams(param.card)
             tokenDeviceUseCase.execute(
                 tokenDeviceParams,
                 success = { remotePaymentToken ->
