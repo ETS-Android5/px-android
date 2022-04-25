@@ -23,6 +23,7 @@ class TokenCreationWrapperTest {
     @MockK private lateinit var card: Card
     @MockK private lateinit var securityCode: SecurityCode
     private val cardId = "abc"
+    private val vProvisionedTokenId = "vProvTokenID"
 
     @Before
     fun setUp() {
@@ -30,6 +31,7 @@ class TokenCreationWrapperTest {
         every { securityCode.cardLocation } returns "back"
         every { securityCode.length } returns 3
         every { card.id } returns cardId
+        every { card.vProvisionedTokenId } returns vProvisionedTokenId
         every { card.lastFourDigits } returns "1234"
         every { card.securityCode } returns securityCode
         coEvery { tokenizeWithCvvUseCase.suspendExecute(any()) } returns Response.Success(mockk(relaxed = true))
@@ -51,7 +53,8 @@ class TokenCreationWrapperTest {
         coVerify { tokenizeWithCvvUseCase.suspendExecute(capture(tokenizeParams)) }
         tokenizeParams.captured.let {
             Assert.assertEquals(it.cvv, cvv)
-            Assert.assertEquals(it.cardId, cardId)
+            Assert.assertEquals(it.card.id, cardId)
+            Assert.assertEquals(it.card.vProvisionedTokenId, vProvisionedTokenId)
             Assert.assertEquals(it.requireEsc, true)
         }
     }
@@ -68,7 +71,8 @@ class TokenCreationWrapperTest {
         coVerify { tokenizeWithCvvUseCase.suspendExecute(capture(tokenizeParams)) }
         tokenizeParams.captured.let {
             Assert.assertEquals(it.cvv, cvv)
-            Assert.assertEquals(it.cardId, cardId)
+            Assert.assertEquals(it.card.id, cardId)
+            Assert.assertEquals(it.card.vProvisionedTokenId, vProvisionedTokenId)
             Assert.assertEquals(it.requireEsc, false)
         }
     }
