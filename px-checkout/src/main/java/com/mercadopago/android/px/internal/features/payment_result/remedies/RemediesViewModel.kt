@@ -1,21 +1,28 @@
 package com.mercadopago.android.px.internal.features.payment_result.remedies
 
 import androidx.lifecycle.MutableLiveData
-import com.mercadopago.android.px.addons.ESCManagerBehaviour
 import com.mercadopago.android.px.internal.base.BaseState
 import com.mercadopago.android.px.internal.base.BaseViewModelWithState
+import com.mercadopago.android.px.internal.base.use_case.TokenizeWithCvvUseCase
+import com.mercadopago.android.px.internal.base.use_case.TokenizeWithEscUseCase
 import com.mercadopago.android.px.internal.base.use_case.TokenizeWithPaymentRecoveryUseCase
 import com.mercadopago.android.px.internal.base.use_case.TokenizeWithPaymentRecoveryParams
 import com.mercadopago.android.px.internal.datasource.mapper.FromPayerPaymentMethodToCardMapper
+import com.mercadopago.android.px.internal.extensions.isNotNull
 import com.mercadopago.android.px.internal.features.one_tap.confirm_button.ConfirmButton
 import com.mercadopago.android.px.internal.features.payment_result.presentation.PaymentResultButton
-import com.mercadopago.android.px.internal.repository.*
-import com.mercadopago.android.px.internal.util.TokenCreationWrapper
+import com.mercadopago.android.px.internal.repository.PaymentRepository
+import com.mercadopago.android.px.internal.repository.AmountConfigurationRepository
+import com.mercadopago.android.px.internal.repository.OneTapItemRepository
+import com.mercadopago.android.px.internal.repository.ApplicationSelectionRepository
+import com.mercadopago.android.px.internal.repository.PayerPaymentMethodKey
 import com.mercadopago.android.px.internal.viewmodel.PaymentModel
 import com.mercadopago.android.px.model.Card
-import com.mercadopago.android.px.model.PayerCost
 import com.mercadopago.android.px.model.PaymentData
 import com.mercadopago.android.px.model.PaymentRecovery
+import com.mercadopago.android.px.model.PayerCost
+import com.mercadopago.android.px.model.Token
+import com.mercadopago.android.px.model.exceptions.MercadoPagoError
 import com.mercadopago.android.px.model.internal.PaymentConfiguration
 import com.mercadopago.android.px.model.internal.remedies.RemedyPaymentMethod
 import com.mercadopago.android.px.tracking.internal.MPTracker
@@ -25,21 +32,16 @@ import com.mercadopago.android.px.tracking.internal.events.RemedyModalAbortEvent
 import com.mercadopago.android.px.tracking.internal.events.RemedyModalView
 import com.mercadopago.android.px.tracking.internal.model.RemedyTrackData
 import kotlinx.android.parcel.Parcelize
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 internal class RemediesViewModel(
     private val paymentRepository: PaymentRepository,
-    private val paymentSettingRepository: PaymentSettingRepository,
-    private val cardTokenRepository: CardTokenRepository,
-    private val escManagerBehaviour: ESCManagerBehaviour,
     private val amountConfigurationRepository: AmountConfigurationRepository,
     private val applicationSelectionRepository: ApplicationSelectionRepository,
     private val tokenizeWithPaymentRecoveryUseCase: TokenizeWithPaymentRecoveryUseCase,
     private val oneTapItemRepository: OneTapItemRepository,
     private val fromPayerPaymentMethodToCardMapper: FromPayerPaymentMethodToCardMapper,
+    private val tokenizeWithEscUseCase: TokenizeWithEscUseCase,
+    private val tokenizeWithCvvUseCase: TokenizeWithCvvUseCase,
     tracker: MPTracker
 ) : BaseViewModelWithState<RemediesViewModel.State>(tracker), Remedies.ViewModel {
 
@@ -143,19 +145,19 @@ internal class RemediesViewModel(
 
     private fun startPayment(callback: ConfirmButton.OnEnqueueResolvedCallback) {
         track(RemedyEvent(getRemedyTrackData(RemedyType.PAYMENT_METHOD_SUGGESTION), showedModal))
-        remediesModel.retryPayment?.cvvModel?.let {
-            CoroutineScope(Dispatchers.IO).launch {
-                val response = TokenCreationWrapper.Builder(cardTokenRepository, escManagerBehaviour)
-                    .with(card!!).build().createTokenWithCvv(state.cvv)
+        tokenize(remediesModel.retryPayment?.cvvModel.isNotNull(), callback)
+    }
 
-                withContext(Dispatchers.Main) {
-                    response.resolve(success = { token ->
-                        paymentSettingRepository.configure(token)
-                        callback.success()
-                    }, error = { callback.failure(it) })
-                }
-            }
-        } ?: callback.success()
+
+    private fun tokenize(withCvv: Boolean, callback: ConfirmButton.OnEnqueueResolvedCallback) {
+        val success: (token: Token) -> Unit = { callback.success() }
+        val failure: (error: MercadoPagoError) -> Unit = callback::failure
+
+        if(withCvv) {
+            tokenizeWithCvvUseCase.execute(state.cvv, success, failure)
+        } else {
+            tokenizeWithEscUseCase.execute(Unit, success, failure)
+        }
     }
 
     private fun startCvvRecovery(callback: ConfirmButton.OnEnqueueResolvedCallback) {

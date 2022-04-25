@@ -4,6 +4,10 @@ _XX_04_2022_
 * FIX - Adjust track /payment_congrats/result/error
 * FIX - Remove Android ID according to Google request.
 
+##  VERSION 4.112.1
+_25_04_2022
+* FIX - Esc tokenization in remedies.
+
 ##  VERSION 4.112.0
 _19_04_2022
 * FEATURE - Added view binding for OneTapFragment.
