@@ -5,6 +5,7 @@ import com.mercadopago.android.px.internal.callbacks.Response
 import com.mercadopago.android.px.internal.features.validation_program.TokenDeviceUseCase
 import com.mercadopago.android.px.internal.repository.CardTokenRepository
 import com.mercadopago.android.px.internal.util.ApiUtil
+import com.mercadopago.android.px.model.Card
 import com.mercadopago.android.px.model.Token
 import com.mercadopago.android.px.model.exceptions.ApiException
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError
@@ -22,10 +23,11 @@ internal class TokenizeWithCvvUseCase(
 
     override suspend fun doExecute(param: Params): Response<Token, MercadoPagoError> {
         return suspendCoroutine { continuation ->
+            val tokenDeviceParams = TokenDeviceUseCase.createParams(param.card)
             tokenDeviceUseCase.execute(
-                param.cardId,
+                tokenDeviceParams,
                 success = { remotePaymentToken ->
-                    cardTokenRepository.createToken(param.cardId, param.cvv, remotePaymentToken, param.requireEsc).enqueue(object : Callback<Token>() {
+                    cardTokenRepository.createToken(tokenDeviceParams.cardId, param.cvv, remotePaymentToken, param.requireEsc).enqueue(object : Callback<Token>() {
                         override fun success(token: Token) {
                             continuation.resume(Response.Success(token))
                         }
@@ -42,5 +44,5 @@ internal class TokenizeWithCvvUseCase(
         }
     }
 
-    data class Params(val cardId: String, val cvv: String, val requireEsc: Boolean)
+    data class Params(val card: Card, val cvv: String, val requireEsc: Boolean)
 }
