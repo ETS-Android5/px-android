@@ -21,6 +21,7 @@ class Card @Deprecated("") constructor() : CardInformation, KParcelable {
         expirationYear = parcel.readNullableInt()
         firstSixDigits = parcel.readString()
         id = parcel.readString()
+        vProvisionedTokenId = parcel.readString()
         issuer = parcel.readParcelable(Issuer::class.java.classLoader)
         lastFourDigits = parcel.readString()
         paymentMethod = parcel.readParcelable(PaymentMethod::class.java.classLoader)
@@ -53,6 +54,7 @@ class Card @Deprecated("") constructor() : CardInformation, KParcelable {
     override var firstSixDigits: String? = null
 
     var id: String? = null
+    var vProvisionedTokenId: String? = null
     var issuer: Issuer? = null
     override var lastFourDigits: String? = null
     var paymentMethod: PaymentMethod? = null
@@ -72,6 +74,7 @@ class Card @Deprecated("") constructor() : CardInformation, KParcelable {
         parcel.writeNullableInt(expirationYear)
         parcel.writeString(firstSixDigits)
         parcel.writeString(id)
+        parcel.writeString(vProvisionedTokenId)
         parcel.writeParcelable(issuer, flags)
         parcel.writeString(lastFourDigits)
         parcel.writeParcelable(paymentMethod, flags)
@@ -88,6 +91,7 @@ class Card @Deprecated("") constructor() : CardInformation, KParcelable {
         expirationYear=$expirationYear,
         firstSixDigits=$firstSixDigits,
         id=$id,
+        vProvisionedTokenId=$vProvisionedTokenId,
         issuer=$issuer,
         lastFourDigits=$lastFourDigits,
         paymentMethod=$paymentMethod,

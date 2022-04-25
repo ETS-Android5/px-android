@@ -5,6 +5,7 @@ import com.mercadopago.android.px.addons.tokenization.Tokenize
 import com.mercadopago.android.px.addons.model.RemotePaymentToken
 import com.mercadopago.android.px.addons.model.TokenState
 import java.math.BigDecimal
+import java.util.Date
 
 internal class TokenDeviceDefaultBehaviour : TokenDeviceBehaviour {
     override val isFeatureAvailable: Boolean = false
@@ -20,6 +21,11 @@ internal class TokenDeviceDefaultBehaviour : TokenDeviceBehaviour {
         amount: BigDecimal,
         vProvisionedTokenId: String?
     ): RemotePaymentToken {
-        TODO("Not yet implemented")
+        return RemotePaymentToken(
+            cryptogramData = byteArrayOf(),
+            par = "fakePar",
+            digitalPanExpirationDate = Date(),
+            digitalPan = "fakeDPan"
+        )
     }
 }

@@ -22,10 +22,9 @@ internal class TokenizeWithEscUseCase(
 ) : UseCase<Card, Token>(tracker) {
 
     override suspend fun doExecute(param: Card): Response<Token, MercadoPagoError> {
-        val cardId = param.id ?: throw IllegalStateException("Cannot tokenize a card without id")
         return suspendCoroutine { continuation ->
             tokenDeviceUseCase.execute(
-                cardId,
+                TokenDeviceUseCase.buildParams(param),
                 success = { remotePaymentToken ->
                     tokenRepository.createToken(param, remotePaymentToken).enqueue(object : Callback<Token>() {
                         override fun success(token: Token) {

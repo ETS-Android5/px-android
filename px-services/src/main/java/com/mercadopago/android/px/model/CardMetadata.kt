@@ -9,5 +9,5 @@ data class CardMetadata(
     val id: String,
     val displayInfo: CardDisplayInfo,
     val retry: Retry,
-    val tokenization: Tokenization
+    val tokenization: Tokenization? = null
 ) : Parcelable, Serializable

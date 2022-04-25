@@ -14,6 +14,10 @@ internal class FromPayerPaymentMethodToCardMapper(
     private val paymentMethodRepository: PaymentMethodRepository
 ) : NonNullMapper<PayerPaymentMethodKey, Card>() {
 
+    private fun buildProvisionedTokenId(payerPaymentMethodId: String) : String? {
+        return oneTapItemRepository[payerPaymentMethodId].card.tokenization?.bindingTokenizationId
+    }
+
     override fun map(value: PayerPaymentMethodKey): Card? {
         return payerPaymentMethodRepository[value]?.takeIf {
             isCardPaymentType(it.type)
@@ -21,6 +25,7 @@ internal class FromPayerPaymentMethodToCardMapper(
             paymentMethodRepository.value.find { it.id == payerPaymentMethod.paymentMethodId }?.let { paymentMethod ->
                 val card = Card()
                 card.id = payerPaymentMethod.id
+                card.vProvisionedTokenId = buildProvisionedTokenId(payerPaymentMethod.id)
                 card.securityCode = oneTapItemRepository[payerPaymentMethod.id].card.displayInfo.securityCode
                 card.paymentMethod = paymentMethod
                 card.firstSixDigits = payerPaymentMethod.firstSixDigits

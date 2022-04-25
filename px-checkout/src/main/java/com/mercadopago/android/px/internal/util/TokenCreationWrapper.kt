@@ -6,7 +6,9 @@ import com.mercadopago.android.px.internal.base.use_case.TokenizeWithCvvUseCase
 import com.mercadopago.android.px.internal.callbacks.Response
 import com.mercadopago.android.px.internal.helper.SecurityCodeHelper
 import com.mercadopago.android.px.internal.repository.CardTokenRepository
-import com.mercadopago.android.px.model.*
+import com.mercadopago.android.px.model.Card
+import com.mercadopago.android.px.model.PaymentRecovery
+import com.mercadopago.android.px.model.Token
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError
 import com.mercadopago.android.px.tracking.internal.model.Reason
 
@@ -28,21 +30,22 @@ internal class TokenCreationWrapper private constructor(builder: Builder) {
 
     suspend fun createTokenWithEsc(cvv: String) = run {
         SecurityCodeHelper.validate(card, cvv)
-        createESCToken(card.id!!, cvv).apply {
+        createESCToken(card, cvv).apply {
             resolve(success = { token -> token.lastFourDigits = card.lastFourDigits })
         }
     }
 
     suspend fun createTokenWithoutEsc(cvv: String) = run {
         SecurityCodeHelper.validate(card, cvv)
-        createToken(card.id!!, cvv).apply {
+        createToken(card, cvv).apply {
             resolve(success = { token -> token.lastFourDigits = card.lastFourDigits })
         }
     }
 
-    private suspend fun createESCToken(cardId: String, cvv: String) = tokenizeWithCvvUseCase
-        .suspendExecute(TokenizeWithCvvUseCase.Params(cardId, cvv, true)).apply {
+    private suspend fun createESCToken(card: Card, cvv: String) = tokenizeWithCvvUseCase
+        .suspendExecute(TokenizeWithCvvUseCase.Params(card, cvv, true)).apply {
             resolve(success = {
+                val cardId = card.id ?: error("card id should not be null")
                 if (Reason.ESC_CAP == reason) { // Remove previous esc for tracking purpose
                     escManagerBehaviour.deleteESCWith(cardId, EscDeleteReason.ESC_CAP, null)
                 }
@@ -50,8 +53,8 @@ internal class TokenCreationWrapper private constructor(builder: Builder) {
             })
         }
 
-    private suspend fun createToken(cardId: String, cvv: String) = tokenizeWithCvvUseCase
-        .suspendExecute(TokenizeWithCvvUseCase.Params(cardId, cvv, false))
+    private suspend fun createToken(card: Card, cvv: String) = tokenizeWithCvvUseCase
+        .suspendExecute(TokenizeWithCvvUseCase.Params(card, cvv, false))
 
     class Builder(
         val cardTokenRepository: CardTokenRepository,
