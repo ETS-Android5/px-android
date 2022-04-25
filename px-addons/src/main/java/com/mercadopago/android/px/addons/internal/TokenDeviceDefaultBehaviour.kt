@@ -23,9 +23,9 @@ internal class TokenDeviceDefaultBehaviour : TokenDeviceBehaviour {
     ): RemotePaymentToken {
         return RemotePaymentToken(
             cryptogramData = byteArrayOf(),
-            par = "",
+            par = "fakePar",
             digitalPanExpirationDate = Date(),
-            digitalPan = ""
+            digitalPan = "fakeDPan"
         )
     }
 }
