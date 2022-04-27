@@ -470,6 +470,7 @@ public final class Session extends ApplicationModule {
                 configurationModule.getUserSelectionRepository(),
                 payerPaymentMethodRepository,
                 amountConfigurationRepository,
+                discountRepository,
                 networkModule.getNetworkApi()
             );
         }

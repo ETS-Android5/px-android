@@ -14,7 +14,8 @@ internal class PaymentDataFactory(
     private val transactionInfoFactory: TransactionInfoFactory,
     private val amountRepository: AmountRepository,
     private val amountConfigurationRepository: AmountConfigurationRepository,
-    private val paymentSettingRepository: PaymentSettingRepository
+    private val paymentSettingRepository: PaymentSettingRepository,
+    private val paymentDiscountRepository: PaymentDiscountRepository
 ) {
 
     /**
@@ -51,7 +52,7 @@ internal class PaymentDataFactory(
                 .setTransactionInfo(transactionInfo)
                 .setTransactionAmount(amountToPay)
                 .setCampaign(discountModel.campaign)
-                .setDiscount(primaryPaymentMethod?.discount)
+                .setDiscount(paymentDiscountRepository.discounts.primaryPaymentMethodDiscount)
                 .setRawAmount(primaryPaymentMethod?.amount)
                 .setNoDiscountAmount(primaryPaymentMethod?.amount)
                 .createPaymentData()
@@ -61,7 +62,7 @@ internal class PaymentDataFactory(
                 .setPayer(paymentSettingRepository.checkoutPreference?.payer)
                 .setPaymentMethod(secondaryPaymentMethodSelected)
                 .setCampaign(discountModel.campaign)
-                .setDiscount(secondaryPaymentMethod?.discount)
+                .setDiscount(paymentDiscountRepository.discounts.splitPaymentMethodDiscount)
                 .setRawAmount(secondaryPaymentMethod?.amount)
                 .setNoDiscountAmount(secondaryPaymentMethod?.amount)
                 .createPaymentData()
@@ -69,12 +70,7 @@ internal class PaymentDataFactory(
             return listOf(paymentData, secondaryPaymentData);
         } else { // is regular 1 pm payment
 
-            val discount: Discount? = runCatching {
-                Discount.replaceWith(
-                    discountModel.discount,
-                    amountConfigurationRepository.getCurrentConfiguration().discountToken
-                )
-            }.getOrDefault(discountModel.discount)
+            val discount: Discount? = paymentDiscountRepository.discounts.primaryPaymentMethodDiscount
 
             val paymentData = PaymentData.Builder()
                 .setPaymentMethod(paymentMethod)

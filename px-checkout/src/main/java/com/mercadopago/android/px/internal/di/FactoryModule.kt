@@ -24,7 +24,8 @@ internal class FactoryModule {
                 transactionInfoFactory,
                 session.amountRepository,
                 session.amountConfigurationRepository,
-                session.configurationModule.paymentSettings
+                session.configurationModule.paymentSettings,
+                session.paymentDiscountRepository
             )
         }
 }

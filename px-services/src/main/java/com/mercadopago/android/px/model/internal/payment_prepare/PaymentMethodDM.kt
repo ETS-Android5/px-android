@@ -13,7 +13,8 @@ class PaymentMethodDM(
 ) {
     data class DiscountInfo(
         val campaignId: String? = null,
-        val token: String? = null
+        val token: String? = null,
+        val couponAmount: BigDecimal? = null
     )
 
     data class CardInfo(
