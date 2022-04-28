@@ -29,6 +29,7 @@ internal class PreparePaymentRepositoryImpl(
     private val payerPaymentMethodRepository: PayerPaymentMethodRepository,
     private val amountConfigurationRepository: AmountConfigurationRepository,
     private val discountRepository: DiscountRepository,
+    private val chargeRepository: ChargeRepository,
     private val networkApi: NetworkApi
 ) : PreparePaymentRepository {
 
@@ -39,8 +40,11 @@ internal class PreparePaymentRepositoryImpl(
         }
         val splitConfiguration = amountConfigurationRepository.getCurrentConfiguration().splitConfiguration
         val paymentMethod = makePaymentMethodDM(preference, splitConfiguration)
+        val charges = chargeRepository.customCharges.map {
+            PreparePaymentBody.ChargeRuleDM(it.paymentTypeId, it.charge())
+        }
         val body = with(paymentSettingRepository) {
-            PreparePaymentBody(paymentMethod, discountParamsCfg, preference.marketplace, preference.items, publicKey)
+            PreparePaymentBody(paymentMethod, discountParamsCfg, preference.marketplace, preference.items, charges, publicKey)
         }
         val apiResponse = networkApi.apiCallForResponse(PreparePaymentService::class.java) {
             it.prepare(body)
@@ -73,16 +77,20 @@ internal class PreparePaymentRepositoryImpl(
                     null,
                     emptyList(),
                     null,
-                    PaymentMethodDM.DiscountInfo(
-                        campaignId = payerPaymentMethodRepository[it.id]?.defaultAmountConfiguration,
-                        couponAmount = splitConfiguration?.secondaryPaymentMethod?.discount?.couponAmount
-                    )
+                    splitConfiguration?.secondaryPaymentMethod?.discount?.let { discount ->
+                        PaymentMethodDM.DiscountInfo(
+                            campaignId = payerPaymentMethodRepository[it.id]?.defaultAmountConfiguration,
+                            couponAmount = discount.couponAmount
+                        )
+                    }
                 )
             }),
-            PaymentMethodDM.DiscountInfo(
-                campaignId = payerPaymentMethodRepository[customOptionId]?.defaultAmountConfiguration,
-                couponAmount = getPrimaryPaymentMethodDiscount(isSplit, splitConfiguration).couponAmount
-            )
+            getPrimaryPaymentMethodDiscount(isSplit, splitConfiguration)?.let {
+                PaymentMethodDM.DiscountInfo(
+                    campaignId = payerPaymentMethodRepository[customOptionId]?.defaultAmountConfiguration,
+                    couponAmount = it.couponAmount
+                )
+            }
         )
     }
 

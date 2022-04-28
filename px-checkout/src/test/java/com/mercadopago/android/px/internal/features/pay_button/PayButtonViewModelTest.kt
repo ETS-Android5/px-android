@@ -32,6 +32,7 @@ import com.mercadopago.android.px.internal.viewmodel.PaymentModel
 import com.mercadopago.android.px.internal.viewmodel.PaymentResultType
 import com.mercadopago.android.px.model.*
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError
+import com.mercadopago.android.px.model.exceptions.PreparePaymentMismatchError
 import com.mercadopago.android.px.model.internal.CustomTexts
 import com.mercadopago.android.px.model.internal.PaymentConfiguration
 import org.junit.Assert.assertFalse
@@ -49,6 +50,7 @@ import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.whenever
 import com.mercadopago.android.px.internal.viewmodel.PayButtonViewModel as PayButtonTexts
 
@@ -655,6 +657,56 @@ internal class PayButtonViewModelTest {
         whenever(paymentSettingRepository.advancedConfiguration).thenReturn(advancedConfiguration)
 
         assertFalse(payButtonViewModel.skipRevealAnimation())
+    }
+
+    @Test
+    fun shouldNotStartPaymentAndShowErrorScreenWhenPreparePaymentUseCaseFailsWithPreparePaymentMismatchError() {
+        val callback = argumentCaptor<ConfirmButton.OnEnqueueResolvedCallback>()
+        payButtonViewModel.startPayment()
+
+        verify(userSelectionUseCase).execute(
+            any(),
+            userSelectionSuccessCallbackCaptor.capture(),
+            userSelectionFailureCallbackCaptor.capture()
+        )
+        userSelectionSuccessCallbackCaptor.firstValue.invoke(Unit)
+        verify(handler).onEnqueueProcess(callback.capture())
+        callback.firstValue.success()
+
+        verify(preparePaymentUseCase).execute(
+            any(),
+            preparePaymentSuccessCallbackCaptor.capture(),
+            preparePaymentFailureCallbackCaptor.capture()
+        )
+        preparePaymentFailureCallbackCaptor.firstValue.invoke(PreparePaymentMismatchError("Error"))
+
+        verify(paymentService, never()).startExpressPayment()
+
+        verify(uiStateObserver).onChanged(any<UIError.RecoverableError>())
+    }
+
+    @Test
+    fun shouldStartPaymentWhenPreparePaymentUseCaseFailsWithOtherError() {
+        val callback = argumentCaptor<ConfirmButton.OnEnqueueResolvedCallback>()
+        payButtonViewModel.startPayment()
+
+        verify(userSelectionUseCase).execute(
+            any(),
+            userSelectionSuccessCallbackCaptor.capture(),
+            userSelectionFailureCallbackCaptor.capture()
+        )
+        userSelectionSuccessCallbackCaptor.firstValue.invoke(Unit)
+        verify(handler).onEnqueueProcess(callback.capture())
+        callback.firstValue.success()
+
+        verify(preparePaymentUseCase).execute(
+            any(),
+            preparePaymentSuccessCallbackCaptor.capture(),
+            preparePaymentFailureCallbackCaptor.capture()
+        )
+        preparePaymentFailureCallbackCaptor.firstValue.invoke(MercadoPagoError.createNotRecoverable("Error"))
+
+        verify(paymentService).startExpressPayment()
     }
 
     private fun configurePaymentSettingServiceObservableEvents() {

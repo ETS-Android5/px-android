@@ -9,7 +9,8 @@ import retrofit2.http.POST
 
 interface PreparePaymentService {
 
-    @POST("${BuildConfig.API_ENVIRONMENT}/px_mobile/payments/prepare")
+    //@POST("${BuildConfig.API_ENVIRONMENT}/px_mobile/payments/prepare")
+    @POST("https://run.mocky.io/v3/1912478c-a191-4e6f-8801-88b9cdfe0b0d")
     suspend fun prepare(
         @Body body: PreparePaymentBody
     ): Response<PreparePaymentResponse>
