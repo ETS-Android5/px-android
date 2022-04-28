@@ -1,5 +1,5 @@
-## Unreleased
-_XX_04_2022_
+## VERSION 4.113.0
+_28_04_2022_
 * ENHANCEMENT - Migration of some utils methods to use the core ones.
 * FIX - Adjust track /payment_congrats/result/error
 * FIX - Remove Android ID according to Google request.
