@@ -1,22 +1,16 @@
 package com.mercadopago.android.px.internal.view
 
-import kotlin.jvm.JvmOverloads
 import android.app.Activity
 import android.content.Context
-import com.mercadopago.android.px.R
-import android.graphics.PorterDuff
 import android.content.ContextWrapper
-import android.content.res.TypedArray
 import android.graphics.Color
+import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.util.AttributeSet
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.BlendModeColorFilterCompat
-import androidx.core.graphics.BlendModeCompat
+import com.mercadopago.android.px.R
 
 internal class ToolbarCancel @JvmOverloads constructor(
     context: Context,

@@ -10,14 +10,13 @@
     tools:showIn="@layout/px_fragment_one_tap_payment"
     tools:viewBindingIgnore="true">
 
-    <com.mercadopago.android.px.internal.view.DynamicHeightViewPager
+    <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/payment_method_pager"
-        android:overScrollMode="never"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:layout_height="500dp" />
 
-    <com.mercadopago.android.px.internal.view.ScrollingPagerIndicator
+    <com.mercadopago.android.px.internal.features.one_tap.slider.pager.ScrollingPagerIndicator
         android:id="@+id/indicator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

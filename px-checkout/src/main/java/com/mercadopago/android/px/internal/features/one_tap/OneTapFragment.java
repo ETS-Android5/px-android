@@ -21,7 +21,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
 import com.mercadolibre.android.andesui.snackbar.action.AndesSnackbarAction;
 import com.mercadolibre.android.andesui.snackbar.duration.AndesSnackbarDuration;
 import com.mercadolibre.android.andesui.snackbar.type.AndesSnackbarType;
@@ -68,6 +68,8 @@ import com.mercadopago.android.px.internal.features.one_tap.slider.SplitPaymentH
 import com.mercadopago.android.px.internal.features.one_tap.slider.SummaryViewAdapter;
 import com.mercadopago.android.px.internal.features.one_tap.slider.TitlePagerAdapter;
 import com.mercadopago.android.px.internal.features.one_tap.slider.TitlePagerAdapterV2;
+import com.mercadopago.android.px.internal.features.one_tap.slider.pager.PaymentMethodPagerConfigurator;
+import com.mercadopago.android.px.internal.features.one_tap.slider.pager.ScrollingPagerIndicator;
 import com.mercadopago.android.px.internal.features.pay_button.PayButton;
 import com.mercadopago.android.px.internal.features.pay_button.PaymentState;
 import com.mercadopago.android.px.internal.features.security_code.RenderModeMapper;
@@ -81,7 +83,6 @@ import com.mercadopago.android.px.internal.view.DiscountDetailDialog;
 import com.mercadopago.android.px.internal.view.ElementDescriptorView;
 import com.mercadopago.android.px.internal.view.LinkableTextView;
 import com.mercadopago.android.px.internal.view.PaymentMethodHeaderView;
-import com.mercadopago.android.px.internal.view.ScrollingPagerIndicator;
 import com.mercadopago.android.px.internal.view.TitlePager;
 import com.mercadopago.android.px.internal.view.animator.OneTapTransition;
 import com.mercadopago.android.px.internal.view.experiments.ExperimentHelper;
@@ -109,7 +110,7 @@ import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
 import static com.mercadopago.android.px.internal.features.Constants.REQ_CODE_SECURITY_CODE;
 
-public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPager.OnPageChangeListener,
+public class OneTapFragment extends BaseFragment implements OneTap.View,
     SplitPaymentHeaderAdapter.SplitListener, PaymentMethodFragment.DisabledDetailDialogLauncher,
     OtherPaymentMethodFragment.OnOtherPaymentMethodClickListener, PayButton.Handler, GenericDialog.Listener,
     BackHandler, PaymentMethodFragment.PaymentMethodPagerListener, LinkableTextView.LinkableTextListener {
@@ -122,7 +123,6 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
     private static final String EXTRA_NAVIGATION_STATE = "navigation_state";
 
     private static final int REQ_CODE_DISABLE_DIALOG = 105;
-    private static final float PAGER_NEGATIVE_MARGIN_MULTIPLIER = -1.5f;
     public static final int REQ_CARD_FORM_WEB_VIEW = 953;
     public static final int REQ_CODE_CARD_FORM = 106;
 
@@ -134,7 +134,7 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
 
     private View confirmButtonContainer;
     private RecyclerView installmentsRecyclerView;
-    /* default */ ViewPager paymentMethodPager;
+    /* default */ ViewPager2 paymentMethodPager;
     /* default */ RenderMode renderMode;
     private ScrollingPagerIndicator indicator;
     @Nullable private ExpandAndCollapseAnimation expandAndCollapseAnimation;
@@ -147,7 +147,7 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
     private PaymentMethodFragmentAdapter paymentMethodFragmentAdapter;
     private OneTapTransition transition;
 
-    private HubAdapter hubAdapter;
+    /* default */ HubAdapter hubAdapter;
 
     private ConfirmButton.View confirmButtonFragment;
     private OfflineMethodsFragment offlineMethodsFragment;
@@ -314,7 +314,25 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
 
         binding.summaryView.setOnLogoClickListener(v -> presenter.onHeaderClicked());
 
-        paymentMethodPager.addOnPageChangeListener(this);
+        paymentMethodPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageScrolled(final int position, final float positionOffset, final int positionOffsetPixels) {
+                super.onPageScrolled(position, positionOffset, positionOffsetPixels);
+                hubAdapter.updatePosition(positionOffset, position);
+            }
+
+            @Override
+            public void onPageSelected(final int position) {
+                super.onPageSelected(position);
+                presenter.onSliderOptionSelected(position);
+                VibrationUtils.smallVibration(getContext());
+            }
+
+            @Override
+            public void onPageScrollStateChanged(final int state) {
+                super.onPageScrollStateChanged(state);
+            }
+        });
 
         fragmentLifecycleCallbacks = new FragmentManager.FragmentLifecycleCallbacks() {
             @Override
@@ -348,9 +366,8 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
         paymentMethodPager = view.findViewById(R.id.payment_method_pager);
         indicator = view.findViewById(R.id.indicator);
 
-        paymentMethodPager.setPageMargin(
-            ((int) (getResources().getDimensionPixelSize(R.dimen.px_m_margin) * PAGER_NEGATIVE_MARGIN_MULTIPLIER)));
-        paymentMethodPager.setOffscreenPageLimit(2);
+        final int itemPadding = getResources().getDimensionPixelSize(R.dimen.px_onetap_pager_item_padding);
+        PaymentMethodPagerConfigurator.INSTANCE.configure(paymentMethodPager, itemPadding);
         slideDownAndFadeAnimation.setAnimationListener(new FadeAnimationListener(paymentMethodPager, INVISIBLE));
         slideUpAndFadeAnimation.setAnimationListener(new FadeAnimationListener(paymentMethodPager, VISIBLE));
 
@@ -532,14 +549,22 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
         // Order is important, should update all others adapters before update paymentMethodAdapter
 
         if (paymentMethodPager.getAdapter() == null) {
-            paymentMethodFragmentAdapter = new PaymentMethodFragmentAdapter(getChildFragmentManager());
+            //If renderMode is null it means that 1. It's not dynamic and 2. It's not been decided yet.
             if (renderMode == null) {
+                paymentMethodFragmentAdapter = new PaymentMethodFragmentAdapter(this);
                 binding.summaryView.setMeasureListener((itemsClipped) -> {
                     renderMode = itemsClipped ? RenderMode.LOW_RES : RenderMode.HIGH_RES;
-                    onRenderModeDecided();
+                    //We only need to refresh the adapter if we are changing to LOW_RES
+                    if (renderMode == RenderMode.LOW_RES) {
+                        final List<DrawableFragmentItem> items = paymentMethodFragmentAdapter.getItems();
+                        paymentMethodFragmentAdapter = new PaymentMethodFragmentAdapter(this, renderMode);
+                        paymentMethodFragmentAdapter.setItems(items);
+                        paymentMethodPager.setAdapter(paymentMethodFragmentAdapter);
+                    }
+                    binding.summaryView.setMeasureListener(null);
                 });
             } else {
-                onRenderModeDecided();
+                paymentMethodFragmentAdapter = new PaymentMethodFragmentAdapter(this, renderMode);
             }
             paymentMethodPager.setAdapter(paymentMethodFragmentAdapter);
             indicator.attachToPager(paymentMethodPager);
@@ -678,22 +703,6 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
     }
 
     @Override
-    public void onPageScrolled(final int position, final float positionOffset, final int positionOffsetPixels) {
-        hubAdapter.updatePosition(positionOffset, position);
-    }
-
-    @Override
-    public void onPageSelected(final int position) {
-        presenter.onSliderOptionSelected(position);
-        VibrationUtils.smallVibration(getContext());
-    }
-
-    @Override
-    public void onPageScrollStateChanged(final int state) {
-        // do nothing.
-    }
-
-    @Override
     public void showDiscountDetailDialog(@NonNull final Currency currency,
         @NonNull final DiscountConfigurationModel discountModel) {
         DiscountDetailDialog.showDialog(getChildFragmentManager(), discountModel);
@@ -712,11 +721,6 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
             creator.create(getContext(), checkoutData).show(getChildFragmentManager(),
                 TAG_HEADER_DYNAMIC_DIALOG);
         }
-    }
-
-    private void onRenderModeDecided() {
-        //Workaround to pager not updating the fragments
-        paymentMethodPager.post(() -> paymentMethodFragmentAdapter.setRenderMode(renderMode));
     }
 
     @Override

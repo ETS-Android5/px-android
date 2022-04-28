@@ -3,18 +3,19 @@ _XX_04_2022_
 * ENHANCEMENT - Migration of some utils methods to use the core ones.
 * FIX - Adjust track /payment_congrats/result/error
 * FIX - Remove Android ID according to Google request.
+* ENHANCEMENT - Migrates to ViewPager2.
 
-##  VERSION 4.112.1
-_25_04_2022
+## VERSION 4.112.1
+_25_04_2022_
 * FIX - Esc tokenization in remedies.
 
-##  VERSION 4.112.0
-_19_04_2022
+## VERSION 4.112.0
+_19_04_2022_
 * FEATURE - Added view binding for OneTapFragment.
 * FEATURE - PX as payment method selector.
 
-##  VERSION 4.111.0
-_18_04_2022
+## VERSION 4.111.0
+_18_04_2022_
 * FEATURE - New layout consumer credits and new tag.
 * FEATURE - Adjust tag card consumer credits with size medium.
 * FEATURE - New background consumer credits.
@@ -25,7 +26,7 @@ _07_04_2022_
 * ENHANCEMENT - Summary header logic refactor
 * ENHANCEMENT - Errors are handled in postPaymentFlow
 
-##  VERSION 4.109.0
+## VERSION 4.109.0
 _31_03_2022_
 * FIX - Parameter specified as non-null is null - parameter state
 * FIX - Crash when PaymentTypeId is null

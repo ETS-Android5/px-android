@@ -26,10 +26,10 @@ import com.mercadopago.android.px.internal.features.generic_modal.GenericDialog;
 import com.mercadopago.android.px.internal.features.generic_modal.GenericDialogAction;
 import com.mercadopago.android.px.internal.features.generic_modal.GenericDialogItem;
 import com.mercadopago.android.px.internal.util.TextUtil;
-import com.mercadopago.android.px.internal.view.DynamicHeightViewPager;
 import com.mercadopago.android.px.internal.viewmodel.drawables.DrawableFragmentItem;
 import com.mercadopago.android.px.model.internal.DisabledPaymentMethod;
 import com.mercadopago.android.px.model.internal.Text;
+
 import static com.mercadopago.android.px.internal.util.AccessibilityUtilsKt.executeIfAccessibilityTalkBackEnable;
 
 public abstract class PaymentMethodFragment<T extends DrawableFragmentItem>
@@ -230,9 +230,9 @@ public abstract class PaymentMethodFragment<T extends DrawableFragmentItem>
 
     private void setDescriptionForAccessibility(@NonNull final CharSequence description) {
         final View rootView = getView();
-        final DynamicHeightViewPager parent;
-        if (rootView != null && rootView.getParent() instanceof DynamicHeightViewPager &&
-            (parent = (DynamicHeightViewPager) rootView.getParent()).isAccessibilityFocused()) {
+        final View parent;
+        if (rootView != null && rootView.getParent() instanceof View &&
+            (parent = (View) rootView.getParent()).isAccessibilityFocused()) {
             parent.announceForAccessibility(description);
         }
         if (handler != null) {

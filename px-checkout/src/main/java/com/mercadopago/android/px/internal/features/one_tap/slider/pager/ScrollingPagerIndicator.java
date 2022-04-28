@@ -1,17 +1,17 @@
-package com.mercadopago.android.px.internal.view;
+package com.mercadopago.android.px.internal.features.one_tap.slider.pager;
 
 import android.animation.ArgbEvaluator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import androidx.annotation.ColorInt;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.viewpager.widget.ViewPager;
 import android.util.AttributeSet;
 import android.util.SparseArray;
 import android.view.View;
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.viewpager2.widget.ViewPager2;
 import com.mercadopago.android.px.R;
 
 public final class ScrollingPagerIndicator extends View {
@@ -44,7 +44,7 @@ public final class ScrollingPagerIndicator extends View {
     private final boolean looped;
 
     private Runnable attachRunnable;
-    private PagerAttacher<?> currentAttacher;
+    private ViewPagerAttacher currentAttacher;
 
     private boolean dotCountInitialized;
 
@@ -111,7 +111,7 @@ public final class ScrollingPagerIndicator extends View {
      *
      * @param pager pager to attach
      */
-    public void attachToPager(@NonNull final ViewPager pager) {
+    public void attachToPager(@NonNull final ViewPager2 pager) {
         attachToPager(pager, new ViewPagerAttacher());
     }
 
@@ -121,7 +121,7 @@ public final class ScrollingPagerIndicator extends View {
      * @param pager pager to attach
      * @param attacher helper which should setup this indicator to work with custom pager
      */
-    public <T> void attachToPager(@NonNull final T pager, @NonNull final PagerAttacher<T> attacher) {
+    public void attachToPager(@NonNull final ViewPager2 pager, @NonNull final ViewPagerAttacher attacher) {
         detachFromPager();
         attacher.attachToPager(this, pager);
         currentAttacher = attacher;
@@ -426,31 +426,5 @@ public final class ScrollingPagerIndicator extends View {
         } else {
             dotScale.put(index, scale);
         }
-    }
-
-    /**
-     * Interface for attaching to custom pagers.
-     *
-     * @param <T> custom pager's class
-     */
-    public interface PagerAttacher<T> {
-
-        /**
-         * Here you should add all needed callbacks to track pager's item count, position and offset
-         * You must call:
-         * {@link ScrollingPagerIndicator#setDotCount(int)} - initially and after page selection,
-         * {@link ScrollingPagerIndicator#setCurrentPosition(int)} - initially and after page selection,
-         * {@link ScrollingPagerIndicator#onPageScrolled(int, float)} - in your pager callback to track scroll offset,
-         * {@link ScrollingPagerIndicator#reattach()} - each time your adapter items change.
-         *
-         * @param indicator indicator
-         * @param pager pager to attach
-         */
-        void attachToPager(@NonNull ScrollingPagerIndicator indicator, @NonNull T pager);
-
-        /**
-         * Here you should unregister all callbacks previously added to pager and adapter
-         */
-        void detachFromPager();
     }
 }

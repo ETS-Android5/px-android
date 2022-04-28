@@ -31,6 +31,7 @@
     <dimen name="px_badge_size">25dp</dimen>
     <dimen name="px_bigger_badge_size">52dp</dimen>
     <dimen name="px_badge_offset">16dp</dimen>
+    <dimen name="px_onetap_pager_item_padding">24dp</dimen>
 
     <!-- Payment result components -->
 

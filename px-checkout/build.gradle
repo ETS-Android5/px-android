@@ -37,6 +37,7 @@ dependencies {
     implementation "com.mercadolibre.android.andesui:components:$andesUi"
     implementation "androidx.constraintlayout:constraintlayout:$constraintLayout"
     implementation "com.google.android:flexbox:$flexboxLayout"
+    implementation "androidx.viewpager2:viewpager2:$viewPager2"
 
     implementation "com.squareup.okhttp3:okhttp:$okhttp"
     implementation "com.squareup.okhttp3:okhttp-urlconnection:$okhttp"

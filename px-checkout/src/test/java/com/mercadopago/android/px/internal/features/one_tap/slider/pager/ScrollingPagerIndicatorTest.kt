@@ -1,9 +1,9 @@
-package com.mercadopago.android.px.internal.view
+package com.mercadopago.android.px.internal.features.one_tap.slider.pager
 
 import android.graphics.Canvas
 import android.graphics.Color
-import androidx.viewpager.widget.PagerAdapter
-import androidx.viewpager.widget.ViewPager
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import com.mercadopago.android.px.BasicRobolectricTest
 import com.mercadopago.android.px.R
 import com.mercadopago.android.px.assertEquals
@@ -20,8 +20,8 @@ class ScrollingPagerIndicatorTest : BasicRobolectricTest() {
 
     @Test
     fun initWithParametersAndSetsCurrentPosition() {
-        val pager = mock(ViewPager::class.java)
-        `when`(pager.adapter).thenReturn(mock(PagerAdapter::class.java))
+        val pager = mock(ViewPager2::class.java)
+        `when`(pager.adapter).thenReturn(mock(FragmentStateAdapter::class.java))
         val blackColor = "#000000"
         val whiteColor = "#ffffff"
         val visibleDotCount = 5

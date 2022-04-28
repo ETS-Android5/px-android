@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/px_other_payment_method_small"
     android:layout_width="match_parent"
     android:layout_height="0dp"
     android:orientation="vertical"
+    android:clipChildren="false"
+    android:layout_marginBottom="@dimen/px_s_margin"
     app:layout_constraintDimensionRatio="@string/px_card_aspect_ratio_lowres"
     app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent">
+    app:layout_constraintTop_toTopOf="parent"
+    tools:layout_height="100dp">
 
     <include
         layout="@layout/px_other_payment_method_card_view_small_low_res"
-        android:id="@+id/px_add_new_card"/>
+        android:id="@+id/px_add_new_card" />
 
     <Space
         android:layout_width="match_parent"
-        android:layout_height="@dimen/px_s_margin"/>
+        android:layout_height="@dimen/px_xxs_margin" />
 
     <include
         layout="@layout/px_other_payment_method_card_view_small_low_res"
         android:id="@+id/px_off_payment_method" />
-
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="20dp"/>
 
 </LinearLayout>

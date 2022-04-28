@@ -5,10 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:clipChildren="false"
-    android:clipToPadding="false"
-    android:paddingBottom="@dimen/px_s_margin"
-    android:paddingStart="@dimen/px_m_margin"
-    android:paddingEnd="@dimen/px_m_margin"
     tools:viewBindingIgnore="true">
 
     <LinearLayout
@@ -16,8 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="vertical"
+        android:layout_marginBottom="@dimen/px_s_margin"
         android:clipChildren="false"
-        android:clipToPadding="false"
         app:layout_constraintDimensionRatio="@string/px_card_aspect_ratio_mediumres"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -28,7 +24,7 @@
 
         <Space
             android:layout_width="match_parent"
-            android:layout_height="@dimen/px_xs_margin" />
+            android:layout_height="@dimen/px_xxs_margin" />
 
         <include
             layout="@layout/px_other_payment_method_card_view_small_medium_res"

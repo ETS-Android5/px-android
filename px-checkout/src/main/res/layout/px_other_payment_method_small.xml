@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/px_other_payment_method_small"
     android:layout_width="match_parent"
     android:layout_height="0dp"
     android:orientation="vertical"
     android:clipChildren="false"
-    android:clipToPadding="false"
+    android:layout_marginBottom="@dimen/px_s_margin"
     app:layout_constraintDimensionRatio="@string/px_card_aspect_ratio"
     app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent">
+    app:layout_constraintTop_toTopOf="parent"
+    tools:layout_height="200dp">
 
     <include
         layout="@layout/px_other_payment_method_card_view_small"
@@ -17,7 +19,7 @@
 
     <Space
         android:layout_width="match_parent"
-        android:layout_height="@dimen/px_xs_margin" />
+        android:layout_height="@dimen/px_xxs_margin" />
 
     <include
         layout="@layout/px_other_payment_method_card_view_small"
