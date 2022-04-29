@@ -71,7 +71,7 @@ internal class InitRequestBodyMapper (
             CheckoutFeaturesDM(
                 features.express, features.split, features.odrFlag, features.comboCard, features.hybridCard,
                 features.pix, features.customTaxesCharges, features.cardsCustomTaxesCharges, features.taxableCharges,
-                features.styleVersion, features.threedsSdkVersion, features.validationPrograms, features.debinVersion
+                features.styleVersion, features.threedsSdkVersion, features.validationPrograms, features.debin
             ),
             paymentConfiguration.getCheckoutType(),
             checkoutPreferenceId,

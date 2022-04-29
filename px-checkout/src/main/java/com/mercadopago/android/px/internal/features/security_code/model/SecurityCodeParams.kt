@@ -9,9 +9,8 @@ import com.mercadopago.android.px.model.PaymentRecovery
 import com.mercadopago.android.px.model.internal.PaymentConfiguration
 import com.mercadopago.android.px.tracking.internal.model.Reason
 
-data class SecurityCodeParams(
+internal data class SecurityCodeParams(
         val paymentConfiguration: PaymentConfiguration,
-        val fragmentContainer: Int,
         val renderMode: RenderMode,
         val card: Card? = null,
         val paymentRecovery: PaymentRecovery? = null,
@@ -20,16 +19,14 @@ data class SecurityCodeParams(
 
     constructor(parcel: Parcel): this(
         parcel.readParcelable(PaymentConfiguration::class.java.classLoader)!!,
-        parcel.readInt(),
         RenderMode.valueOf(parcel.readString()!!),
-        parcel.readParcelable(Card::class.java.classLoader)!!,
+        parcel.readParcelable(Card::class.java.classLoader),
         parcel.readParcelable(PaymentRecovery::class.java.classLoader),
         parcel.readString()?.let { Reason.valueOf(it) }
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeParcelable(paymentConfiguration, flags)
-        parcel.writeInt(fragmentContainer)
         parcel.writeString(renderMode.name)
         parcel.writeParcelable(card, flags)
         parcel.writeParcelable(paymentRecovery, flags)

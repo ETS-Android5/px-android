@@ -10,7 +10,7 @@ import com.mercadopago.android.px.model.internal.Application.KnownValidationProg
 import com.mercadopago.android.px.tracking.internal.MPTracker
 import com.mercadopago.android.px.tracking.internal.events.ProgramValidationEvent
 
-internal class ValidationProgramUseCase @JvmOverloads constructor(
+internal class ValidationProgramUseCase(
     private val applicationSelectionRepository: ApplicationSelectionRepository,
     private val authenticateUseCase: AuthenticateUseCase,
     tracker: MPTracker,

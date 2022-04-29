@@ -11,6 +11,8 @@ internal data class LinkableText(
     val links: Map<String, String>?
 ) : Parcelable {
 
+    fun getLinkMap() = links.orEmpty()
+
     @Parcelize
     data class LinkablePhrase(
         val phrase: String,
@@ -20,12 +22,8 @@ internal data class LinkableText(
         val installments: Map<String, String>?
     ) : Parcelable {
 
-        fun getLinkId(installments: Int): String? {
-            return this.getInstallmentsRemedies()[installments.toString()]
-        }
-
-        fun getInstallmentsRemedies(): Map<String, String> {
-            return installments ?: emptyMap()
+        fun getInstallmentMap(): Map<String, String> {
+            return installments.orEmpty()
         }
     }
 }

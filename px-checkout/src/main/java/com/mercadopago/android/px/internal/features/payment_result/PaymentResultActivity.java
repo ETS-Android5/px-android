@@ -30,13 +30,17 @@ import com.mercadopago.android.px.internal.di.MapperProvider;
 import com.mercadopago.android.px.internal.di.Session;
 import com.mercadopago.android.px.internal.extensions.BaseExtensionsKt;
 import com.mercadopago.android.px.internal.features.Constants;
+import com.mercadopago.android.px.internal.features.one_tap.confirm_button.ConfirmButton;
 import com.mercadopago.android.px.internal.features.pay_button.PayButton;
 import com.mercadopago.android.px.internal.features.pay_button.PayButtonFragment;
+import com.mercadopago.android.px.internal.features.pay_button.PaymentState;
 import com.mercadopago.android.px.internal.features.payment_result.components.PaymentResultLegacyRenderer;
 import com.mercadopago.android.px.internal.features.payment_result.instruction.Instruction;
 import com.mercadopago.android.px.internal.features.payment_result.presentation.PaymentResultFooter;
 import com.mercadopago.android.px.internal.features.payment_result.remedies.RemediesFragment;
 import com.mercadopago.android.px.internal.features.payment_result.viewmodel.PaymentResultViewModel;
+import com.mercadopago.android.px.internal.features.security_code.SecurityCodeActivity;
+import com.mercadopago.android.px.internal.features.security_code.model.SecurityCodeParams;
 import com.mercadopago.android.px.internal.util.ErrorUtil;
 import com.mercadopago.android.px.internal.util.Logger;
 import com.mercadopago.android.px.internal.util.ViewUtils;
@@ -50,6 +54,7 @@ import com.mercadopago.android.px.model.exceptions.ApiException;
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError;
 import kotlin.Unit;
 
+import static com.mercadopago.android.px.internal.features.Constants.REQ_CODE_SECURITY_CODE;
 import static com.mercadopago.android.px.internal.features.Constants.RESULT_ACTION;
 import static com.mercadopago.android.px.internal.features.Constants.RESULT_CUSTOM_EXIT;
 import static com.mercadopago.android.px.internal.util.MercadoPagoUtil.getSafeIntent;
@@ -79,6 +84,15 @@ public class PaymentResultActivity extends PXActivity<PaymentResultPresenter> im
         final Intent intent = new Intent(fragment.getContext(), PaymentResultActivity.class);
         intent.putExtra(EXTRA_PAYMENT_MODEL, model);
         fragment.startActivityForResult(intent, requestCode);
+    }
+
+    public static void start(@NonNull final Activity activity, final int requestCode, @NonNull final PaymentModel model) {
+        if (activity instanceof PXActivity) {
+            ((PXActivity) activity).overrideTransitionIn();
+        }
+        final Intent intent = new Intent(activity, PaymentResultActivity.class);
+        intent.putExtra(EXTRA_PAYMENT_MODEL, model);
+        activity.startActivityForResult(intent, requestCode);
     }
 
     @Override
@@ -120,6 +134,8 @@ public class PaymentResultActivity extends PXActivity<PaymentResultPresenter> im
         return new PaymentResultPresenter(session.getConfigurationModule().getPaymentSettings(),
             paymentModel, BehaviourProvider.getFlowBehaviour(), isMP(this),
             mapperProvider.getPaymentCongratsMapper(), mapperProvider.getPaymentResultViewModelMapper(),
+            mapperProvider.getRenderModeMapper(this),
+            session.getHelperModule().getBankInfoHelper(),
             session.getTracker());
     }
 
@@ -162,31 +178,28 @@ public class PaymentResultActivity extends PXActivity<PaymentResultPresenter> im
 
     private void loadRemedies(@NonNull final PaymentModel paymentModel, @NonNull final PaymentResultViewModel model) {
         final FragmentManager fragmentManager = getSupportFragmentManager();
-        if (fragmentManager != null) {
-            remediesFragment = (RemediesFragment) fragmentManager.findFragmentByTag(RemediesFragment.TAG);
-            payButtonFragment = (PayButtonFragment) fragmentManager.findFragmentByTag(TAG_PAY_BUTTON);
+        remediesFragment = (RemediesFragment) fragmentManager.findFragmentByTag(RemediesFragment.TAG);
+        payButtonFragment = (PayButtonFragment) fragmentManager.findFragmentByTag(TAG_PAY_BUTTON);
 
-            if (remediesFragment == null || payButtonFragment == null) {
-                final FragmentTransaction transaction = fragmentManager.beginTransaction();
-                if (remediesFragment == null) {
-                    remediesFragment = RemediesFragment.newInstance(paymentModel, model.getRemediesModel());
-                    transaction.replace(R.id.remedies, remediesFragment, RemediesFragment.TAG);
-                }
-                if (payButtonFragment == null) {
-                    payButtonFragment = new PayButtonFragment();
-                    transaction.replace(R.id.pay_button, payButtonFragment, TAG_PAY_BUTTON);
-                }
-                transaction.commitAllowingStateLoss();
+        if (remediesFragment == null || payButtonFragment == null) {
+            final FragmentTransaction transaction = fragmentManager.beginTransaction();
+            if (remediesFragment == null) {
+                remediesFragment = RemediesFragment.newInstance(paymentModel, model.getRemediesModel());
+                transaction.replace(R.id.remedies, remediesFragment, RemediesFragment.TAG);
             }
-
-
-            startKeyboardListener();
-            final PaymentResultFooter.Model footerModel = model.getFooterModel();
-            if (footerModel != null) {
-                footer.init(footerModel, remediesFragment);
+            if (payButtonFragment == null) {
+                payButtonFragment = new PayButtonFragment();
+                transaction.replace(R.id.confirm_button_container, payButtonFragment, TAG_PAY_BUTTON);
             }
-            findViewById(R.id.remedies).setVisibility(View.VISIBLE);
+            transaction.commitAllowingStateLoss();
         }
+
+        startKeyboardListener();
+        final PaymentResultFooter.Model footerModel = model.getFooterModel();
+        if (footerModel != null) {
+            footer.init(footerModel, remediesFragment);
+        }
+        findViewById(R.id.remedies).setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -202,7 +215,7 @@ public class PaymentResultActivity extends PXActivity<PaymentResultPresenter> im
 
     @Override
     public void onBackPressed() {
-        if (payButtonFragment.isExploding()) {
+        if (payButtonFragment != null && payButtonFragment.isExploding()) {
             return;
         }
         presenter.onAbort();
@@ -255,6 +268,15 @@ public class PaymentResultActivity extends PXActivity<PaymentResultPresenter> im
         finish();
     }
 
+    @Override
+    protected void onActivityResult(final int requestCode, final int resultCode, @Nullable final Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_CODE_SECURITY_CODE && resultCode != Activity.RESULT_CANCELED) {
+            setResult(resultCode, data);
+            finish();
+        }
+    }
+
     @SuppressLint("Range")
     @Override
     public void copyToClipboard(@NonNull final String content) {
@@ -288,19 +310,29 @@ public class PaymentResultActivity extends PXActivity<PaymentResultPresenter> im
     }
 
     @Override
-    public void getViewTrackPath(@NonNull final PayButton.ViewTrackPathCallback callback) {
+    public void getViewTrackPath(@NonNull final ConfirmButton.ViewTrackPathCallback callback) {
         presenter.onGetViewTrackPath(callback);
     }
 
     @Override
-    public void prePayment(@NonNull final PayButton.OnReadyForPaymentCallback callback) {
+    public void onPreProcess(@NonNull final ConfirmButton.OnReadyForProcessCallback callback) {
         ViewUtils.hideKeyboard(this);
         remediesFragment.onPrePayment(callback);
     }
 
     @Override
-    public void enqueueOnExploding(@NonNull final PayButton.OnEnqueueResolvedCallback callback) {
+    public void onEnqueueProcess(@NonNull final ConfirmButton.OnEnqueueResolvedCallback callback) {
         remediesFragment.onPayButtonPressed(callback);
+    }
+
+    @Override
+    public void onCvvRequested(@NonNull final PaymentState paymentState) {
+        presenter.onCvvRequested(paymentState);
+    }
+
+    @Override
+    public void showSecurityCodeScreen(@NonNull final SecurityCodeParams params) {
+        SecurityCodeActivity.start(this, params, REQ_CODE_SECURITY_CODE);
     }
 
     @Override

@@ -2,14 +2,14 @@ package com.mercadopago.android.px.internal.features.one_tap.offline_methods
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.mercadopago.android.px.core.internal.FlowConfigurationProvider
 import com.mercadopago.android.px.internal.base.BaseViewModel
-import com.mercadopago.android.px.internal.extensions.orIfEmpty
-import com.mercadopago.android.px.internal.features.pay_button.PayButton
-import com.mercadopago.android.px.internal.features.pay_button.PayButton.OnReadyForPaymentCallback
+import com.mercadopago.android.px.internal.features.one_tap.confirm_button.ConfirmButton
 import com.mercadopago.android.px.internal.livedata.MutableSingleLiveData
 import com.mercadopago.android.px.internal.repository.*
 import com.mercadopago.android.px.internal.util.TextUtil
 import com.mercadopago.android.px.internal.viewmodel.AmountLocalized
+import com.mercadopago.android.px.internal.viewmodel.FlowConfigurationModel
 import com.mercadopago.android.px.model.OfflineMethodsCompliance
 import com.mercadopago.android.px.model.SensitiveInformation
 import com.mercadopago.android.px.model.internal.PaymentConfiguration
@@ -29,7 +29,9 @@ internal class OfflineMethodsViewModel(
     private val discountRepository: DiscountRepository,
     private val oneTapItemRepository: OneTapItemRepository,
     private val payerComplianceRepository: PayerComplianceRepository,
-    tracker: MPTracker) : BaseViewModel(tracker), OfflineMethods.ViewModel {
+    private val flowConfigurationProvider: FlowConfigurationProvider,
+    tracker: MPTracker
+) : BaseViewModel(tracker), OfflineMethods.ViewModel {
 
     private lateinit var viewTracker: OfflineMethodsViewTracker
     private var payerCompliance: OfflineMethodsCompliance? = null
@@ -38,8 +40,20 @@ internal class OfflineMethodsViewModel(
     override val deepLinkLiveData: LiveData<String>
         get() = observableDeepLink
 
-    override fun onViewLoaded(): LiveData<OfflineMethods.Model> {
-        val liveData = MutableLiveData<OfflineMethods.Model>()
+    private val flowConfigurationMutableSingleLiveData = MutableSingleLiveData<FlowConfigurationModel>()
+    val flowConfigurationLiveData: LiveData<FlowConfigurationModel>
+        get() = flowConfigurationMutableSingleLiveData
+
+    private val offlineMethodsModelMutableLiveData = MutableLiveData<OfflineMethods.Model>()
+    val offlineMethodsModelLiveData: LiveData<OfflineMethods.Model>
+        get() = offlineMethodsModelMutableLiveData
+
+    init {
+        fetchFlowConfiguration()
+        fetchModel()
+    }
+
+    private fun fetchModel() {
         CoroutineScope(Dispatchers.IO).launch {
             val offlineMethods = oneTapItemRepository.value
                 .firstOrNull { express -> express.isOfflineMethods }?.offlineMethods
@@ -51,9 +65,14 @@ internal class OfflineMethodsViewModel(
             payerCompliance = payerComplianceRepository.value?.offlineMethods
             val offlinePaymentTypes = offlineMethods?.paymentTypes.orEmpty()
             viewTracker = OfflineMethodsViewTracker(offlinePaymentTypes)
-            liveData.postValue(OfflineMethods.Model(bottomDescription, amountLocalized, offlinePaymentTypes))
+            val model = OfflineMethods.Model(bottomDescription, amountLocalized, offlinePaymentTypes)
+
+            offlineMethodsModelMutableLiveData.postValue(model)
         }
-        return liveData
+    }
+
+    private fun fetchFlowConfiguration() {
+        flowConfigurationMutableSingleLiveData.postValue(flowConfigurationProvider.getFlowConfiguration())
     }
 
     override fun onSheetShowed() {
@@ -64,11 +83,11 @@ internal class OfflineMethodsViewModel(
         this.selectedItem = selectedItem
     }
 
-    override fun onGetViewTrackPath(callback: PayButton.ViewTrackPathCallback) {
+    override fun onGetViewTrackPath(callback: ConfirmButton.ViewTrackPathCallback) {
         callback.call(viewTracker.getTrack().path)
     }
 
-    override fun onPrePayment(callback: OnReadyForPaymentCallback) {
+    override fun onPrePayment(callback: ConfirmButton.OnReadyForProcessCallback) {
         selectedItem?.let { item ->
             payerCompliance?.let {
                 if (item.isAdditionalInfoNeeded && it.isCompliant) {
@@ -83,9 +102,12 @@ internal class OfflineMethodsViewModel(
         }
     }
 
-    private fun requireCurrentConfiguration(item: OfflineMethodItem, callback: OnReadyForPaymentCallback) {
-        val paymentMethodId = item.paymentMethodId.orIfEmpty(TextUtil.EMPTY)
-        val paymentConfiguration = PaymentConfiguration(paymentMethodId, item.paymentTypeId.orIfEmpty(TextUtil.EMPTY),
+    private fun requireCurrentConfiguration(
+        item: OfflineMethodItem,
+        callback: ConfirmButton.OnReadyForProcessCallback
+    ) {
+        val paymentMethodId = item.paymentMethodId.orEmpty()
+        val paymentConfiguration = PaymentConfiguration(paymentMethodId, item.paymentTypeId.orEmpty(),
             paymentMethodId, securityCodeRequired = false, splitPayment = false, payerCost = null)
         callback.call(paymentConfiguration)
     }

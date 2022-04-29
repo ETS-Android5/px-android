@@ -61,6 +61,7 @@
     <string name="px_receipt">Transaction #{0}</string>
     <string name="px_date_divider">of</string>
     <string name="px_copied_to_clipboard_ack">Done! Copied.</string>
+    <string name="px_button_text_go_to_home">Go to Home</string>
     <string name="px_title_activity_call_for_authorize">Declined payment by your card</string>
     <string name="px_text_authorized_call_for_authorize">I have authorized this payment</string>
     <string name="px_title_pending_payment">We are processing your payment</string>
@@ -93,6 +94,14 @@
     <string name="px_error_description_rejected_by_regulations">To pay with account money you must complete the missing details.</string>
     <string name="px_error_description_rejected_by_insufficient_amount_1">Don\'t give up! Check with your card if you have available balance or limit.</string>
     <string name="px_error_description_rejected_by_insufficient_amount_2">If you prefer, you can choose other means of payment.</string>
+    <string name="px_title_error_rejected_insufficient_amount">There is not enough money in your account</string>
+    <string name="px_title_error_rejected_high_risk">It was not possible to make the transaction</string>
+    <string name="px_body_error_rejected_insufficient_amount">Please try to use another payment method.</string>
+    <string name="px_body_error_rejected_high_risk">We are sorry, the transaction did not pass our security validation.</string>
+    <string name="px_body_error_rejected_default">We are sorry, something went wrong. Please try again with another payment method.</string>
+    <string name="px_body_error_rejected_cap_exceeded">You can perform the transaction with another payment method.</string>
+    <string name="px_title_error_rejected_default">It was not possible to make the transaction</string>
+    <string name="px_title_error_rejected_cap_exceeded">You exceeded the daily limit use of the chosen payment method</string>
     <string name="px_error_message_invalid_item">Invalid item</string>
     <string name="px_error_message_expired_preference">Expired preference</string>
     <string name="px_error_message_inactive_preference">Inactive preference</string>
@@ -144,7 +153,7 @@
     <string name="px_debit_payment_type">Debit</string>
     <string name="px_form_card_title_payment_type_prepaid">Prepaid card</string>
     <string name="px_payment_types_title">What card type is it?</string>
-    <string name="px_change_payment">Pay using a different method</string>
+    <string name="px_change_payment_method">Choose another payment method</string>
     <string name="px_review_item_quantity">Quantity:</string>
     <string name="px_review_product_price">Unit price: {0}</string>
     <string name="px_activity_checkout_title">Check if everything\'s correct</string>

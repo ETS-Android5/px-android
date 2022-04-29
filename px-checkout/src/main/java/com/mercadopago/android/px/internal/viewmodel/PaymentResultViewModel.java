@@ -21,6 +21,7 @@ public final class PaymentResultViewModel {
     private final int secondDescriptionResId;
     private final int backgroundResId;
     private final int badgeResId;
+    private final int iconResId;
     private final String descriptionParam;
 
     // Action metadata
@@ -46,6 +47,7 @@ public final class PaymentResultViewModel {
         titleDescriptionResId = builder.titleDescriptionResId;
         backgroundResId = builder.backgroundResId;
         badgeResId = builder.badgeResId;
+        iconResId = builder.iconResId;
         descriptionParam = builder.descriptionParam;
     }
 
@@ -120,6 +122,10 @@ public final class PaymentResultViewModel {
         return badgeResId;
     }
 
+    public int getIconResId() {
+        return iconResId;
+    }
+
     public String getTitleDescription(@NonNull final Context context) {
         return titleDescriptionResId == 0 ? TextUtil.EMPTY : context.getString(titleDescriptionResId);
     }
@@ -137,6 +143,7 @@ public final class PaymentResultViewModel {
         boolean isPendingSuccess;
         int backgroundResId;
         int badgeResId;
+        int iconResId;
         String descriptionParam;
 
         // Action metadata
@@ -218,6 +225,11 @@ public final class PaymentResultViewModel {
 
         public Builder setBackgroundColor(final int backgroundColor) {
             backgroundResId = backgroundColor;
+            return this;
+        }
+
+        public Builder setIconResId(final int iconResId) {
+            this.iconResId = iconResId;
             return this;
         }
 

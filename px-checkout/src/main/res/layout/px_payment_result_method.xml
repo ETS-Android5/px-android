@@ -30,89 +30,41 @@
         app:layout_constraintStart_toEndOf="@id/icon_container"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/description"/>
+        app:layout_constraintBottom_toTopOf="@id/details"/>
 
-    <com.mercadopago.android.px.internal.view.MPTextView
-        android:id="@+id/description"
+    <com.mercadopago.android.px.internal.view.AdapterLinearLayout
+        android:id="@+id/details"
         android:layout_width="0dp"
+        android:orientation="vertical"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/px_xxxxs_margin"
+        app:spaceBetweenChildren="@dimen/px_xxxxs_margin"
         android:layout_marginStart="@dimen/px_s_margin"
-        android:layout_marginTop="2dp"
         android:layout_marginEnd="@dimen/px_l_margin"
-        android:lineSpacingExtra="@dimen/px_xxxs_margin"
-        android:textColor="@color/px_payment_result_method_detail"
-        android:textSize="@dimen/px_xs_text"
-        app:layout_constraintBottom_toTopOf="@id/pm_statement"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/icon_container"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/amount"
-        tools:text="Mastercard terminada en 3260" />
+        app:layout_constraintBottom_toTopOf="@id/extra_info"
+        android:visibility="visible" />
 
-    <com.mercadopago.android.px.internal.view.MPTextView
-        android:id="@+id/pm_statement"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:textColor="@color/px_payment_result_method_detail"
-        android:textSize="@dimen/px_xs_text"
-        android:lineSpacingExtra="@dimen/px_xxxs_margin"
-        tools:text="Procesado por Mercado Pago Agregador"
-        android:layout_marginStart="@dimen/px_s_margin"
-        android:layout_marginEnd="@dimen/px_l_margin"
-        android:layout_marginTop="2dp"
-        app:layout_constraintStart_toEndOf="@id/icon_container"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/description"
-        app:layout_constraintBottom_toTopOf="@id/statement"/>
-
-    <com.mercadopago.android.px.internal.view.MPTextView
-        android:id="@+id/statement"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:textColor="@color/px_payment_result_method_detail"
-        android:textSize="@dimen/px_xs_text"
-        android:lineSpacingExtra="@dimen/px_xxxs_margin"
-        tools:text="En tu estado de cuenta verás el cargo como MERCADOPAGO"
-        android:layout_marginStart="@dimen/px_s_margin"
-        android:layout_marginEnd="@dimen/px_l_margin"
-        android:layout_marginTop="2dp"
-        app:layout_constraintStart_toEndOf="@id/icon_container"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/pm_statement"
-        app:layout_constraintBottom_toTopOf="@id/info_title"/>
-
-    <com.mercadopago.android.px.internal.view.MPTextView
-        android:id="@+id/info_title"
+    <com.mercadopago.android.px.internal.view.AdapterLinearLayout
+        android:id="@+id/extra_info"
         android:layout_width="match_parent"
+        android:orientation="vertical"
+        app:spaceBetweenChildren="@dimen/px_xxxs_margin"
         android:layout_height="wrap_content"
-        android:textColor="@color/px_payment_result_component_title"
-        android:textSize="@dimen/px_s_text"
-        android:lineSpacingExtra="@dimen/px_xxxs_margin"
-        tools:text="En tu estado de cuenta verás el cargo como MERCADOPAGO"
         android:layout_marginTop="@dimen/px_s_margin"
         android:layout_marginStart="@dimen/px_l_margin"
         android:layout_marginEnd="@dimen/px_l_margin"
-        app:layout_constraintTop_toBottomOf="@id/statement"
-        app:layout_constraintBottom_toTopOf="@id/info_subtitle"/>
-
-    <com.mercadopago.android.px.internal.view.MPTextView
-        android:id="@+id/info_subtitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@color/px_payment_result_component_subtitle"
-        android:textSize="@dimen/px_xs_text"
-        android:lineSpacingExtra="@dimen/px_xxxs_margin"
-        tools:text="En tu estado de cuenta verás el cargo como MERCADOPAGO"
-        android:layout_marginStart="@dimen/px_l_margin"
-        android:layout_marginEnd="@dimen/px_l_margin"
-        android:layout_marginTop="@dimen/px_xxxs_margin"
-        app:layout_constraintTop_toBottomOf="@id/info_title"
-        app:layout_constraintBottom_toBottomOf="@id/bottom_space"/>
+        app:layout_constraintTop_toBottomOf="@id/details"
+        app:layout_constraintBottom_toTopOf="@id/bottom_space"
+        android:visibility="gone"/>
 
     <Space
         android:id="@+id/bottom_space"
         android:layout_width="match_parent"
         android:layout_height="@dimen/px_s_margin"
-        app:layout_constraintTop_toBottomOf="@id/info_subtitle"
+        app:layout_constraintTop_toBottomOf="@id/extra_info"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
 </merge>

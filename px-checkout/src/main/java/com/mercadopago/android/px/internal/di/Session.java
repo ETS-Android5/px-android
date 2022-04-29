@@ -31,8 +31,8 @@ import com.mercadopago.android.px.internal.datasource.PayerPaymentMethodReposito
 import com.mercadopago.android.px.internal.datasource.PaymentMethodRepositoryImpl;
 import com.mercadopago.android.px.internal.datasource.PaymentService;
 import com.mercadopago.android.px.internal.datasource.PrefetchInitService;
-import com.mercadopago.android.px.internal.datasource.TokenizeService;
 import com.mercadopago.android.px.internal.features.PaymentResultViewModelFactory;
+import com.mercadopago.android.px.internal.features.payment_congrats.CongratsResultFactory;
 import com.mercadopago.android.px.internal.features.payment_congrats.model.PXPaymentCongratsTracking;
 import com.mercadopago.android.px.internal.features.payment_congrats.model.PaymentCongratsModel;
 import com.mercadopago.android.px.internal.repository.AmountConfigurationRepository;
@@ -50,7 +50,6 @@ import com.mercadopago.android.px.internal.repository.PayerPaymentMethodReposito
 import com.mercadopago.android.px.internal.repository.PaymentMethodRepository;
 import com.mercadopago.android.px.internal.repository.PaymentRepository;
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository;
-import com.mercadopago.android.px.internal.repository.TokenRepository;
 import com.mercadopago.android.px.internal.services.CardHolderAuthenticatorService;
 import com.mercadopago.android.px.internal.services.CongratsService;
 import com.mercadopago.android.px.internal.services.GatewayService;
@@ -84,6 +83,7 @@ public final class Session extends ApplicationModule {
     private EscPaymentManagerImp escPaymentManager;
     private MPTracker tracker;
     private PaymentResultViewModelFactory paymentResultViewModelFactory;
+    private CongratsResultFactory congratsResultFactory;
     private ViewModelModule viewModelModule;
     private PayerPaymentMethodRepository payerPaymentMethodRepository;
     private OneTapItemRepository oneTapItemRepository;
@@ -93,9 +93,11 @@ public final class Session extends ApplicationModule {
     private CardHolderAuthenticatorRepository cardHolderAuthenticatorRepository;
     private CardStatusRepository cardStatusRepository;
     private UseCaseModule useCaseModule;
+    private FactoryModule factoryModule;
     private CustomOptionIdSolver customOptionIdSolver;
     private AudioPlayer audioPlayer;
     private final NetworkModule networkModule;
+    private HelperModule helperModule;
 
     private Session(@NonNull final Context context) {
         super(context);
@@ -184,6 +186,8 @@ public final class Session extends ApplicationModule {
         getAmountConfigurationRepository().reset();
         getDiscountRepository().reset();
         useCaseModule = null;
+        factoryModule = null;
+        helperModule = null;
         discountRepository = null;
         amountRepository = null;
         checkoutRepository = null;
@@ -201,6 +205,7 @@ public final class Session extends ApplicationModule {
         cardHolderAuthenticatorRepository = null;
         customOptionIdSolver = null;
         audioPlayer = null;
+        congratsResultFactory = null;
     }
 
     @NonNull
@@ -296,17 +301,12 @@ public final class Session extends ApplicationModule {
             paymentRepository = new PaymentService(configurationModule.getUserSelectionRepository(),
                 configurationModule.getPaymentSettings(),
                 configurationModule.getDisabledPaymentMethodRepository(),
-                getDiscountRepository(),
-                getAmountRepository(),
                 getApplicationContext(),
                 getEscPaymentManager(),
                 getMercadoPagoESC(),
                 getAmountConfigurationRepository(),
                 getCongratsRepository(),
                 getFileManager(),
-                MapperProvider.INSTANCE.getFromPayerPaymentMethodToCardMapper(),
-                MapperProvider.INSTANCE.getPaymentMethodMapper(),
-                getPaymentMethodRepository(),
                 getUseCaseModule().getValidationProgramUseCase(),
                 getUseCaseModule().getTokenizeWithEscUseCase(),
                 getUseCaseModule().getTokenizeWithoutCvvUseCase());
@@ -348,7 +348,7 @@ public final class Session extends ApplicationModule {
                 getPlatform(getApplicationContext()), configurationModule.getTrackingRepository(),
                 configurationModule.getUserSelectionRepository(), getAmountRepository(),
                 configurationModule.getDisabledPaymentMethodRepository(),
-                configurationModule.getPayerComplianceRepository(), getMercadoPagoESC(), getOneTapItemRepository(),
+                getMercadoPagoESC(), getOneTapItemRepository(),
                 configurationModule.getPaymentSettings(), getPayerPaymentMethodRepository(),
                 MapperProvider.INSTANCE.getAlternativePayerPaymentMethodsMapper(),
                 configurationModule.getAuthorizationProvider()
@@ -450,6 +450,14 @@ public final class Session extends ApplicationModule {
     }
 
     @NonNull
+    public CongratsResultFactory getCongratsResultFactory() {
+        if (congratsResultFactory == null) {
+            congratsResultFactory = new CongratsResultFactory(MapperProvider.INSTANCE.getPaymentCongratsMapper());
+        }
+        return congratsResultFactory;
+    }
+
+    @NonNull
     public CardHolderAuthenticatorRepository getCardHolderAuthenticationRepository() {
         if (cardHolderAuthenticatorRepository == null) {
             final CardHolderAuthenticatorService service =
@@ -482,6 +490,21 @@ public final class Session extends ApplicationModule {
         if (TextUtil.isNotEmpty(accessToken)) {
             configurationModule.getAuthorizationProvider().configure(accessToken);
         }
+    }
+
+    public FactoryModule getFactoryModule() {
+        if (factoryModule == null) {
+            factoryModule = new FactoryModule();
+        }
+        return factoryModule;
+    }
+
+    @NonNull
+    public HelperModule getHelperModule() {
+        if (helperModule == null) {
+            helperModule = new HelperModule();
+        }
+        return helperModule;
     }
 
     public enum State {

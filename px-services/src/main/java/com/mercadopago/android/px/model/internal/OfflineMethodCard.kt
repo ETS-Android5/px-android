@@ -5,6 +5,7 @@ data class OfflineMethodCard(val displayInfo: DisplayInfo) {
         val color: String,
         val paymentMethodImageUrl: String,
         val title: Text,
-        val subtitle: Text?
+        val subtitle: Text?,
+        val gradientColor: List<String>?
     )
 }

@@ -14,7 +14,7 @@ import com.mercadopago.android.px.model.InterestFree
 import com.mercadopago.android.px.model.PayerCost
 import com.mercadopago.android.px.utils.PayerCostUtils
 import com.mercadopago.android.px.utils.TextUtils
-import junit.framework.Assert.assertTrue
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -51,7 +51,7 @@ class CreditCardDescriptorModelTest : BasicRobolectricTest() {
             CreditCardDescriptorModel.createFrom(currency, null, interestFree, amountConfiguration)
         model.updateLeftSpannable(spannableStringBuilder, textView)
         spannableStringBuilder.toString()
-            .assertEquals("${payerCost.installments}x $${payerCost.installmentAmount} ${interestFree.installmentRow.message}")
+            .assertEquals("${payerCost.installments}x $${payerCost.installmentAmount}")
     }
 
     @Test
@@ -69,12 +69,6 @@ class CreditCardDescriptorModelTest : BasicRobolectricTest() {
             ForegroundColorSpan(ContextCompat.getColor(getContext(), R.color.px_expressCheckoutTextColor))
         spannableStringBuilder.getSpans(0, installmentsText.length, ForegroundColorSpan::class.java)
             .first().foregroundColor.assertEquals(installmentsTextColor.foregroundColor)
-        val interestFreeColor = ForegroundColorSpan(Color.parseColor(interestFree.installmentRow.textColor))
-        spannableStringBuilder.getSpans(
-            installmentsText.length + 1,
-            spannableStringBuilder.length,
-            ForegroundColorSpan::class.java
-        ).first().foregroundColor.assertEquals(interestFreeColor.foregroundColor)
     }
 
     @Test

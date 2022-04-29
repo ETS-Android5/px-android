@@ -6,14 +6,17 @@ import com.meli.android.carddrawer.configuration.FontType
 import com.meli.android.carddrawer.configuration.SecurityCodeLocation
 import com.meli.android.carddrawer.model.GenericPaymentMethod
 import com.mercadopago.android.px.internal.features.security_code.domain.model.BusinessCardDisplayInfo
+import com.mercadopago.android.px.internal.font.PxFont
 import com.mercadopago.android.px.internal.util.TextUtil
 import com.mercadopago.android.px.internal.viewmodel.PaymentCard
 import com.mercadopago.android.px.model.AccountMoneyDisplayInfo
 import com.mercadopago.android.px.model.AccountMoneyDisplayInfoType
 import com.mercadopago.android.px.model.CardDisplayInfo
 import com.mercadopago.android.px.model.CardDisplayInfoType
+import com.mercadopago.android.px.model.internal.BankTransfer
 import com.mercadopago.android.px.model.internal.OfflineMethodCard
 import com.mercadopago.android.px.model.internal.Text
+import java.util.Locale
 import com.meli.android.carddrawer.model.GenericPaymentMethod.Text as CardDrawerText
 import com.meli.android.carddrawer.model.CardDrawerSource.Tag as CardDrawerTag
 
@@ -91,7 +94,26 @@ internal object CardUiMapper {
                 subtitle?.let {
                     CardDrawerText(it.message, Color.parseColor(it.textColor))
                 },
-                mapCardTagToCardDrawerTag(cardTag)
+                mapCardTagToCardDrawerTag(cardTag),
+                gradientColor
+            )
+        }
+    }
+
+    fun map(displayInfo: BankTransfer.DisplayInfo, cardTag: Text?): GenericPaymentMethod {
+        with(displayInfo) {
+            return GenericPaymentMethod(
+                Color.parseColor(color),
+                CardDrawerText(title.message, Color.parseColor(title.textColor), title.weight),
+                paymentMethodImageUrl,
+                subtitle?.let {
+                    CardDrawerText(it.message, Color.parseColor(it.textColor), it.weight)
+                },
+                mapCardTagToCardDrawerTag(cardTag),
+                gradientColor,
+                description?.let {
+                    CardDrawerText(it.message, Color.parseColor(it.textColor), it.weight)
+                }
             )
         }
     }
@@ -99,7 +121,7 @@ internal object CardUiMapper {
     private fun mapCardTagToCardDrawerTag(cardTag : Text?) : CardDrawerTag? {
         return cardTag?.let {
             CardDrawerTag(cardTag.message, Color.parseColor(cardTag.backgroundColor),
-                Color.parseColor(cardTag.textColor), cardTag.weight)
+                Color.parseColor(cardTag.textColor), cardTag.weight ?: PxFont.REGULAR.name.toLowerCase(Locale.ROOT))
         }
     }
 

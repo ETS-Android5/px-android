@@ -25,6 +25,7 @@ internal class DummyResultActivity : PXActivity<DummyResultPresenter>(), MvpView
             paymentModel,
             configuration.paymentSettings.advancedConfiguration.paymentResultScreenConfiguration,
             configuration.paymentSettings, MercadoPagoUtil.isMP(this),
+            session.helperModule.bankInfoHelper,
             session.tracker
         )
         presenter.attachView(this)
@@ -44,6 +45,13 @@ internal class DummyResultActivity : PXActivity<DummyResultPresenter>(), MvpView
                 intent.putExtra(PaymentResultActivity.EXTRA_PAYMENT_MODEL, model)
                 fragment.startActivityForResult(intent, requestCode)
             }
+        }
+
+        fun start(activity: Activity, requestCode: Int, model: PaymentModel) {
+            if (activity is PXActivity<*>) activity.overrideTransitionIn()
+            val intent = Intent(activity, DummyResultActivity::class.java)
+            intent.putExtra(PaymentResultActivity.EXTRA_PAYMENT_MODEL, model)
+            activity.startActivityForResult(intent, requestCode)
         }
     }
 }

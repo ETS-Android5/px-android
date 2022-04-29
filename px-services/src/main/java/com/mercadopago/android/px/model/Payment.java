@@ -431,6 +431,7 @@ public final class Payment implements IPayment, IPaymentDescriptor {
         public static final String STATUS_DETAIL_INVALID_ESC = "invalid_esc";
         public static final String STATUS_DETAIL_CC_REJECTED_CARD_DISABLED = "cc_rejected_card_disabled";
         public static final String STATUS_DETAIL_CC_REJECTED_INSUFFICIENT_AMOUNT = "cc_rejected_insufficient_amount";
+        public static final String STATUS_DETAIL_REJECTED_INSUFFICIENT_AMOUNT = "insufficient_amount";
         public static final String STATUS_DETAIL_CC_REJECTED_BAD_FILLED_OTHER = "cc_rejected_bad_filled_other";
         public static final String STATUS_DETAIL_CC_REJECTED_BAD_FILLED_CARD_NUMBER =
             "cc_rejected_bad_filled_card_number";
@@ -446,6 +447,7 @@ public final class Payment implements IPayment, IPaymentDescriptor {
         public static final String STATUS_DETAIL_REJECTED_BY_REGULATIONS = "rejected_by_regulations";
         public static final String STATUS_DETAIL_CC_REJECTED_FRAUD = "cc_rejected_fraud";
         public static final String STATUS_DETAIL_CC_REJECTED_BLACKLIST = "cc_rejected_blacklist";
+        public static final String STATUS_DETAIL_REJECTED_CAP_EXCEEDED = "rejected_cap_exceeded";
 
         // Return all the static declared fields as a collection
         private static Collection<Field> getAll() {

@@ -19,6 +19,7 @@ import com.mercadopago.android.px.*
 import com.mercadopago.android.px.internal.features.business_result.CongratsViewModel
 import com.mercadopago.android.px.internal.features.business_result.PXDiscountBoxData
 import com.mercadopago.android.px.internal.features.payment_congrats.model.PaymentCongratsResponse
+import com.mercadopago.android.px.internal.features.payment_congrats.model.PaymentCongratsText
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -157,9 +158,11 @@ class PaymentResultBodyTest : BasicRobolectricTest() {
 
     @Test
     fun whenInitWithMethodsDataThenViewsAreVisible() {
-        val methodModel = mock(PaymentResultMethod.Model::class.java)
-        val amountModel = mock(PaymentResultAmount.Model::class.java)
-        methodModel.setField("amountModel", amountModel)
+        val amountModel = PaymentResultAmount.Model.Builder("10", "10").build()
+        val methodModel = PaymentResultMethod.Model.Builder(amountModel, listOf(
+            PaymentCongratsText("1234"), PaymentCongratsText("123456"))
+        ).build()
+
         modelBuilder.setMethodModels(listOf(methodModel, methodModel))
 
         body.init(modelBuilder.build(), listener)

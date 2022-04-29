@@ -1,7 +1,7 @@
 package com.mercadopago.android.px.internal.usecases
 
-import com.mercadopago.android.px.CallbackTest
 import com.mercadopago.android.px.TestContextProvider
+import com.mercadopago.android.px.internal.base.use_case.CallBack
 import com.mercadopago.android.px.internal.features.validation_program.AuthenticateUseCase
 import com.mercadopago.android.px.internal.features.validation_program.ValidationProgramUseCase
 import com.mercadopago.android.px.internal.repository.ApplicationSelectionRepository
@@ -11,6 +11,7 @@ import com.mercadopago.android.px.model.internal.Application
 import com.mercadopago.android.px.tracking.internal.MPTracker
 import com.mercadopago.android.px.tracking.internal.events.FrictionEventTracker
 import com.mercadopago.android.px.tracking.internal.events.ProgramValidationEvent
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,10 +28,10 @@ import java.math.BigDecimal
 class ValidationProgramUseCaseTest {
 
     @Mock
-    private lateinit var success: CallbackTest<String?>
+    private lateinit var success: CallBack<String?>
 
     @Mock
-    private lateinit var failure: CallbackTest<MercadoPagoError>
+    private lateinit var failure: CallBack<MercadoPagoError>
 
     @Mock
     private lateinit var applicationSelectionRepository: ApplicationSelectionRepository
@@ -110,10 +111,12 @@ class ValidationProgramUseCaseTest {
             failure::invoke
         )
 
-        verify(authenticateUseCase).execute(any(), any(), any())
-        verify(success).invoke("stp")
-        verify(tracker).track(any())
-        verifyNoInteractions(failure)
+        runBlocking {
+            verify(authenticateUseCase).execute(any())
+            verify(success).invoke("stp")
+            verify(tracker).track(any())
+            verifyNoInteractions(failure)
+        }
     }
 
     private fun createPaymentData(): PaymentData {

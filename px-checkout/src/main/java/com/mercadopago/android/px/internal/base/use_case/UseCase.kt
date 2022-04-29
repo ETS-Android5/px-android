@@ -43,8 +43,19 @@ abstract class UseCase<in P, out R>(protected val tracker: MPTracker) {
         }
     }
 
-    suspend fun suspendExecute(param: P) = withContext(contextProvider.Default) {
-        runCatching { doExecute(param) }
-            .getOrElse { Failure(MercadoPagoError(it.message.orEmpty(), false)) }
+    suspend fun execute(param: P): Response<R, MercadoPagoError> {
+        return runCatching { doExecute(param) }.getOrElse {
+            val errorMessage = it.localizedMessage.orIfEmpty(
+                "Error when execute ${this@UseCase.javaClass.simpleName}")
+            val error = MercadoPagoError(errorMessage, false)
+            withContext(contextProvider.Main) {
+                tracker.track(FrictionEventTracker.with(
+                    "/use_case",
+                    FrictionEventTracker.Id.EXECUTE_USE_CASE,
+                    FrictionEventTracker.Style.SCREEN,
+                    error))
+            }
+            Response.Failure(error)
+        }
     }
 }

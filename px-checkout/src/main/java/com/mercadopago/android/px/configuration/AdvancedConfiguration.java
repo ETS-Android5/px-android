@@ -18,6 +18,7 @@ public final class AdvancedConfiguration implements Serializable {
     private final boolean expressEnabled;
     private final boolean amountRowEnabled;
     private final boolean acceptThirdPartyCard;
+    @NonNull private final PostPaymentConfiguration postPaymentConfiguration;
     @NonNull private final PaymentResultScreenConfiguration paymentResultScreenConfiguration;
     @NonNull private final ReviewAndConfirmConfiguration reviewAndConfirmConfiguration;
     @NonNull private final DynamicFragmentConfiguration dynamicFragmentConfiguration;
@@ -37,6 +38,7 @@ public final class AdvancedConfiguration implements Serializable {
         dynamicDialogConfiguration = builder.dynamicDialogConfiguration;
         customStringConfiguration = builder.customStringConfiguration;
         discountParamsConfiguration = builder.discountParamsConfiguration;
+        postPaymentConfiguration = builder.postPaymentConfiguration;
         productId = builder.productId;
     }
 
@@ -83,6 +85,11 @@ public final class AdvancedConfiguration implements Serializable {
         return paymentResultScreenConfiguration;
     }
 
+    @NonNull
+    public PostPaymentConfiguration getPostPaymentConfiguration() {
+        return postPaymentConfiguration;
+    }
+
     /**
      * @deprecated groups will no longer be available anymore
      */
@@ -123,6 +130,8 @@ public final class AdvancedConfiguration implements Serializable {
         /* default */ boolean acceptThirdPartyCard = true;
         /* default */ @NonNull PaymentResultScreenConfiguration paymentResultScreenConfiguration =
             new PaymentResultScreenConfiguration.Builder().build();
+        /* default */ @NonNull PostPaymentConfiguration postPaymentConfiguration =
+            new PostPaymentConfiguration.Builder().build();
         /* default */ @NonNull ReviewAndConfirmConfiguration reviewAndConfirmConfiguration =
             new ReviewAndConfirmConfiguration.Builder().build();
         /* default */ @NonNull DynamicFragmentConfiguration dynamicFragmentConfiguration =
@@ -185,6 +194,17 @@ public final class AdvancedConfiguration implements Serializable {
         public Builder setPaymentResultScreenConfiguration(
             @NonNull final PaymentResultScreenConfiguration paymentResultScreenConfiguration) {
             this.paymentResultScreenConfiguration = paymentResultScreenConfiguration;
+            return this;
+        }
+
+        /**
+         * It provides additional configuration for post-payment flow.
+         *
+         * @param postPaymentConfiguration configuration to apply after the payment.
+         * @return builder to keep operating
+         */
+        public Builder setPostPaymentConfiguration(@NonNull final PostPaymentConfiguration postPaymentConfiguration) {
+            this.postPaymentConfiguration = postPaymentConfiguration;
             return this;
         }
 

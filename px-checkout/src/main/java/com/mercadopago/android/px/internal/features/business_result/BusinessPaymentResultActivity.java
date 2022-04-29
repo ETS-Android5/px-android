@@ -12,6 +12,7 @@ import com.mercadolibre.android.mlbusinesscomponents.components.touchpoint.track
 import com.mercadopago.android.px.R;
 import com.mercadopago.android.px.addons.BehaviourProvider;
 import com.mercadopago.android.px.internal.base.PXActivity;
+import com.mercadopago.android.px.internal.di.MapperProvider;
 import com.mercadopago.android.px.internal.di.Session;
 import com.mercadopago.android.px.internal.features.Constants;
 import com.mercadopago.android.px.internal.features.payment_congrats.model.PaymentCongratsModel;
@@ -68,7 +69,9 @@ public class BusinessPaymentResultActivity extends PXActivity<BusinessPaymentRes
     private BusinessPaymentResultPresenter createPresenter() {
         final PaymentCongratsModel model = getIntent().getParcelableExtra(PAYMENT_CONGRATS);
         return new BusinessPaymentResultPresenter(model,
-            BehaviourProvider.getFlowBehaviour(), isMP(this), Session.getInstance().getTracker());
+            BehaviourProvider.getFlowBehaviour(), isMP(this), Session.getInstance().getTracker(),
+            MapperProvider.INSTANCE.getBusinessPaymentResultMapper(),
+            Session.getInstance().getHelperModule().getBankInfoHelper());
     }
 
     @Override

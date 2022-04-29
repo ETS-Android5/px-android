@@ -17,6 +17,7 @@ class OneTapItem(parcel: Parcel?) : ExpressMetadata(parcel) {
             }
             return allPaymentMethods + card?.id.orEmpty()
         }
+    val bankTransfer: BankTransfer? = null
 
     init {
         throw UnsupportedOperationException("Parcelable implementation not available")
@@ -28,6 +29,8 @@ class OneTapItem(parcel: Parcel?) : ExpressMetadata(parcel) {
     }
 
     fun isOfflineMethodCard() = offlineMethodCard != null
+
+    fun isBankTransfer() = bankTransfer != null
 
     fun getApplications() = applications.orIfNullOrEmpty(mutableListOf<Application>().also { applications ->
         if (isOfflineMethods) {

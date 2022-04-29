@@ -14,16 +14,20 @@ public final class SavedESCCardToken extends SavedCardToken {
     @SuppressWarnings("unused")
     private final String esc;
 
-    private SavedESCCardToken(@NonNull final String cardId, @NonNull final String securityCode,
-        @NonNull final String esc) {
+    private SavedESCCardToken(
+        @NonNull final String cardId,
+        @NonNull final String securityCode,
+        @NonNull final String esc,
+        final boolean requireEsc
+    ) {
         super(cardId, securityCode);
-        this.requireEsc = true;
+        this.requireEsc = requireEsc;
         this.esc = esc;
     }
 
     private SavedESCCardToken(@NonNull final String cardId, @NonNull final String securityCode,
         @NonNull final String esc, @NonNull final Device device) {
-        this(cardId, securityCode, esc);
+        this(cardId, securityCode, esc, true);
         setDevice(device);
     }
 
@@ -33,12 +37,16 @@ public final class SavedESCCardToken extends SavedCardToken {
 
     public static SavedESCCardToken createWithSecurityCode(@NonNull final String cardId,
         @NonNull final String securityCode) {
-        return new SavedESCCardToken(cardId, securityCode, "");
+        return new SavedESCCardToken(cardId, securityCode, "", true);
+    }
+
+    public static SavedESCCardToken createWithoutSecurityCode(@NonNull final String cardId) {
+        return new SavedESCCardToken(cardId, "", "", false);
     }
 
     @Deprecated
     public static SavedESCCardToken createWithEsc(@NonNull final String cardId, @NonNull final String esc) {
-        return new SavedESCCardToken(cardId, "", esc);
+        return new SavedESCCardToken(cardId, "", esc, true);
     }
 
     public static SavedESCCardToken createWithEsc(@NonNull final String cardId, @NonNull final String esc,

@@ -20,7 +20,6 @@ import com.mercadopago.android.px.internal.di.MapperProvider;
 import com.mercadopago.android.px.internal.di.Session;
 import com.mercadopago.android.px.internal.experiments.Variant;
 import com.mercadopago.android.px.internal.features.Constants;
-import com.mercadopago.android.px.internal.features.one_tap.OneTap;
 import com.mercadopago.android.px.internal.features.one_tap.OneTapFragment;
 import com.mercadopago.android.px.internal.features.security_code.SecurityCodeFragment;
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository;
@@ -53,9 +52,10 @@ public class CheckoutActivity extends PXActivity<CheckoutPresenter>
     @Nullable private String privateKey;
     private Intent customDataBundle;
     private View progress;
+    private boolean fromDeeplink;
 
     public static Intent getIntent(@NonNull final Context context, final boolean withPrefetch) {
-        return new Intent(context, CheckoutActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        return new Intent(context, CheckoutActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             .putExtra(ARGS_WITH_PREFETCH, withPrefetch);
     }
 
@@ -76,7 +76,17 @@ public class CheckoutActivity extends PXActivity<CheckoutPresenter>
 
     @Override
     protected void onNewIntent(final Intent intent) {
+        //The only way of reaching onNewIntent should be through mercadopago://px/one_tap deeplink
         super.onNewIntent(intent);
+        fromDeeplink = true;
+        final FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        FragmentUtil.tryRemoveNow(fragmentManager, TAG_ONETAP_FRAGMENT);
+        // if onNewIntent is called, means that we are initialized twice, so we need to detach previews presenter
+        if (presenter != null) {
+            presenter.detachView();
+        }
+        initPresenter();
         setIntent(intent);
         final Uri data = intent.getData();
         if (data != null) {
@@ -190,12 +200,11 @@ public class CheckoutActivity extends PXActivity<CheckoutPresenter>
 
     @Override
     public void showOneTap(@NonNull final Variant variant) {
-        final FragmentManager supportFragmentManager = getSupportFragmentManager();
-        if (supportFragmentManager.findFragmentByTag(TAG_ONETAP_FRAGMENT) == null) {
-            supportFragmentManager
-                .beginTransaction()
+        final FragmentManager fragmentManager = getSupportFragmentManager();
+        if (fragmentManager.findFragmentByTag(TAG_ONETAP_FRAGMENT) == null) {
+            fragmentManager.beginTransaction()
                 .setCustomAnimations(R.anim.px_slide_right_to_left_in, R.anim.px_slide_right_to_left_out)
-                .replace(R.id.one_tap_fragment, OneTapFragment.getInstance(variant, getIntent().getData()), TAG_ONETAP_FRAGMENT)
+                .replace(R.id.one_tap_fragment, OneTapFragment.getInstance(variant, fromDeeplink), TAG_ONETAP_FRAGMENT)
                 .commitNowAllowingStateLoss();
         }
     }

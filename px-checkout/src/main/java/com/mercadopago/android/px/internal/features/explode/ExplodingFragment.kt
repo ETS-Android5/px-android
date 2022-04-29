@@ -149,7 +149,7 @@ internal class ExplodingFragment : Fragment() {
      *
      * @param explodeDecorator information about the order result, useful for styling the view.
      */
-    fun finishLoading(explodeDecorator: ExplodeDecorator) {
+    fun finishLoading(explodeDecorator: ExplodeDecorator?) {
         this.explodeDecorator = explodeDecorator
         doFinishLoading()
     }
@@ -250,9 +250,7 @@ internal class ExplodingFragment : Fragment() {
 
                     override fun onAnimationEnd(animation: Animator) {
                         animation.removeAllListeners()
-                        explodeDecorator?.let {
-                            createCircularReveal(it)
-                        }
+                        explodeDecorator?.let(::createCircularReveal)
                     }
                 }).start()
         }
@@ -310,8 +308,13 @@ internal class ExplodingFragment : Fragment() {
             addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
                     removeListener(this)
-                    explodeDecorator?.let {
-                        createResultAnim(it)
+
+                    if (handler?.shouldSkipRevealAnimation() == true) {
+                        handler?.onAnimationFinished()
+                    } else {
+                        explodeDecorator?.let {
+                            createResultAnim(it)
+                        }
                     }
                 }
             })
@@ -366,5 +369,6 @@ internal class ExplodingFragment : Fragment() {
         fun getParentView(): View
         fun onResultIconAnimation()
         fun onAnimationFinished()
+        fun shouldSkipRevealAnimation(): Boolean
     }
 }

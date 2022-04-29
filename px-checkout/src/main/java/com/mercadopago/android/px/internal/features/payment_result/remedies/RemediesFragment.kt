@@ -8,11 +8,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.mercadopago.android.px.R
-import com.mercadopago.android.px.internal.di.MapperProvider
-import com.mercadopago.android.px.internal.di.Session
+import com.mercadopago.android.px.internal.di.viewModel
 import com.mercadopago.android.px.internal.extensions.visible
 import com.mercadopago.android.px.internal.features.generic_modal.*
 import com.mercadopago.android.px.internal.features.generic_modal.GenericDialog.Companion.showDialog
+import com.mercadopago.android.px.internal.features.one_tap.confirm_button.ConfirmButton
 import com.mercadopago.android.px.internal.features.pay_button.PayButton
 import com.mercadopago.android.px.internal.features.payment_result.presentation.PaymentResultButton
 import com.mercadopago.android.px.internal.features.payment_result.presentation.PaymentResultFooter
@@ -24,10 +24,10 @@ import com.mercadopago.android.px.internal.util.nonNullObserve
 import com.mercadopago.android.px.internal.viewmodel.PaymentModel
 import com.mercadopago.android.px.internal.viewmodel.TextLocalized
 
-internal class RemediesFragment : Fragment(), Remedies.View, CvvRemedy.Listener, PaymentResultFooter.Listener,
+internal class RemediesFragment private constructor(): Fragment(), Remedies.View, CvvRemedy.Listener, PaymentResultFooter.Listener,
     GenericDialog.Listener {
 
-    private lateinit var viewModel: RemediesViewModel
+    private val viewModel: RemediesViewModel by viewModel()
     private var listener: Listener? = null
     private lateinit var retryPaymentFragment: RetryPaymentFragment
     private lateinit var retryPaymentContainer: View
@@ -45,16 +45,9 @@ internal class RemediesFragment : Fragment(), Remedies.View, CvvRemedy.Listener,
         arguments?.apply {
             val paymentModel = getParcelable<PaymentModel>(PAYMENT_MODEL)
             val remediesModel = getParcelable<RemediesModel>(REMEDIES_MODEL)
-            val session = Session.getInstance()
-            viewModel = RemediesViewModel(
-                remediesModel!!, paymentModel!!, session.paymentRepository,
-                session.configurationModule.paymentSettings, session.cardTokenRepository, session.mercadoPagoESC,
-                session.amountConfigurationRepository, session.configurationModule.applicationSelectionRepository,
-                session.useCaseModule.tokenizeWithCvvUseCase,
-                session.oneTapItemRepository,
-                MapperProvider.getFromPayerPaymentMethodToCardMapper(),
-                session.tracker
-            )
+            checkNotNull(paymentModel) { "PaymentModel should not be null"}
+            checkNotNull(remediesModel) { "RemediesModel should not be null"}
+            viewModel.init(remediesModel, paymentModel)
             retryPaymentFragment = childFragmentManager.findFragmentById(R.id.retry_payment) as RetryPaymentFragment
             retryPaymentFragment.setListener(this@RemediesFragment)
             buildViewModel()
@@ -84,11 +77,11 @@ internal class RemediesFragment : Fragment(), Remedies.View, CvvRemedy.Listener,
         listener?.disablePayButton()
     }
 
-    override fun onPrePayment(callback: PayButton.OnReadyForPaymentCallback) {
+    override fun onPrePayment(callback: ConfirmButton.OnReadyForProcessCallback) {
         viewModel.onPrePayment(callback)
     }
 
-    override fun onPayButtonPressed(callback: PayButton.OnEnqueueResolvedCallback) {
+    override fun onPayButtonPressed(callback: ConfirmButton.OnEnqueueResolvedCallback) {
         viewModel.onPayButtonPressed(callback)
     }
 
@@ -169,6 +162,8 @@ internal class RemediesFragment : Fragment(), Remedies.View, CvvRemedy.Listener,
                 ActionType.DISMISS -> {
                     viewModel.trackRemedyModalAbort()
                 }
+
+                else -> Unit
             }
         }
     }

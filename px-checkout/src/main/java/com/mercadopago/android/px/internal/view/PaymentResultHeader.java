@@ -16,6 +16,7 @@ import com.mercadopago.android.px.internal.util.ScaleUtil;
 import com.mercadopago.android.px.internal.util.TextUtil;
 import com.mercadopago.android.px.internal.util.ViewUtils;
 import com.mercadopago.android.px.internal.viewmodel.GenericLocalized;
+import com.squareup.picasso.RequestCreator;
 
 public class PaymentResultHeader extends ConstraintLayout {
 
@@ -23,6 +24,8 @@ public class PaymentResultHeader extends ConstraintLayout {
     private final MPTextView label;
     private final ImageView icon;
     private final ImageView badge;
+
+    private static final int BADGE_SIZE_DP = 90;
 
     public PaymentResultHeader(final Context context) {
         this(context, null);
@@ -52,12 +55,12 @@ public class PaymentResultHeader extends ConstraintLayout {
         ViewUtils.loadOrGone(model.title.get(getContext()), title);
         ViewUtils.loadOrGone(model.label.get(getContext()), label);
         renderIcon(icon, model);
-        ViewUtils.loadOrGone(model.badgeImage, badge);
+        renderBadge(badge, model);
         post(() -> performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null));
     }
 
     private void renderIcon(@NonNull final ImageView icon, @NonNull final Model model) {
-        final int size = ScaleUtil.getPxFromDp(90, getContext());
+        final int size = ScaleUtil.getPxFromDp(BADGE_SIZE_DP, getContext());
         PicassoDiskLoader.get(getContext())
             .load(TextUtil.isNotEmpty(model.iconUrl) ? model.iconUrl : null)
             .transform(new CircleTransform())
@@ -68,6 +71,22 @@ public class PaymentResultHeader extends ConstraintLayout {
             .into(icon);
     }
 
+    private void renderBadge(@NonNull final ImageView badge, @NonNull final Model model) {
+        final int size = ScaleUtil.getPxFromDp(BADGE_SIZE_DP, getContext());
+        final RequestCreator requestCreator = PicassoDiskLoader.get(getContext())
+            .load(TextUtil.isNotEmpty(model.badgeUrl) ? model.badgeUrl : null)
+            .transform(new CircleTransform())
+            .resize(size, size)
+            .centerInside()
+            .noFade();
+
+        if (model.badgeImage != 0) {
+            requestCreator.placeholder(model.badgeImage);
+        }
+
+        requestCreator.into(badge);
+    }
+
     public static final class Model {
 
         /* default */ final boolean dynamicHeight;
@@ -75,6 +94,7 @@ public class PaymentResultHeader extends ConstraintLayout {
         /* default */ final int iconImage;
         /* default */ final int badgeImage;
         /* default */ final String iconUrl;
+        /* default */ final String badgeUrl;
         /* default */ final GenericLocalized title;
         /* default */ final GenericLocalized label;
 
@@ -83,6 +103,7 @@ public class PaymentResultHeader extends ConstraintLayout {
             background = builder.background;
             iconImage = builder.iconImage;
             iconUrl = builder.iconUrl;
+            badgeUrl = builder.badgeUrl;
             badgeImage = builder.badgeImage;
             title = builder.title;
             label = builder.label;
@@ -99,6 +120,7 @@ public class PaymentResultHeader extends ConstraintLayout {
             /* default */ int iconImage;
             /* default */ int badgeImage;
             @Nullable /* default */ String iconUrl;
+            @Nullable /* default */ String badgeUrl;
             /* default */ GenericLocalized title;
             /* default */ GenericLocalized label;
 
@@ -114,6 +136,11 @@ public class PaymentResultHeader extends ConstraintLayout {
 
             public Builder setIconUrl(@Nullable final String iconUrl) {
                 this.iconUrl = iconUrl;
+                return this;
+            }
+
+            public Builder setBadgeUrl(@Nullable final String badgeUrl) {
+                this.badgeUrl = badgeUrl;
                 return this;
             }
 

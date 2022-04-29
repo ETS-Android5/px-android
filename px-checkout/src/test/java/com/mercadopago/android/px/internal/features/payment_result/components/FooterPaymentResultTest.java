@@ -29,11 +29,12 @@ import static org.mockito.Mockito.when;
 public class FooterPaymentResultTest {
 
     private static final String LABEL_CONTINUE = "Continue";
-    private static final String LABEL_CHANGE = "Change payment method";
+    private static final String LABEL_CHANGE = "Pay using a different method";
     private static final String LABEL_ALREADY_ACTIVATED = "Already activated";
     private static final String LABEL_ALREADY_AUTHORIZED = "Already authorized";
     private static final String LABEL_REVIEW_TC_INFO = "REVIEW INFO";
     private static final String LABEL_OK = "ok";
+    private static final String LABEL_GO_TO_HOME = "Go to Home";
 
     @Mock private Context context;
     @Mock private ActionDispatcher actionDispatcher;
@@ -79,7 +80,7 @@ public class FooterPaymentResultTest {
 
     @Test
     public void testRejectedOtherReasonPaymentResult() {
-        when(context.getString(R.string.px_change_payment)).thenReturn(LABEL_CHANGE);
+        when(context.getString(R.string.px_change_payment_method)).thenReturn(LABEL_CHANGE);
         final PaymentResult paymentResult = PaymentResults.getStatusRejectedOtherPaymentResult();
         final FooterPaymentResult footerPaymentResult = new FooterPaymentResult(factory, paymentResult, actionDispatcher);
         final Footer.Props props = footerPaymentResult.getFooterProps(context);
@@ -117,9 +118,33 @@ public class FooterPaymentResultTest {
     }
 
     @Test
+    public void testRejectedInsufficientAmountPaymentResult() {
+
+        when(context.getString(R.string.px_change_payment_method)).thenReturn(LABEL_CHANGE);
+        when(context.getString(R.string.px_button_text_go_to_home)).thenReturn(LABEL_GO_TO_HOME);
+
+        final PaymentResult paymentResult = PaymentResults.getStatusRejectedInsufficientAmountPaymentResult();
+        final FooterPaymentResult footerPaymentResult =
+            new FooterPaymentResult(factory, paymentResult, actionDispatcher);
+
+        final Footer.Props props = footerPaymentResult.getFooterProps(context);
+
+        assertNotNull(props);
+        assertNotNull(props.buttonAction);
+        assertEquals(LABEL_CHANGE, props.buttonAction.label);
+        assertNotNull(props.buttonAction.action);
+        assertTrue(props.buttonAction.action instanceof ChangePaymentMethodAction);
+
+        assertNotNull(props.linkAction);
+        assertEquals(LABEL_GO_TO_HOME, props.linkAction.label);
+        assertNotNull(props.linkAction.action);
+        assertTrue(props.linkAction.action instanceof NextAction);
+    }
+
+    @Test
     public void testRejectedMaxAttemptsPaymentResult() {
 
-        when(context.getString(R.string.px_change_payment)).thenReturn(LABEL_CHANGE);
+        when(context.getString(R.string.px_change_payment_method)).thenReturn(LABEL_CHANGE);
         final PaymentResult paymentResult = PaymentResults.getStatusRejectedMaxAttemptsPaymentResult();
         final FooterPaymentResult footerPaymentResult =
             new FooterPaymentResult(factory, paymentResult, actionDispatcher);
@@ -152,10 +177,10 @@ public class FooterPaymentResultTest {
     }
 
     @Test
-    public void testRejectedInsufficientAmountPaymentResult() {
-        when(context.getString(R.string.px_change_payment)).thenReturn(LABEL_CHANGE);
+    public void testRejectedCreditCardInsufficientAmountPaymentResult() {
+        when(context.getString(R.string.px_change_payment_method)).thenReturn(LABEL_CHANGE);
 
-        final PaymentResult paymentResult = PaymentResults.getStatusRejectedInsufficientAmountPaymentResult();
+        final PaymentResult paymentResult = PaymentResults.getStatusRejectedCreditCardInsufficientAmountPaymentResult();
         final FooterPaymentResult footerPaymentResult =
             new FooterPaymentResult(factory, paymentResult, actionDispatcher);
 
@@ -210,7 +235,7 @@ public class FooterPaymentResultTest {
 
     @Test
     public void testRejected() {
-        when(context.getString(R.string.px_change_payment)).thenReturn(LABEL_CHANGE);
+        when(context.getString(R.string.px_change_payment_method)).thenReturn(LABEL_CHANGE);
         final PaymentResult paymentResult = PaymentResults.getStatusRejectedOtherPaymentResult();
         final FooterPaymentResult footerPaymentResult = new FooterPaymentResult(factory, paymentResult, actionDispatcher);
         final Footer.Props props = footerPaymentResult.getFooterProps(context);
@@ -245,7 +270,7 @@ public class FooterPaymentResultTest {
 
     @Test
     public void testRejectedBlackListPaymentResult() {
-        when(context.getString(R.string.px_change_payment)).thenReturn(LABEL_CHANGE);
+        when(context.getString(R.string.px_change_payment_method)).thenReturn(LABEL_CHANGE);
 
         final PaymentResult paymentResult = PaymentResults.getStatusRejectedBlacklist();
         final FooterPaymentResult footerPaymentResult =
@@ -284,7 +309,7 @@ public class FooterPaymentResultTest {
 
     @Test
     public void testRejectedHighRiskPaymentResult() {
-        when (context.getString(R.string.px_change_payment)).thenReturn(LABEL_CHANGE);
+        when (context.getString(R.string.px_change_payment_method)).thenReturn(LABEL_CHANGE);
 
         final PaymentResult paymentResult = PaymentResults.getStatusRejectedHighRisk();
         final FooterPaymentResult footerPaymentResult =
@@ -293,7 +318,7 @@ public class FooterPaymentResultTest {
         final Footer.Props props = footerPaymentResult.getFooterProps(context);
 
         assertNotNull(props);
-        assertNull(props.linkAction);
+        assertNotNull(props.linkAction);
 
         assertNotNull(props.buttonAction);
         assertEquals(LABEL_CHANGE, props.buttonAction.label);
@@ -302,8 +327,31 @@ public class FooterPaymentResultTest {
     }
 
     @Test
+    public void testRejectedCapExceededPaymentResult() {
+        when(context.getString(R.string.px_change_payment_method)).thenReturn(LABEL_CHANGE);
+        when(context.getString(R.string.px_button_text_go_to_home)).thenReturn(LABEL_GO_TO_HOME);
+
+        final PaymentResult paymentResult = PaymentResults.getStatusRejectedCapExceeded();
+        final FooterPaymentResult footerPaymentResult =
+                new FooterPaymentResult(factory, paymentResult, actionDispatcher);
+
+        final Footer.Props props = footerPaymentResult.getFooterProps(context);
+
+        assertNotNull(props);
+        assertNotNull(props.buttonAction);
+        assertEquals(LABEL_CHANGE, props.buttonAction.label);
+        assertNotNull(props.buttonAction.action);
+        assertTrue(props.buttonAction.action instanceof ChangePaymentMethodAction);
+
+        assertNotNull(props.linkAction);
+        assertEquals(LABEL_GO_TO_HOME, props.linkAction.label);
+        assertNotNull(props.linkAction.action);
+        assertTrue(props.linkAction.action instanceof NextAction);
+    }
+
+    @Test
     public void testRejectedByRegulationsPaymentResult() {
-        when (context.getString(R.string.px_change_payment)).thenReturn(LABEL_CHANGE);
+        when (context.getString(R.string.px_change_payment_method)).thenReturn(LABEL_CHANGE);
 
         final PaymentResult paymentResult = PaymentResults.getStatusRejectedByRegulations();
         final FooterPaymentResult footerPaymentResult =
@@ -322,7 +370,7 @@ public class FooterPaymentResultTest {
 
     @Test
     public void testRejectedUnknown() {
-        when(context.getString(R.string.px_change_payment)).thenReturn(LABEL_CHANGE);
+        when(context.getString(R.string.px_change_payment_method)).thenReturn(LABEL_CHANGE);
         final PaymentResult paymentResult = PaymentResults.getStatusRejectedUnknown();
         final FooterPaymentResult footerPaymentResult = new FooterPaymentResult(factory, paymentResult, actionDispatcher);
         final Footer.Props props = footerPaymentResult.getFooterProps(context);

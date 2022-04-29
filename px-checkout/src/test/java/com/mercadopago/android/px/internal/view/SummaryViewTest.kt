@@ -38,7 +38,7 @@ class SummaryViewTest : BasicRobolectricTest() {
             `when`(activity.supportActionBar).thenReturn(mock(ActionBar::class.java))
             configureToolbar(activity, mock(View.OnClickListener::class.java))
             val toolbarModel = ElementDescriptorView.Model("toolbarTitle", null, null, R.drawable.px_icon_default)
-            showToolbarElementDescriptor(toolbarModel)
+            showHorizontalElementDescriptor(toolbarModel)
         }
     }
 
@@ -83,9 +83,9 @@ class SummaryViewTest : BasicRobolectricTest() {
             animateExit(500)
         }
 
-        with(summaryView) {
-            getField<View>("toolbarElementDescriptor").assertVisible()
-            getField<View>("bigHeaderDescriptor").assertVisible()
+        with(summaryView.summaryHeaderCoordinator) {
+            getField<View>("horizontalHeaderDescriptor").assertVisible()
+            getField<View>("verticalHeaderDescriptor").assertVisible()
         }
     }
 }

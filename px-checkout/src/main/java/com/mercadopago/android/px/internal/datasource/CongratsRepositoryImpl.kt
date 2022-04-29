@@ -41,7 +41,6 @@ internal class CongratsRepositoryImpl(
     private val userSelectionRepository: UserSelectionRepository,
     private val amountRepository: AmountRepository,
     private val disabledPaymentMethodRepository: DisabledPaymentMethodRepository,
-    private val payerComplianceRepository: PayerComplianceRepository,
     private val escManagerBehaviour: ESCManagerBehaviour,
     private val oneTapItemRepository: OneTapItemRepository,
     private val paymentSettingRepository: PaymentSettingRepository,
@@ -84,9 +83,18 @@ internal class CongratsRepositoryImpl(
             val campaignId = paymentResult.paymentData.campaign?.id.orEmpty()
             val paymentTypeId = paymentResult.paymentData.paymentMethod.paymentTypeId
             with(paymentSettingRepository) {
-                congratsService.getCongrats(PermissionHelper.instance.isLocationGranted(), publicKey, joinedPaymentIds, platform, campaignId,
-                    payerComplianceRepository.turnedIFPECompliant(), joinedPaymentMethodsIds, paymentTypeId,
-                    trackingRepository.flowId, checkoutPreference?.merchantOrderId, checkoutPreference?.id)
+                congratsService.getCongrats(
+                    PermissionHelper.instance.isLocationGranted(),
+                    publicKey,
+                    joinedPaymentIds,
+                    platform,
+                    campaignId,
+                    joinedPaymentMethodsIds,
+                    paymentTypeId,
+                    trackingRepository.flowId,
+                    checkoutPreference?.merchantOrderId,
+                    checkoutPreference?.id
+                )
             }
         } catch (e: Exception) {
             CongratsResponse.EMPTY
@@ -107,7 +115,8 @@ internal class CongratsRepositoryImpl(
                         !disabledPaymentMethodRepository.hasKey(
                             PayerPaymentMethodKey(it.customOptionId, it.paymentTypeId))
                 },
-                paymentSettingRepository
+                paymentSettingRepository,
+                payerPaymentMethodRepository
             ).map(paymentData)
             congratsService.getRemedies(
                 payment.id.toString(),

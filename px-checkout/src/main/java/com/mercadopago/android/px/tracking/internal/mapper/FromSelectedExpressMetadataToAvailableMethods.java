@@ -11,7 +11,10 @@ import com.mercadopago.android.px.model.PayerCost;
 import com.mercadopago.android.px.model.PaymentMethods;
 import com.mercadopago.android.px.model.PaymentTypes;
 import com.mercadopago.android.px.model.internal.Application;
+import com.mercadopago.android.px.model.internal.BankTransfer;
 import com.mercadopago.android.px.model.internal.OneTapItem;
+import com.mercadopago.android.px.tracking.internal.BankInfoHelper;
+import com.mercadopago.android.px.tracking.internal.events.BankTransferExtraInfo;
 import com.mercadopago.android.px.tracking.internal.model.AccountMoneyExtraInfo;
 import com.mercadopago.android.px.tracking.internal.model.AvailableMethod;
 import com.mercadopago.android.px.tracking.internal.model.CardExtraExpress;
@@ -26,17 +29,20 @@ public class FromSelectedExpressMetadataToAvailableMethods extends Mapper<OneTap
     @NonNull private final Set<String> cardsWithEsc;
     @Nullable private final PayerCost selectedPayerCost;
     private final boolean isSplit;
+    @NonNull private final BankInfoHelper bankInfoHelper;
 
     public FromSelectedExpressMetadataToAvailableMethods(
         @NonNull final ApplicationSelectionRepository applicationSelectionRepository,
         @NonNull final FromApplicationToApplicationInfo fromApplicationToApplicationInfo,
         @NonNull final Set<String> cardsWithEsc,
-        @Nullable final PayerCost selectedPayerCost, final boolean isSplit) {
+        @Nullable final PayerCost selectedPayerCost, final boolean isSplit,
+        @NonNull final BankInfoHelper bankInfoHelper) {
         this.applicationSelectionRepository = applicationSelectionRepository;
         this.fromApplicationToApplicationInfo = fromApplicationToApplicationInfo;
         this.cardsWithEsc = cardsWithEsc;
         this.selectedPayerCost = selectedPayerCost;
         this.isSplit = isSplit;
+        this.bankInfoHelper = bankInfoHelper;
     }
 
     @Override
@@ -68,6 +74,11 @@ public class FromSelectedExpressMetadataToAvailableMethods extends Mapper<OneTap
                 .setExtraInfo(new AccountMoneyExtraInfo(accountMoney.getBalance(), accountMoney.isInvested()).toMap());
         } else if (PaymentMethods.CONSUMER_CREDITS.equals(paymentMethod.getType()) && selectedPayerCost != null) {
             builder.setExtraInfo(new CreditsExtraInfo(new PayerCostInfo(selectedPayerCost)).toMap());
+        } else if (oneTapItem.getBankTransfer() != null && oneTapItem.getPaymentMethodId().equals(PaymentMethods.ARGENTINA.DEBIN)) {
+            final BankTransfer bankTransfer = oneTapItem.getBankTransfer();
+            builder.setExtraInfo(
+                    new BankTransferExtraInfo(bankTransfer.getId(), bankInfoHelper.getBankName(bankTransfer.getId())).toMap()
+            );
         }
 
         return builder.build();

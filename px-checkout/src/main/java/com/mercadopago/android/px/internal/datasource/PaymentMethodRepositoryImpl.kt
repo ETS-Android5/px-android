@@ -14,5 +14,8 @@ internal class PaymentMethodRepositoryImpl(private val fileManager: FileManager)
 
     override fun readFromStorage() = fileManager.readAnyList(file, PaymentMethod::class.java)
 
-    override fun getPaymentMethodById(paymentMethodId: String) = value.firstOrNull { it.id == paymentMethodId }
+    override fun getPaymentMethodById(paymentMethodId: String): PaymentMethod {
+        return value.firstOrNull { it.id == paymentMethodId } ?: throw IllegalStateException("PaymentMethod not found")
+    }
+
 }

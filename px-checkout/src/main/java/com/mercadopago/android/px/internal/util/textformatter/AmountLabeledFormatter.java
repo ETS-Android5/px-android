@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import com.mercadopago.android.px.R;
+import com.mercadopago.android.px.core.presentation.extensions.SpannableExtKt;
 import com.mercadopago.android.px.internal.font.PxFont;
 import com.mercadopago.android.px.internal.util.TextUtil;
 import com.mercadopago.android.px.internal.util.ViewUtils;
@@ -58,7 +59,7 @@ public class AmountLabeledFormatter extends ChainFormatter {
             length = charSequence.length();
         }
 
-        ViewUtils.setColorInSpannable(textColor, indexStart, indexStart + length, spannableStringBuilder);
+        SpannableExtKt.setColor(spannableStringBuilder, textColor, indexStart, indexStart + length);
         updateTextStyle(indexStart, indexStart + length);
 
         return spannableStringBuilder;

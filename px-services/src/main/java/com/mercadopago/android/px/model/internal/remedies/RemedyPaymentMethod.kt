@@ -1,6 +1,7 @@
 package com.mercadopago.android.px.model.internal.remedies
 
 import android.os.Parcelable
+import com.mercadopago.android.px.model.BankTransferInfo
 import kotlinx.android.parcel.Parcelize
 import java.math.BigDecimal
 
@@ -19,5 +20,7 @@ data class RemedyPaymentMethod(
     val installmentsList: List<Installment>?,
     val escStatus: String?,
     val esc: Boolean,
-    val cardSize: CardSize?
+    val cardSize: CardSize?,
+    val paymentMethodName: String?,
+    val bankInfo: BankTransferInfo?
 ) : Parcelable

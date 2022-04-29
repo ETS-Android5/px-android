@@ -5,6 +5,7 @@ import android.database.DataSetObserver
 import android.util.AttributeSet
 import android.widget.Adapter
 import androidx.appcompat.widget.LinearLayoutCompat
+import com.mercadopago.android.px.R
 
 internal class AdapterLinearLayout @JvmOverloads constructor(
     context: Context,
@@ -13,6 +14,14 @@ internal class AdapterLinearLayout @JvmOverloads constructor(
 ) : LinearLayoutCompat(context, attrs, defStyleAttr) {
 
     private var adapter: Adapter? = null
+    private val spaceBetweenChildren: Int
+
+    init {
+        val a = context.obtainStyledAttributes(attrs, R.styleable.AdapterLinearLayout)
+        spaceBetweenChildren = a.getDimensionPixelSize(R.styleable.AdapterLinearLayout_spaceBetweenChildren, 0)
+        a.recycle()
+    }
+
     private val dataSetObserver = object : DataSetObserver() {
         override fun onChanged() {
             super.onChanged()
@@ -36,10 +45,15 @@ internal class AdapterLinearLayout @JvmOverloads constructor(
 
     private fun reloadChildViews() {
         removeAllViews()
-        adapter?.let {
-            for (position in 0 until it.count) {
-                it.getView(position, null, this)?.let { view ->
+        adapter?.let { adapter ->
+            for (position in 0 until adapter.count) {
+                adapter.getView(position, null, this)?.let { view ->
                     addView(view)
+                    view.takeUnless { position == adapter.count }?.let {
+                        val layoutParams = it.layoutParams as LayoutParams
+                        layoutParams.bottomMargin += spaceBetweenChildren
+                        it.layoutParams = layoutParams
+                    }
                 }
             }
         }

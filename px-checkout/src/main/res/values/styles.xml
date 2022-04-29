@@ -169,4 +169,59 @@
         <item name="android:textSize">@dimen/ui_fontsize_large</item>
     </style>
 
+    <style name="background_consumer_credits">
+        <item name="android:adjustViewBounds">true</item>
+        <item name="android:scaleType">fitXY</item>
+        <item name="android:foreground">@drawable/px_background_cc</item>
+    </style>
+
+    <style name="logo_consumer_credits">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">0dp</item>
+        <item name="android:layout_marginStart">@dimen/px_s_margin</item>
+        <item name="android:src">@drawable/px_logo_cc</item>
+        <item name="android:scaleType">fitXY</item>
+        <item name="layout_constraintVertical_bias">0</item>
+        <item name="layout_constraintHorizontal_bias">0</item>
+    </style>
+
+    <style name="top_text_consumer_credits" parent="text_consumer_credits">
+        <item name="fontStyle">normal</item>
+        <item name="fontWeight">@dimen/weight_semi_bold</item>
+        <item name="android:textSize">@dimen/px_s_text</item>
+        <item name="android:layout_marginStart">@dimen/px_s_margin</item>
+    </style>
+
+    <style name="bottom_text_consumer_credits" parent="text_consumer_credits">
+        <item name="android:textSize">@dimen/px_xxs_text</item>
+        <item name="android:layout_marginBottom">@dimen/px_xs_margin</item>
+    </style>
+
+    <style name="bottom_text_consumer_credits_large" parent="text_consumer_credits">
+        <item name="android:textSize">@dimen/px_xxs_text</item>
+        <item name="android:layout_marginBottom">@dimen/px_s_margin</item>
+    </style>
+
+    <style name="text_consumer_credits">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:layout_marginEnd">@dimen/px_s_margin</item>
+        <item name="android:layout_alignParentLeft">true</item>
+        <item name="android:layout_alignParentTop">true</item>
+    </style>
+
+    <style name="card_view_consumer_credits">
+        <item name="cardElevation">@dimen/px_xxxxs_margin</item>
+        <item name="cardCornerRadius">@dimen/px_xs_margin</item>
+        <item name="cardPreventCornerOverlap">false</item>
+        <item name="android:layout_marginBottom">@dimen/px_s_margin</item>
+    </style>
+
+    <style name="text_tag_consumer_credits">
+        <item name="android:ellipsize">end</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:background">@drawable/px_cc_tag_background</item>
+        <item name="android:textColor">@color/andes_blue_mp_500</item>
+    </style>
+
 </resources>

@@ -50,7 +50,7 @@ class CustomInitializationActivity : AppCompatActivity() {
 
     private fun bindViewModel(savedInstanceState: Bundle?) {
         savedInstanceState?.let { viewModel.recoverFromBundle(savedInstanceState) }
-        viewModel.stateUILiveData.observe(this, Observer { state ->
+        viewModel.uiStateLiveData.observe(this, Observer { state ->
             when (state) {
                 is CustomInitializeState.LoadData -> {
                     loadData(state.initializationData)

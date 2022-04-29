@@ -2,21 +2,24 @@ package com.mercadopago.android.px.internal.features.payment_congrats.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import androidx.annotation.Nullable;
 
 public final class PaymentResultInfo implements Parcelable{
 
-    private final String title;
-    private final String subtitle;
+    @Nullable private final String title;
+    @Nullable private final String subtitle;
 
-    public PaymentResultInfo(final String title, final String subtitle) {
+    public PaymentResultInfo(@Nullable final String title, @Nullable final String subtitle) {
         this.title = title;
         this.subtitle = subtitle;
     }
 
+    @Nullable
     public String getTitle() {
         return title;
     }
 
+    @Nullable
     public String getSubtitle() {
         return subtitle;
     }

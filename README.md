@@ -1,9 +1,9 @@
 [![Build Status](https://app.bitrise.io/app/4b686858985766f0/status.svg?token=ls19BfGu3wG58WAx6sMC7Q&branch=master)](https://app.bitrise.io/app/4b686858985766f0)
 [![codecov](https://codecov.io/gh/mercadopago/px-android/branch/master/graph/badge.svg?token=ksLU5tHdUS)](https://codecov.io/gh/mercadopago/px-android)
-[![Bintray](https://img.shields.io/bintray/v/mercadopago/android/com.mercadopago.android.px.checkout.svg)](https://bintray.com/mercadopago/android/com.mercadopago.android.px.checkout)
 ![GitHub tag](https://img.shields.io/github/tag/mercadopago/px-android.svg)
 ![GitHub top language](https://img.shields.io/github/languages/top/mercadopago/px-android.svg)
 
+#### ⚠️ PX-Android 4.53.1 is the last public release of this library ⚠️
 #### ⚠️ PX-Android 4.28.0 is the last version with minimum API level 16 ⚠️
 
 ![Screenshot MercadoPago](https://i.imgur.com/ZaqavRJ.jpg)
@@ -35,6 +35,13 @@ The MercadoPago Android Payment Experience makes it easy to collect your user's 
 ## Installation
 
 ### Android Studio
+
+Make sure you have the JCenter repository
+
+    repositories {
+        ...
+        jcenter()
+    }
 
 Add this line to your app's `build.gradle` inside the `dependencies` section:
 

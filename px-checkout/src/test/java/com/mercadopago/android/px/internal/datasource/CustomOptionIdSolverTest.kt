@@ -3,6 +3,7 @@ package com.mercadopago.android.px.internal.datasource
 import com.mercadopago.android.px.assertEquals
 import com.mercadopago.android.px.model.CardMetadata
 import com.mercadopago.android.px.model.internal.Application
+import com.mercadopago.android.px.model.internal.BankTransfer
 import com.mercadopago.android.px.model.internal.OneTapItem
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -160,6 +161,20 @@ class CustomOptionIdSolverTest {
         whenever(oneTapItem.isCard).thenReturn(false)
         whenever(oneTapItem.isOfflineMethods).thenReturn(true)
         whenever(oneTapItem.getApplications()).thenReturn(listOf(application))
+
+        assertTrue(CustomOptionIdSolver.compare(oneTapItem, customOptionIdExpected))
+    }
+
+    @Test
+    fun compareWhenOneTapItemIsBankTransfer() {
+        val customOptionIdExpected = "123456"
+
+        val bankTransfer: BankTransfer = mock {
+            on { id }.thenReturn(customOptionIdExpected)
+        }
+
+        whenever(oneTapItem.bankTransfer).thenReturn(bankTransfer)
+        whenever(oneTapItem.isBankTransfer()).thenReturn(true)
 
         assertTrue(CustomOptionIdSolver.compare(oneTapItem, customOptionIdExpected))
     }

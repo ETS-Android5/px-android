@@ -1,7 +1,9 @@
 package com.mercadopago.android.px.internal.mappers
 
 import com.mercadopago.android.px.internal.datasource.CustomOptionIdSolver
+import com.mercadopago.android.px.internal.extensions.isNotNullNorEmpty
 import com.mercadopago.android.px.internal.repository.*
+import com.mercadopago.android.px.internal.view.BankTransferDescriptorModel
 import com.mercadopago.android.px.internal.view.PaymentMethodDescriptorView
 import com.mercadopago.android.px.internal.viewmodel.*
 import com.mercadopago.android.px.model.AmountConfiguration
@@ -15,7 +17,8 @@ internal class PaymentMethodDescriptorMapper(
     private val amountConfigurationRepository: AmountConfigurationRepository,
     private val disabledPaymentMethodRepository: DisabledPaymentMethodRepository,
     private val applicationSelectionRepository: ApplicationSelectionRepository,
-    private val amountRepository: AmountRepository) : Mapper<OneTapItem, Model>() {
+    private val amountRepository: AmountRepository
+) : Mapper<OneTapItem, Model>() {
 
     override fun map(value: OneTapItem): Model {
         val currency = paymentSettings.currency
@@ -40,6 +43,15 @@ internal class PaymentMethodDescriptorMapper(
                     isAccountMoney(value.paymentMethodId) ->
                         AccountMoneyDescriptorModel.createFrom(value.accountMoney, currency,
                             amountRepository.getAmountToPay(value.paymentTypeId, null as PayerCost?))
+                    isBankTransfer(paymentTypeId) -> {
+                        val bankTransferSliderTitle = value.bankTransfer?.displayInfo?.sliderTitle
+                        if(bankTransferSliderTitle.isNotNullNorEmpty()) {
+                            BankTransferDescriptorModel.createFrom(bankTransferSliderTitle)
+                        }
+                        else {
+                            EmptyInstallmentsDescriptorModel.create()
+                        }
+                    }
                     else -> EmptyInstallmentsDescriptorModel.create()
                 } ?: EmptyInstallmentsDescriptorModel.create()
             }
