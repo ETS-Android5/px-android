@@ -10,6 +10,7 @@ internal interface ConfirmButton {
         fun addOnStateChange(stateChange: StateChange)
         fun enable()
         fun disable()
+        fun cancelLoading()
     }
 
     interface ViewModel {

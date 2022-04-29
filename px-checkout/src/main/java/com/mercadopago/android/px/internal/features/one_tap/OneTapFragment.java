@@ -616,7 +616,12 @@ public class OneTapFragment extends BaseFragment implements OneTap.View, ViewPag
     @Override
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         if (requestCode == ErrorUtil.ERROR_REQUEST_CODE) {
-            cancel();
+            if (data.hasExtra(Constants.EXTRA_RECOVERABLE_ERROR) && callback != null) {
+                confirmButtonFragment.cancelLoading();
+                presenter.reloadCheckout();
+            } else {
+                cancel();
+            }
         } else if (requestCode == REQ_CODE_DISABLE_DIALOG) {
             setPagerIndex(0);
         } else if (requestCode == REQ_CODE_CARD_FORM) {

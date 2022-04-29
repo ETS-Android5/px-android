@@ -56,7 +56,6 @@ import com.mercadopago.android.px.internal.view.AmountDescriptorView
 import com.mercadopago.android.px.internal.view.SummaryDetailDescriptorMapper
 import com.mercadopago.android.px.internal.view.experiments.ExperimentHelper
 import com.mercadopago.android.px.internal.view.experiments.ExperimentHelper.getVariantFrom
-import com.mercadopago.android.px.internal.viewmodel.FlowConfigurationModel
 import com.mercadopago.android.px.internal.viewmodel.PostPaymentAction
 import com.mercadopago.android.px.internal.viewmodel.PostPaymentAction.ActionController
 import com.mercadopago.android.px.internal.viewmodel.SummaryModel
@@ -361,7 +360,7 @@ internal class OneTapPresenter(
     private fun postDisableModelUpdate() {
         oneTapItemRepository.sortByState()
         if (isViewAttached) {
-            reload()
+            resetStateAndReloadViewModel()
         }
     }
 
@@ -456,21 +455,21 @@ internal class OneTapPresenter(
         ))
     }
 
-    private fun reload() {
+    private fun resetStateAndReloadViewModel() {
         resetPayerCostSelection()
         resetState()
         view.clearAdapters()
         loadViewModel()
     }
 
-    override fun handleDeepLink() {
+    fun reloadCheckout() {
         disabledPaymentMethodRepository.reset()
         if (isViewAttached) {
             view.showLoading()
         }
         checkoutUseCase.execute(Unit, {
             if (isViewAttached) {
-                reload()
+                resetStateAndReloadViewModel()
                 view.hideLoading()
             }
         }, {
@@ -479,6 +478,10 @@ internal class OneTapPresenter(
                 onFailToRetrieveInitResponse(it.apiException)
             }
         })
+    }
+
+    override fun handleDeepLink() {
+        reloadCheckout()
     }
 
     override fun onCardAdded(cardId: String, callback: LifecycleListener.Callback) {

@@ -83,6 +83,7 @@ public class ErrorActivity extends PXActivity {
         if (error.isRecoverable()) {
             mRetryView.setOnClickListener(v -> {
                 Intent intent = new Intent();
+                intent.putExtra(Constants.EXTRA_RECOVERABLE_ERROR, 0);
                 setResult(RESULT_OK, intent);
                 finish();
             });

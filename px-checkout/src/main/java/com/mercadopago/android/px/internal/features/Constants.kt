@@ -8,4 +8,5 @@ object Constants {
     const val REQ_CODE_SECURITY_CODE = 304
     const val EXTRA_BACK_URL = "back_url"
     const val EXTRA_REDIRECT_URL = "redirect_url"
+    const val EXTRA_RECOVERABLE_ERROR = "recoverable_error"
 }
