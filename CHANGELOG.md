@@ -1,3 +1,7 @@
+## Unreleased
+_XX_05_2022
+* FEATURE - New pending screen to debin status detail.
+
 ## VERSION 4.113.0
 _28_04_2022_
 * ENHANCEMENT - Migration of some utils methods to use the core ones.

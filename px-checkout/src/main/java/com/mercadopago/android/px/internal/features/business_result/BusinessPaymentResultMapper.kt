@@ -33,15 +33,15 @@ internal class BusinessPaymentResultMapper(
     }
 
     private fun getBodyModel(model: PaymentCongratsModel): PaymentResultBody.Model {
-        val methodModels: MutableList<PaymentResultMethod.Model> = ArrayList()
+        val paymentResultMethodModels: MutableList<PaymentResultMethod.Model> = ArrayList()
         if (model.shouldShowPaymentMethod == true) {
             for (paymentInfo in model.paymentsInfo) {
-                methodModels.add(paymentResultMethodMapper.map(paymentInfo, model.statementDescription))
+                paymentResultMethodModels.add(paymentResultMethodMapper.map(paymentInfo, model.statementDescription))
             }
         }
 
         return PaymentResultBody.Model.Builder()
-            .setMethodModels(methodModels)
+            .setPaymentResultMethodModels(paymentResultMethodModels)
             .apply { model.paymentCongratsResponse?.let {
                 setCongratsViewModel(CongratsViewModelMapper(BusinessPaymentResultTracker(tracker)).map(it))
             }}

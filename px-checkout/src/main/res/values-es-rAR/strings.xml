@@ -68,6 +68,7 @@
     <string name="px_pending_label">¡Apurate a pagar!</string>
     <string name="px_error_description_contingency">En unas horas te avisaremos por e-mail si se acreditó.</string>
     <string name="px_error_description_review_manual">Dentro de las próximas 24 horas te avisaremos por e-mail si se acreditó.</string>
+    <string name="px_pending_body_detail_bank_transfer">En un máximo de 10 minutos podrás ver la confirmación en la sección Actividad.</string>
     <string name="px_text_pay_with_other_method">Pagar con otro medio</string>
     <string name="px_title_other_reason_rejection">No pudimos procesar tu pago</string>
     <string name="px_title_duplicated_reason_rejection">Lo sentimos, el pago se hizo dos veces y rechazamos el segundo</string>

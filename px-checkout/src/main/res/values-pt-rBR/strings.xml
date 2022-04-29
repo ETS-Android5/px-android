@@ -68,6 +68,7 @@
     <string name="px_pending_label">Não perca tempo!</string>
     <string name="px_error_description_contingency">Se for, avisaremos você por e-mail em algumas horas.</string>
     <string name="px_error_description_review_manual">Dentro das próximas 24 horas te avisaremos por e-mail se foi aprovado.</string>
+    <string name="px_pending_body_detail_bank_transfer">En un máximo de 10 minutos podrás ver la confirmación en la sección Actividad.</string>
     <string name="px_text_pay_with_other_method">Pagar com outro meio</string>
     <string name="px_title_other_reason_rejection">Não foi possível processar seu pagamento</string>
     <string name="px_title_duplicated_reason_rejection">Desculpe, o pagamento foi feito duas vezes, por isso recusamos a segunda vez</string>

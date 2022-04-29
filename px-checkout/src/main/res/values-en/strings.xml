@@ -68,6 +68,7 @@
     <string name="px_pending_label">Hurry to pay!</string>
     <string name="px_error_description_contingency">In a few hours will notify you by e-mail if it is accredited.</string>
     <string name="px_error_description_review_manual">Within the next 24 hours we will notify you via e-mail if it was accredited.</string>
+    <string name="px_pending_body_detail_bank_transfer">Within 10 minutes you will see the confirmation in the Activity section.</string>
     <string name="px_text_pay_with_other_method">Pay using a different method</string>
     <string name="px_title_other_reason_rejection">The payment could not be processed</string>
     <string name="px_title_duplicated_reason_rejection">We are sorry, the payment was made twice, therefore we rejected the second one</string>

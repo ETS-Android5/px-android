@@ -36,6 +36,7 @@ import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAI
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_CC_REJECTED_MAX_ATTEMPTS;
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_CC_REJECTED_OTHER_REASON;
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_CC_REJECTED_PLUGIN_PM;
+import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_PENDING_PROVIDER_RESPONSE;
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_REJECTED_BY_REGULATIONS;
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_REJECTED_CAP_EXCEEDED;
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_REJECTED_HIGH_RISK;
@@ -81,9 +82,8 @@ public final class PaymentResultViewModelFactory {
      *
      * @param props body information
      */
-    public PaymentResultViewModel createPaymentStatusWithProps(@NonNull final String status,
-        @NonNull final String detail, @Nullable final BodyErrorProps props) {
-        return createViewModelBuilder(generatePaymentResult(status, detail), props).build();
+    public PaymentResultViewModel createPaymentStatusWithProps(@Nullable final BodyErrorProps props) {
+        return createViewModelBuilder(generatePaymentResult(props.status, props.statusDetail), props).build();
     }
 
     @SuppressWarnings("fallthrough")
@@ -110,15 +110,7 @@ public final class PaymentResultViewModelFactory {
         case STATUS_PENDING:
             builder.setLinkAction(new NextAction());
         case STATUS_IN_PROCESS:
-            setPendingResources(builder, detail);
-            return builder
-                .setTitleResId(checkPaymentMethodsOff(status, detail))
-                .setDescriptionResId(getPendingDescription(detail))
-                .setLinkActionTitle(R.string.px_got_it)
-                .setApprovedSuccess(StatusHelper.isPendingStatusDetailSuccess(detail))
-                .setPendingSuccess(StatusHelper.isPendingStatusDetailSuccess(detail))
-                .setPendingWarning(!StatusHelper.isPendingStatusDetailSuccess(detail))
-                .setHasDetail(true);
+            return inProcessStatusBuilder(detail, status, builder);
 
         case STATUS_REJECTED:
             setRecoverableErrorResources(builder);
@@ -170,6 +162,35 @@ public final class PaymentResultViewModelFactory {
         default:
             return EMPTY_LABEL;
         }
+    }
+
+    private PaymentResultViewModel.Builder inProcessStatusBuilder(
+        final String detail,
+        final String status,
+        final PaymentResultViewModel.Builder builder
+    ) {
+        setPendingResources(builder, detail);
+
+        if (STATUS_DETAIL_PENDING_PROVIDER_RESPONSE.equals(detail)) {
+            return builder
+                .setIconResId(R.drawable.px_ic_bank_transfer_error)
+                .setTitleResId(R.string.px_title_pending_payment)
+                .setBodyDetailDescriptionResId(R.string.px_pending_body_detail_bank_transfer)
+                .setLinkAction(new NextAction())
+                .setPendingWarning(true)
+                .setHasDetail(true)
+                .setShowPaymentMethods(true)
+                .setLinkActionTitle(R.string.px_button_text_go_to_home);
+        }
+
+        return builder
+            .setTitleResId(checkPaymentMethodsOff(status, detail))
+            .setDescriptionResId(getPendingDescription(detail))
+            .setLinkActionTitle(R.string.px_got_it)
+            .setApprovedSuccess(StatusHelper.isPendingStatusDetailSuccess(detail))
+            .setPendingSuccess(StatusHelper.isPendingStatusDetailSuccess(detail))
+            .setPendingWarning(!StatusHelper.isPendingStatusDetailSuccess(detail))
+            .setHasDetail(true);
     }
 
     private PaymentResultViewModel.Builder rejectedStatusBuilder(final String detail,
@@ -305,26 +326,26 @@ public final class PaymentResultViewModelFactory {
         case STATUS_DETAIL_REJECTED_CAP_EXCEEDED:
             setNonRecoverableErrorResources(builder);
             return builder
-                    .setBadgeResId(0)
-                    .setIconResId(R.drawable.px_ic_badge_error)
-                    .setTitleResId(R.string.px_title_error_rejected_cap_exceeded)
-                    .setBodyDetailDescriptionResId(R.string.px_body_error_rejected_cap_exceeded)
-                    .setMainAction(new ChangePaymentMethodAction())
-                    .setMainActionTitle(R.string.px_change_payment_method)
-                    .setLinkAction(new NextAction())
-                    .setLinkActionTitle(R.string.px_button_text_go_to_home);
+                .setBadgeResId(0)
+                .setIconResId(R.drawable.px_ic_badge_error)
+                .setTitleResId(R.string.px_title_error_rejected_cap_exceeded)
+                .setBodyDetailDescriptionResId(R.string.px_body_error_rejected_cap_exceeded)
+                .setMainAction(new ChangePaymentMethodAction())
+                .setMainActionTitle(R.string.px_change_payment_method)
+                .setLinkAction(new NextAction())
+                .setLinkActionTitle(R.string.px_button_text_go_to_home);
 
         default:
             setNonRecoverableErrorResources(builder);
             return builder
-                    .setBadgeResId(0)
-                    .setIconResId(R.drawable.px_ic_badge_error)
-                    .setTitleResId(R.string.px_title_error_rejected_default)
-                    .setBodyDetailDescriptionResId(R.string.px_body_error_rejected_default)
-                    .setLinkAction(new NextAction())
-                    .setLinkActionTitle(R.string.px_button_text_go_to_home)
-                    .setPendingSuccess(false)
-                    .setPendingWarning(false);
+                .setBadgeResId(0)
+                .setIconResId(R.drawable.px_ic_badge_error)
+                .setTitleResId(R.string.px_title_error_rejected_default)
+                .setBodyDetailDescriptionResId(R.string.px_body_error_rejected_default)
+                .setLinkAction(new NextAction())
+                .setLinkActionTitle(R.string.px_button_text_go_to_home)
+                .setPendingSuccess(false)
+                .setPendingWarning(false);
         }
     }
 
@@ -387,6 +408,4 @@ public final class PaymentResultViewModelFactory {
             .setMainActionTitle(R.string.px_change_payment_method)
             .setLinkAction(null);
     }
-
-
 }

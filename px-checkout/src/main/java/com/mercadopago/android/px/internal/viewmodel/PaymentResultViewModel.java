@@ -13,6 +13,7 @@ public final class PaymentResultViewModel {
     private final int bodyTitleResId;
     private final int titleDescriptionResId;
     private final boolean hasDetail;
+    private final boolean showPaymentMethods;
     private final boolean isRecoverable;
     private final boolean isSuccess;
     private final boolean isPendingWarning;
@@ -33,6 +34,7 @@ public final class PaymentResultViewModel {
     /* default */ PaymentResultViewModel(final Builder builder) {
         titleResId = builder.titleResId;
         hasDetail = builder.hasDetail;
+        showPaymentMethods = builder.showPaymentMethods;
         mainAction = builder.mainAction;
         mainActionTitle = builder.mainActionTitle;
         linkAction = builder.linkAction;
@@ -62,6 +64,10 @@ public final class PaymentResultViewModel {
 
     public boolean hasBodyError() {
         return hasDetail;
+    }
+
+    public boolean shouldShowPaymentMethods() {
+        return showPaymentMethods;
     }
 
     public boolean isErrorRecoverable() {
@@ -138,6 +144,7 @@ public final class PaymentResultViewModel {
         int titleDescriptionResId;
         boolean isRecoverable;
         boolean hasDetail;
+        boolean showPaymentMethods;
         boolean isApprovedSuccess;
         boolean isPendingWarning;
         boolean isPendingSuccess;
@@ -160,6 +167,11 @@ public final class PaymentResultViewModel {
 
         public Builder setHasDetail(final boolean hasDetail) {
             this.hasDetail = hasDetail;
+            return this;
+        }
+
+        public Builder setShowPaymentMethods(final boolean showPaymentMethods) {
+            this.showPaymentMethods = showPaymentMethods;
             return this;
         }
 

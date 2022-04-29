@@ -17,15 +17,16 @@ internal class PaymentResultViewModelMapper(
 ) : Mapper<PaymentModel, PaymentResultViewModel>() {
 
     override fun map(model: PaymentModel): PaymentResultViewModel {
+        val bodyModel = paymentResultBodyModelMapper.map(model)
         val legacyViewModel = PaymentResultLegacyViewModel(
-            model, configuration)
+            model, bodyModel.paymentResultMethodModels, configuration)
         val remediesModel = PaymentResultRemediesModelMapper.map(model.remedies)
         return PaymentResultViewModel(
             PaymentResultHeaderModelMapper(
                 configuration, factory, model.congratsResponse.instructions, remediesModel).map(model),
             remediesModel,
             PaymentResultFooterModelMapper.map(model),
-            paymentResultBodyModelMapper.map(model), legacyViewModel,
+            bodyModel, legacyViewModel,
             model.congratsResponse.instructions?.let { instructionMapper.map(it) },
             CongratsAutoReturnMapper(autoReturnFromPreference, model.paymentResult.paymentStatus)
                 .map(model.congratsResponse.autoReturn))

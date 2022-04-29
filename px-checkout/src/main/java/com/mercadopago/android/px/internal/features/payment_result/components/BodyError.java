@@ -7,43 +7,57 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import com.mercadopago.android.px.R;
+import com.mercadopago.android.px.core.presentation.extensions.ViewExtKt;
 import com.mercadopago.android.px.internal.features.PaymentResultViewModelFactory;
 import com.mercadopago.android.px.internal.features.payment_result.props.BodyErrorProps;
-import com.mercadopago.android.px.internal.util.TextUtil;
+import com.mercadopago.android.px.internal.util.ListUtil;
 import com.mercadopago.android.px.internal.util.ViewUtils;
 import com.mercadopago.android.px.internal.view.ActionDispatcher;
 import com.mercadopago.android.px.internal.view.CompactComponent;
 import com.mercadopago.android.px.internal.view.MPTextView;
+import com.mercadopago.android.px.internal.view.PaymentResultMethod;
 import com.mercadopago.android.px.internal.viewmodel.PaymentResultViewModel;
+import java.util.List;
+import kotlin.Unit;
 
 public class BodyError extends CompactComponent<BodyErrorProps, ActionDispatcher> {
 
-    @NonNull private final PaymentResultViewModelFactory factory;
+    @NonNull private final PaymentResultViewModel paymentResultViewModel;
 
     public BodyError(@NonNull final PaymentResultViewModelFactory factory,
         @NonNull final BodyErrorProps props, @NonNull final ActionDispatcher dispatcher) {
         super(props, dispatcher);
-        this.factory = factory;
+        paymentResultViewModel = factory.createPaymentStatusWithProps(props);
     }
 
     public String getTitle(final Context context) {
-        final PaymentResultViewModel viewModel = factory.createPaymentResultViewModel(props.status, props.statusDetail);
-        if (viewModel.hasBodyTitle()) {
-            return viewModel.getBodyTitle(context);
-        }
-        return TextUtil.EMPTY;
+        return paymentResultViewModel.getBodyTitle(context);
     }
 
     public String getDescription(final Context context) {
-        final PaymentResultViewModel viewModel =
-            factory.createPaymentStatusWithProps(props.status, props.statusDetail, props);
-        return viewModel.getDescription(context);
+        return paymentResultViewModel.getDescription(context);
     }
 
     private String getTitleDescription(final Context context) {
-        final PaymentResultViewModel viewModel =
-            factory.createPaymentStatusWithProps(props.status, props.statusDetail, props);
-        return viewModel.getTitleDescription(context);
+        return paymentResultViewModel.getTitleDescription(context);
+    }
+
+    private void renderMethods(final View view, final List<PaymentResultMethod.Model> methodModels) {
+        final PaymentResultMethod primaryMethod = view.findViewById(R.id.primaryMethod);
+        final PaymentResultMethod secondaryMethod = view.findViewById(R.id.secondaryMethod);
+
+        final boolean shouldShowPaymentMethods = paymentResultViewModel.shouldShowPaymentMethods() &&
+            ListUtil.isNotEmpty(methodModels);
+
+        ViewExtKt.loadOrGone(primaryMethod, shouldShowPaymentMethods, () -> {
+            primaryMethod.setModel(methodModels.get(0));
+            return Unit.INSTANCE;
+        });
+
+        ViewExtKt.loadOrGone(secondaryMethod, shouldShowPaymentMethods && methodModels.size() > 1, () -> {
+            secondaryMethod.setModel(methodModels.get(1));
+            return Unit.INSTANCE;
+        });
     }
 
     @Override
@@ -73,6 +87,8 @@ public class BodyError extends CompactComponent<BodyErrorProps, ActionDispatcher
         if (!getTitleDescription(context).isEmpty()) {
             bodyErrorDescriptionDivider.setVisibility(View.VISIBLE);
         }
+
+        renderMethods(bodyErrorView, props.paymentResultMethodModels);
 
         return bodyErrorView;
     }

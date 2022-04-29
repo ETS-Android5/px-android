@@ -163,7 +163,7 @@ class PaymentResultBodyTest : BasicRobolectricTest() {
             PaymentCongratsText("1234"), PaymentCongratsText("123456"))
         ).build()
 
-        modelBuilder.setMethodModels(listOf(methodModel, methodModel))
+        modelBuilder.setPaymentResultMethodModels(listOf(methodModel, methodModel))
 
         body.init(modelBuilder.build(), listener)
 

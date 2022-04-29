@@ -43,17 +43,17 @@ public class PaymentResultBodyModelMapper extends Mapper<PaymentModel, PaymentRe
     @Override
     public PaymentResultBody.Model map(@NonNull final PaymentModel model) {
         final PaymentResult paymentResult = model.getPaymentResult();
-        final List<PaymentResultMethod.Model> methodModels = new ArrayList<>();
+        final List<PaymentResultMethod.Model> paymentResultMethodModels = new ArrayList<>();
         final PaymentCongratsResponse paymentCongratsResponse = new PaymentCongratsResponseMapper()
             .map(model.getCongratsResponse());
         for (final PaymentData paymentData : paymentResult.getPaymentDataList()) {
             final String imageUrl =
                 model.getCongratsResponse().getPaymentMethodsImages().get(paymentData.getPaymentMethod().getId());
-            methodModels.add(paymentResultMethodMapper.map(getPaymentInfo(imageUrl, paymentData, model.getCurrency())));
+            paymentResultMethodModels.add(paymentResultMethodMapper.map(getPaymentInfo(imageUrl, paymentData, model.getCurrency())));
         }
 
         return new PaymentResultBody.Model.Builder()
-            .setMethodModels(methodModels)
+            .setPaymentResultMethodModels(paymentResultMethodModels)
             .setCongratsViewModel(new CongratsViewModelMapper(new BusinessPaymentResultTracker(tracker))
                 .map(paymentCongratsResponse))
             .setReceiptId(String.valueOf(paymentResult.getPaymentId()))

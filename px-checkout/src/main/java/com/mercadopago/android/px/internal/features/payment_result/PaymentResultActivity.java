@@ -76,7 +76,8 @@ public class PaymentResultActivity extends PXActivity<PaymentResultPresenter> im
     private ScrollView scrollView;
     private Space space;
 
-    public static void start(@NonNull final Fragment fragment, final int requestCode, @NonNull final PaymentModel model) {
+    public static void start(@NonNull final Fragment fragment, final int requestCode,
+        @NonNull final PaymentModel model) {
         final Activity activity = fragment.getActivity();
         if (activity instanceof PXActivity) {
             ((PXActivity) activity).overrideTransitionIn();
@@ -86,7 +87,11 @@ public class PaymentResultActivity extends PXActivity<PaymentResultPresenter> im
         fragment.startActivityForResult(intent, requestCode);
     }
 
-    public static void start(@NonNull final Activity activity, final int requestCode, @NonNull final PaymentModel model) {
+    public static void start(
+        @NonNull final Activity activity,
+        final int requestCode,
+        @NonNull final PaymentModel model
+    ) {
         if (activity instanceof PXActivity) {
             ((PXActivity) activity).overrideTransitionIn();
         }
@@ -165,8 +170,15 @@ public class PaymentResultActivity extends PXActivity<PaymentResultPresenter> im
             if (shouldDrawLegacyFooter) {
                 footer.setVisibility(View.GONE);
             }
-            PaymentResultLegacyRenderer.render(findViewById(R.id.container), listener, model.getLegacyViewModel(),
-                shouldDrawLegacyFooter, instructionModel == null, Session.getInstance().getPaymentResultViewModelFactory());
+
+            PaymentResultLegacyRenderer.render(
+                findViewById(R.id.container),
+                listener,
+                model.getLegacyViewModel(),
+                shouldDrawLegacyFooter,
+                instructionModel == null,
+                Session.getInstance().getPaymentResultViewModelFactory()
+            );
         }
     }
 
@@ -178,21 +190,22 @@ public class PaymentResultActivity extends PXActivity<PaymentResultPresenter> im
 
     private void loadRemedies(@NonNull final PaymentModel paymentModel, @NonNull final PaymentResultViewModel model) {
         final FragmentManager fragmentManager = getSupportFragmentManager();
+        final FragmentTransaction transaction = fragmentManager.beginTransaction();
         remediesFragment = (RemediesFragment) fragmentManager.findFragmentByTag(RemediesFragment.TAG);
         payButtonFragment = (PayButtonFragment) fragmentManager.findFragmentByTag(TAG_PAY_BUTTON);
 
-        if (remediesFragment == null || payButtonFragment == null) {
-            final FragmentTransaction transaction = fragmentManager.beginTransaction();
-            if (remediesFragment == null) {
-                remediesFragment = RemediesFragment.newInstance(paymentModel, model.getRemediesModel());
-                transaction.replace(R.id.remedies, remediesFragment, RemediesFragment.TAG);
-            }
-            if (payButtonFragment == null) {
-                payButtonFragment = new PayButtonFragment();
-                transaction.replace(R.id.confirm_button_container, payButtonFragment, TAG_PAY_BUTTON);
-            }
-            transaction.commitAllowingStateLoss();
+        if (remediesFragment == null) {
+            remediesFragment = RemediesFragment.newInstance(paymentModel, model.getRemediesModel());
+            transaction
+                .replace(R.id.remedies, remediesFragment, RemediesFragment.TAG);
         }
+        if (payButtonFragment == null) {
+            payButtonFragment = new PayButtonFragment();
+            transaction
+                .replace(R.id.confirm_button_container, payButtonFragment, TAG_PAY_BUTTON);
+        }
+
+        transaction.commitAllowingStateLoss();
 
         startKeyboardListener();
         final PaymentResultFooter.Model footerModel = model.getFooterModel();
