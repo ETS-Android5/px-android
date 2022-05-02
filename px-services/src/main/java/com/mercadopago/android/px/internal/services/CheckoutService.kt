@@ -12,12 +12,12 @@ import java.math.BigDecimal
 
 interface CheckoutService {
 
-    @POST("$ENVIRONMENT/px_mobile/$CHECKOUT_VERSION/checkout")
+    @POST("delta/px_mobile/$CHECKOUT_VERSION/checkout")
     suspend fun checkout(
         @Body body: InitRequestBody
     ): Response<CheckoutResponse>
 
-    @POST("$ENVIRONMENT/px_mobile/$CHECKOUT_VERSION/checkout/{preference_id}")
+    @POST("delta/px_mobile/$CHECKOUT_VERSION/checkout/{preference_id}")
     suspend fun checkout(
         @Path(value = "preference_id", encoded = true) preferenceId: String,
         @Body body: InitRequestBody

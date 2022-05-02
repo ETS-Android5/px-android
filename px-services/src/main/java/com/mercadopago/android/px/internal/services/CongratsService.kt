@@ -8,7 +8,7 @@ import retrofit2.http.*
 
 interface CongratsService {
 
-    @GET("${BuildConfig.API_ENVIRONMENT}/px_mobile/congrats")
+    @GET("alpha/px_mobile/congrats")
     suspend fun getCongrats(
         @Header("X-Location-Enabled") locationEnabled: Boolean,
         @Query("public_key") publicKey: String,
@@ -21,7 +21,7 @@ interface CongratsService {
         @Query("merchant_order_id") merchantOrderId: Long?,
         @Query("pref_id") preferenceId: String?): CongratsResponse
 
-    @POST("${BuildConfig.API_ENVIRONMENT_NEW}/px_mobile/v1/remedies/{payment_id}")
+    @POST("alpha/px_mobile/v1/remedies/{payment_id}")
     suspend fun getRemedies(
         @Path(value = "payment_id", encoded = true) paymentId: String,
         @Query("one_tap") oneTap: Boolean,
