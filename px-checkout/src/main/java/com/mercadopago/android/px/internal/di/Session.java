@@ -323,11 +323,12 @@ public final class Session extends ApplicationModule {
         return escPaymentManager;
     }
 
-    @NonNull
-    public TokenRepository getTokenRepository() {
-        return new TokenizeService(networkModule.getRetrofitClient().create(GatewayService.class),
-            getConfigurationModule().getPaymentSettings(), getMercadoPagoESC(), getDevice(), getTracker());
-    }
+    // TODO: atual CardTokenRepository
+//    @NonNull
+//    public TokenRepository getTokenRepository() {
+//        return new TokenizeService(networkModule.getRetrofitClient().create(GatewayService.class),
+//            getConfigurationModule().getPaymentSettings(), getMercadoPagoESC(), getDevice(), getTracker());
+//    }
 
     @NonNull
     public CardTokenRepository getCardTokenRepository() {
