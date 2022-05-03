@@ -63,6 +63,7 @@ internal class PreparePaymentRepositoryImpl(
         val primaryPaymentMethod = checkNotNull(paymentMethod) { "User selected payment method must not be null" }
         val customOptionId = checkNotNull(customOptionId) { "User selected custom option id must not be null" }
         val isSplit = secondaryPaymentMethod != null
+        val campaignId = payerPaymentMethodRepository[customOptionId]?.defaultAmountConfiguration
         PaymentMethodDM(
             primaryPaymentMethod.id,
             primaryPaymentMethod.paymentTypeId,
@@ -79,7 +80,7 @@ internal class PreparePaymentRepositoryImpl(
                     null,
                     splitConfiguration?.secondaryPaymentMethod?.discount?.let { discount ->
                         PaymentMethodDM.DiscountInfo(
-                            campaignId = payerPaymentMethodRepository[it.id]?.defaultAmountConfiguration,
+                            campaignId = campaignId,
                             couponAmount = discount.couponAmount
                         )
                     }
@@ -87,7 +88,7 @@ internal class PreparePaymentRepositoryImpl(
             }),
             getPrimaryPaymentMethodDiscount(isSplit, splitConfiguration)?.let {
                 PaymentMethodDM.DiscountInfo(
-                    campaignId = payerPaymentMethodRepository[customOptionId]?.defaultAmountConfiguration,
+                    campaignId = campaignId,
                     couponAmount = it.couponAmount
                 )
             }

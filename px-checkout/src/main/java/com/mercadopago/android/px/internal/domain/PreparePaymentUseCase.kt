@@ -29,24 +29,29 @@ internal class PreparePaymentUseCase(
     override val contextProvider: CoroutineContextProvider = CoroutineContextProvider()
 ) : UseCase<Unit, Unit>(tracker) {
     override suspend fun doExecute(param: Unit): Response<Unit, MercadoPagoError> {
-        paymentDiscountRepository.reset()
-        return preparePaymentRepository.prepare()
-            .ifFailure {
-                configureDiscounts(null)
-            }
-            .next {
-                val discountStatus = it.getDiscountStatus()
-                when (discountStatus?.code) {
-                    ResponseSectionStatus.Code.OK,
-                    ResponseSectionStatus.Code.USE_FALLBACK -> {
-                        configureDiscounts(it.paymentMethod)
-                        Response.Success(Unit)
-                    }
-                    ResponseSectionStatus.Code.MISMATCH ->
-                        Response.Failure(PreparePaymentMismatchError(discountStatus.message))
-                    else -> Response.Success(Unit)
+        return runCatching {
+            paymentDiscountRepository.reset()
+            preparePaymentRepository.prepare()
+                .ifFailure {
+                    configureDiscounts(null)
                 }
-            }
+                .next {
+                    val discountStatus = it.getDiscountStatus()
+                    when (discountStatus?.code) {
+                        ResponseSectionStatus.Code.OK,
+                        ResponseSectionStatus.Code.USE_FALLBACK -> {
+                            configureDiscounts(it.paymentMethod)
+                            Response.Success(Unit)
+                        }
+                        ResponseSectionStatus.Code.MISMATCH ->
+                            Response.Failure(PreparePaymentMismatchError(discountStatus.message))
+                        else -> Response.Success(Unit)
+                    }
+                }
+        }.getOrElse {
+            configureDiscounts(null)
+            Response.Success(Unit)
+        }
     }
 
     private fun configureDiscounts(paymentMethod: PaymentMethodDM?) {
