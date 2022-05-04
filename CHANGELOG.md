@@ -1,4 +1,4 @@
-## VERSION 4.113.0
+## VERSION 4.114.0
 _04_05_2022
 * FEATURE - New pending screen to debin status detail.
 * FEATURE - Custom behavior to support custom texts in payment methods.
