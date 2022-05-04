@@ -100,6 +100,7 @@ import com.mercadopago.android.px.model.exceptions.MercadoPagoError;
 import com.mercadopago.android.px.model.internal.Application;
 import com.mercadopago.android.px.model.internal.DisabledPaymentMethod;
 import com.mercadopago.android.px.model.internal.PaymentConfiguration;
+import com.mercadopago.android.px.model.one_tap.CheckoutBehaviour;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -397,6 +398,11 @@ public class OneTapFragment extends BaseFragment implements OneTap.View,
             }
 
             @Override
+            public void onBehaviourDescriptorViewClick() {
+                presenter.handleBehaviour(CheckoutBehaviour.Type.TAP_CARD);
+            }
+
+            @Override
             public void onInstallmentsSelectorCancelClicked() {
                 presenter.onInstallmentSelectionCanceled();
             }
@@ -473,6 +479,7 @@ public class OneTapFragment extends BaseFragment implements OneTap.View,
             MapperProvider.INSTANCE.getPaymentConfigurationMapper(),
             configurationModule.getFlowConfigurationProvider(),
             Session.getInstance().getHelperModule().getBankInfoHelper(),
+            MapperProvider.INSTANCE.getFromModalToGenericDialogItemMapper(),
             session.getTracker()
         );
     }

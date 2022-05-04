@@ -10,7 +10,7 @@ class OneTapItem(parcel: Parcel?) : ExpressMetadata(parcel) {
     var offlineMethodCard: OfflineMethodCard? = null
         private set
     val id: String
-        get () {
+        get() {
             var allPaymentMethods = ""
             getApplications().forEach {
                 allPaymentMethods += it.paymentMethod.id
@@ -41,13 +41,18 @@ class OneTapItem(parcel: Parcel?) : ExpressMetadata(parcel) {
                             offlineMethod.id,
                             offlineMethod.instructionId),
                             listOf(),
-                            offlineMethod.status)
+                            offlineMethod.status, emptyMap())
                     )
                 }
             }
         } else {
             applications.add(
-                Application(Application.PaymentMethod(paymentMethodId.orEmpty(), paymentTypeId.orEmpty()), listOf(), status)
+                Application(
+                    Application.PaymentMethod(paymentMethodId.orEmpty(), paymentTypeId.orEmpty()),
+                    listOf(),
+                    status,
+                    emptyMap()
+                )
             )
         }
     })

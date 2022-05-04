@@ -3,6 +3,7 @@ package com.mercadopago.android.px.tracking.internal
 import com.mercadopago.android.px.addons.model.Track
 import com.mercadopago.android.px.addons.model.internal.Experiment
 import com.mercadopago.android.px.addons.model.internal.Variant
+import com.mercadopago.android.px.configuration.PaymentConfiguration
 import com.mercadopago.android.px.internal.tracking.TrackingRepository
 import com.mercadopago.android.px.model.CheckoutType
 import com.mercadopago.android.px.tracking.internal.events.FrictionEventTracker
@@ -28,6 +29,9 @@ class MPTrackerTest {
     private lateinit var trackWrapper: TrackWrapper
 
     @Mock
+    private lateinit var paymentConfiguration: PaymentConfiguration
+
+    @Mock
     private lateinit var trackingRepository: TrackingRepository
 
     private val flowDetail = mapOf(Pair("flow", "detail"))
@@ -36,7 +40,7 @@ class MPTrackerTest {
 
     @Before
     fun setUp() {
-        tracker = MPTracker(trackingRepository)
+        tracker = MPTracker(trackingRepository, paymentConfiguration)
 
         whenever(track.data).thenReturn(mutableMapOf())
         whenever(track.path).thenReturn("/track_path")
@@ -47,6 +51,7 @@ class MPTrackerTest {
         whenever(trackingRepository.flowId).thenReturn(FLOW)
         whenever(trackingRepository.flowDetail).thenReturn(flowDetail)
         whenever(trackingRepository.sessionId).thenReturn(SESSION_ID)
+        whenever(paymentConfiguration.hasPaymentProcessor()).thenReturn(true)
     }
 
     @Test
@@ -78,8 +83,6 @@ class MPTrackerTest {
     @Test
     fun whenTrackWithSecurityEnabledThenAddSecurityEnabledData() {
         whenever(trackingRepository.securityEnabled).thenReturn(true)
-
-        tracker = MPTracker(trackingRepository)
         tracker.track(trackWrapper)
 
         assertTrue(track.data["security_enabled"] as Boolean)

@@ -4,8 +4,10 @@ import androidx.annotation.NonNull;
 import com.mercadopago.android.px.addons.BehaviourProvider;
 import com.mercadopago.android.px.addons.model.Track;
 import com.mercadopago.android.px.addons.model.internal.Experiment;
+import com.mercadopago.android.px.configuration.PaymentConfiguration;
 import com.mercadopago.android.px.internal.tracking.TrackingRepository;
 import com.mercadopago.android.px.internal.util.Logger;
+import com.mercadopago.android.px.internal.util.PaymentConfigurationUtil;
 import com.mercadopago.android.px.model.CheckoutType;
 import com.mercadopago.android.px.tracking.internal.events.FrictionEventTracker;
 import java.util.Calendar;
@@ -34,9 +36,14 @@ public final class MPTracker {
     @NonNull private List<Experiment> experiments = Collections.emptyList();
 
     @NonNull private final TrackingRepository trackingRepository;
+    @NonNull private final PaymentConfiguration paymentConfiguration;
 
-    public MPTracker(@NonNull final TrackingRepository trackingRepository) {
+    public MPTracker(
+        @NonNull final TrackingRepository trackingRepository,
+        @NonNull final PaymentConfiguration paymentConfiguration
+    ) {
         this.trackingRepository = trackingRepository;
+        this.paymentConfiguration = paymentConfiguration;
     }
 
     /**
@@ -78,10 +85,11 @@ public final class MPTracker {
     }
 
     private void addCommonFlowInfo(@NonNull final Map<String, Object> data, final boolean shouldTrackExperimentsLabel) {
+        final boolean hasPaymentProcessor = PaymentConfigurationUtil.hasPaymentProcessor(paymentConfiguration);
         data.put(ATTR_FLOW_NAME, trackingRepository.getFlowId());
         data.put(ATTR_SESSION_ID, trackingRepository.getSessionId());
         data.put(ATTR_SESSION_TIME, getSecondsAfterInit());
-        data.put(ATTR_CHECKOUT_TYPE, CheckoutType.ONE_TAP);
+        data.put(ATTR_CHECKOUT_TYPE, hasPaymentProcessor ? CheckoutType.ONE_TAP : CheckoutType.ONE_TAP_SELECTOR);
         data.put(ATTR_SECURITY_ENABLED, trackingRepository.getSecurityEnabled());
         data.put(ATTR_DEVICE_SECURED, trackingRepository.getDeviceSecured());
         if (shouldTrackExperimentsLabel) {

@@ -1,7 +1,6 @@
 package com.mercadopago.android.px.internal.util
 
 import com.mercadopago.android.px.configuration.PaymentConfiguration
-import com.mercadopago.android.px.core.v2.PaymentProcessor
 import com.mercadopago.android.px.preferences.CheckoutPreference
 
 /**
@@ -9,15 +8,14 @@ import com.mercadopago.android.px.preferences.CheckoutPreference
  */
 internal object PaymentConfigurationUtil {
     @JvmStatic
-    fun getPaymentProcessor(paymentConfiguration: PaymentConfiguration): PaymentProcessor? {
-        return paymentConfiguration.paymentProcessorV2
-    }
+    fun getPaymentProcessor(paymentConfiguration: PaymentConfiguration) = paymentConfiguration.paymentProcessorV2
+
+    @JvmStatic
+    fun hasPaymentProcessor(paymentConfiguration: PaymentConfiguration) = paymentConfiguration.hasPaymentProcessor()
 
     @JvmStatic
     fun getSupportsSplit(
         paymentConfiguration: PaymentConfiguration,
         checkoutPreference: CheckoutPreference?
-    ): Boolean {
-        return paymentConfiguration.getSupportsSplit(checkoutPreference)
-    }
+    ) = paymentConfiguration.getSupportsSplit(checkoutPreference)
 }

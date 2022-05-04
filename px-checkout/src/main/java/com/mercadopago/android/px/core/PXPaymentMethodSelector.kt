@@ -1,10 +1,12 @@
 package com.mercadopago.android.px.core
 
 import android.app.Activity
+import com.mercadopago.android.px.configuration.PaymentMethodRules
 import com.mercadopago.android.px.configuration.AdvancedConfiguration
 import com.mercadopago.android.px.configuration.PaymentConfiguration
 import com.mercadopago.android.px.configuration.DynamicDialogConfiguration
 import com.mercadopago.android.px.configuration.DiscountParamsConfiguration
+import com.mercadopago.android.px.configuration.PaymentMethodBehaviour
 import com.mercadopago.android.px.configuration.TrackingConfiguration
 import com.mercadopago.android.px.configuration.CustomStringConfiguration
 import com.mercadopago.android.px.internal.core.ProductIdProvider
@@ -23,6 +25,8 @@ class PXPaymentMethodSelector private constructor(builder: Builder) {
     val charges = builder.charges
     val productId = builder.productId
     val supportSplit = builder.supportSplit
+    val paymentMethodRuleSet = builder.paymentMethodRuleSet
+    val paymentMethodBehaviours = builder.paymentMethodBehaviours
 
     fun start(activity: Activity, requestCode: Int) {
         val advancedConfiguration = AdvancedConfiguration
@@ -31,7 +35,9 @@ class PXPaymentMethodSelector private constructor(builder: Builder) {
             .setCustomStringConfiguration(customStringConfiguration)
             .setDiscountParamsConfiguration(discountParamsConfiguration)
             .setDynamicDialogConfiguration(dynamicDialogConfiguration)
+            .setPaymentMethodRuleSet(paymentMethodRuleSet)
             .setProductId(productId)
+            .setPaymentMethodBehaviours(paymentMethodBehaviours)
             .build()
 
         val paymentProcessor = PaymentConfiguration
@@ -57,8 +63,10 @@ class PXPaymentMethodSelector private constructor(builder: Builder) {
         internal var trackingConfiguration = TrackingConfiguration.Builder().build()
         internal var acceptThirdPartyCard = false
         internal var charges: List<PaymentTypeChargeRule> = emptyList()
+        internal var paymentMethodBehaviours: List<PaymentMethodBehaviour> = emptyList()
         internal var productId: String = ProductIdProvider.DEFAULT_PRODUCT_ID
         internal var supportSplit: Boolean = false
+        internal var paymentMethodRuleSet: List<String> = emptyList()
 
         /**
          * Private key provides save card capabilities and account money balance.
@@ -67,6 +75,16 @@ class PXPaymentMethodSelector private constructor(builder: Builder) {
          * @return builder to keep operating
          */
         fun setAccessToken(accessToken: String) = apply { this.accessToken = accessToken }
+
+        /**
+         * This provides a way to tell us what checks to apply to payment methods.
+         *
+         * @param paymentMethodRules the rule set
+         * @return builder to keep operating
+         */
+        fun setPaymentMethodRules(@PaymentMethodRules paymentMethodRules: List<String>) = apply {
+            this.paymentMethodRuleSet = paymentMethodRules
+        }
 
         /**
          * It provides support for custom checkout functionality/ configure special behaviour You can enable/disable
@@ -140,6 +158,16 @@ class PXPaymentMethodSelector private constructor(builder: Builder) {
          */
         fun setTrackingConfiguration(trackingConfiguration: TrackingConfiguration) = apply {
             this.trackingConfiguration = trackingConfiguration
+        }
+
+        /**
+         * Provides additional settings to modify the types of payment methods to display at checkout.
+         *
+         * @param paymentMethodBehaviours your configuration.
+         * @return builder to keep operating
+         */
+        fun setPaymentMethodBehaviours(paymentMethodBehaviours: List<PaymentMethodBehaviour>) = apply {
+            this.paymentMethodBehaviours = paymentMethodBehaviours
         }
 
         /**

@@ -68,6 +68,7 @@ public class PaymentMethodDescriptorView extends LinearLayout {
     public abstract static class Model {
         protected int payerCostSelected = PayerCost.NO_SELECTED;
         protected boolean userWantToSplit = true;
+        protected boolean hasBehaviour = false;
 
         public abstract void updateLeftSpannable(@NonNull final SpannableStringBuilder spannableStringBuilder,
             @NonNull final TextView textView);
@@ -93,8 +94,16 @@ public class PaymentMethodDescriptorView extends LinearLayout {
             userWantToSplit = split;
         }
 
+        public final void setHasBehaviour(final boolean hasBehaviour) {
+            this.hasBehaviour = hasBehaviour;
+        }
+
         public boolean hasPayerCostList() {
             return false;
+        }
+
+        public boolean hasBehaviour() {
+            return hasBehaviour;
         }
 
         protected String getAccessibilityContentDescription(@NonNull final Context context) {

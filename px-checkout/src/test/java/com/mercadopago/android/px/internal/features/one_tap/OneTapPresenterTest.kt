@@ -13,6 +13,7 @@ import com.mercadopago.android.px.internal.datasource.CustomOptionIdSolver
 import com.mercadopago.android.px.internal.domain.CheckoutUseCase
 import com.mercadopago.android.px.internal.domain.CheckoutWithNewCardUseCase
 import com.mercadopago.android.px.internal.features.AmountDescriptorViewModelFactory
+import com.mercadopago.android.px.internal.features.generic_modal.FromModalToGenericDialogItem
 import com.mercadopago.android.px.internal.features.pay_button.PayButtonFragment
 import com.mercadopago.android.px.internal.mappers.ElementDescriptorMapper
 import com.mercadopago.android.px.internal.mappers.SummaryInfoMapper
@@ -134,6 +135,7 @@ class OneTapPresenterTest {
     private val tokenizeWithEscUseCase = mockk<TokenizeWithEscUseCase>()
 
     private val paymentConfigurationMapper = mockk<PaymentConfigurationMapper>()
+    private val fromModalToGenericDialogItem = mockk<FromModalToGenericDialogItem>()
     private val flowConfigurationProvider = mockk<FlowConfigurationProvider>()
     private val bankInfoHelper = mockk<BankInfoHelper>()
     private val flowConfigurationModel = mockk<FlowConfigurationModel>()
@@ -214,6 +216,7 @@ class OneTapPresenterTest {
             paymentConfigurationMapper,
             flowConfigurationProvider,
             bankInfoHelper,
+            fromModalToGenericDialogItem,
             tracker
         )
         verifyAttachView()

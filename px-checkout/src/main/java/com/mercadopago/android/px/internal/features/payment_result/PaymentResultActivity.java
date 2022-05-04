@@ -76,8 +76,11 @@ public class PaymentResultActivity extends PXActivity<PaymentResultPresenter> im
     private ScrollView scrollView;
     private Space space;
 
-    public static void start(@NonNull final Fragment fragment, final int requestCode,
-        @NonNull final PaymentModel model) {
+    public static void start(
+        @NonNull final Fragment fragment,
+        final int requestCode,
+        @NonNull final PaymentModel model
+    ) {
         final Activity activity = fragment.getActivity();
         if (activity instanceof PXActivity) {
             ((PXActivity) activity).overrideTransitionIn();

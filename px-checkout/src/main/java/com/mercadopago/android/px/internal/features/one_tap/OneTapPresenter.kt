@@ -56,7 +56,6 @@ import com.mercadopago.android.px.internal.view.AmountDescriptorView
 import com.mercadopago.android.px.internal.view.SummaryDetailDescriptorMapper
 import com.mercadopago.android.px.internal.view.experiments.ExperimentHelper
 import com.mercadopago.android.px.internal.view.experiments.ExperimentHelper.getVariantFrom
-import com.mercadopago.android.px.internal.viewmodel.FlowConfigurationModel
 import com.mercadopago.android.px.internal.viewmodel.PostPaymentAction
 import com.mercadopago.android.px.internal.viewmodel.PostPaymentAction.ActionController
 import com.mercadopago.android.px.internal.viewmodel.SummaryModel
@@ -115,6 +114,7 @@ internal class OneTapPresenter(
     private val paymentConfigurationMapper: PaymentConfigurationMapper,
     private val flowConfigurationProvider: FlowConfigurationProvider,
     private val bankInfoHelper: BankInfoHelper,
+    private val fromModalToGenericDialogItemMapper: FromModalToGenericDialogItem,
     tracker: MPTracker
 ) : BasePresenterWithState<OneTap.View, OneTapState>(tracker), OneTap.Presenter, AmountDescriptorView.OnClickListener {
 
@@ -376,7 +376,7 @@ internal class OneTapPresenter(
         }
     }
 
-    private fun handleBehaviour(@CheckoutBehaviour.Type behaviourType: String): Boolean {
+    override fun handleBehaviour(@CheckoutBehaviour.Type behaviourType: String): Boolean {
         val oneTapItem = getCurrentOneTapItem()
         val behaviour = oneTapItem.getBehaviour(behaviourType)
         val modal = if (behaviour?.modal != null) modalRepository.value[behaviour.modal!!] else null
@@ -384,11 +384,12 @@ internal class OneTapPresenter(
         val isMethodSuspended = oneTapItem.status.isSuspended
         return when {
             modal != null -> {
-                view.showGenericDialog(
-                    FromModalToGenericDialogItem(
-                        ActionTypeWrapper(oneTapItemRepository.value).actionType, behaviour!!.modal!!
-                    ).map(modal)
+                val params = FromModalToGenericDialogItem.Params(
+                    ActionTypeWrapper(oneTapItemRepository.value).actionType,
+                    behaviour!!.modal!!,
+                    modal
                 )
+                view.showGenericDialog(fromModalToGenericDialogItemMapper.map(params))
                 true
             }
             TextUtil.isNotEmpty(target) -> {

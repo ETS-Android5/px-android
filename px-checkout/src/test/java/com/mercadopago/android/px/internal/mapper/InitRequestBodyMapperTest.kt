@@ -8,6 +8,7 @@ import com.mercadopago.android.px.configuration.PaymentConfiguration
 import com.mercadopago.android.px.core.SplitPaymentProcessor
 import com.mercadopago.android.px.internal.features.FeatureProvider
 import com.mercadopago.android.px.internal.mappers.InitRequestBodyMapper
+import com.mercadopago.android.px.internal.mappers.PaymentMethodBehaviourDMMapper
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository
 import com.mercadopago.android.px.internal.tracking.TrackingRepository
 import com.mercadopago.android.px.model.PaymentTypes
@@ -16,11 +17,11 @@ import com.mercadopago.android.px.model.internal.CheckoutFeatures
 import com.mercadopago.android.px.model.internal.CheckoutType
 import com.mercadopago.android.px.model.internal.PaymentTypeChargeRuleDM
 import com.mercadopago.android.px.utils.StubCheckoutPreferenceUtils
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import java.math.BigDecimal
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertNotNull
-import junit.framework.Assert.assertNull
-import junit.framework.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -44,9 +45,6 @@ class InitRequestBodyMapperTest {
     private lateinit var paymentSettingRepository: PaymentSettingRepository
 
     @Mock
-    private lateinit var paymentProcessor: SplitPaymentProcessor
-
-    @Mock
     private lateinit var paymentConfiguration: PaymentConfiguration
 
     @Mock
@@ -54,6 +52,9 @@ class InitRequestBodyMapperTest {
 
     @Mock
     private lateinit var discountParamsConfiguration: DiscountParamsConfiguration
+
+    @Mock
+    private lateinit var paymentMethodBehaviourDMMapper: PaymentMethodBehaviourDMMapper
 
     private lateinit var initRequestBodyMapper: InitRequestBodyMapper
 
@@ -70,11 +71,17 @@ class InitRequestBodyMapperTest {
         whenever(paymentSettingRepository.advancedConfiguration).thenReturn(advancedConfiguration)
         whenever(paymentSettingRepository.publicKey).thenReturn("test_pk")
         whenever(paymentConfiguration.getCheckoutType()).thenReturn(CheckoutType.CUSTOM_REGULAR)
+
+        initRequestBodyMapper = InitRequestBodyMapper(
+            escManagerBehaviour,
+            featureProvider,
+            paymentMethodBehaviourDMMapper,
+            trackingRepository
+        )
     }
 
     @Test
     fun mapFromPaymentSettingRepositoryShouldMapPublicKey() {
-        initRequestBodyMapper = InitRequestBodyMapper(escManagerBehaviour, featureProvider, trackingRepository)
         val requestBody = initRequestBodyMapper.map(paymentSettingRepository, null)
         requestBody.publicKey.assertEquals(paymentSettingRepository.publicKey)
     }
@@ -82,7 +89,7 @@ class InitRequestBodyMapperTest {
     @Test
     fun mapFromPaymentSettingRepositoryWithEmptyEscCardIdsShouldMapEmptyEscCardIds() {
         whenever(escManagerBehaviour.escCardIds).thenReturn(emptySet())
-        initRequestBodyMapper = InitRequestBodyMapper(escManagerBehaviour, featureProvider, trackingRepository)
+
         val requestBody = initRequestBodyMapper.map(paymentSettingRepository, null)
         assertTrue(requestBody.cardsWithEsc.isEmpty())
     }
@@ -90,7 +97,7 @@ class InitRequestBodyMapperTest {
     @Test
     fun mapFromPaymentSettingRepositoryWithEscCardIdsShouldMapEscCardIds() {
         whenever(escManagerBehaviour.escCardIds).thenReturn(setOf( "123", "456"))
-        initRequestBodyMapper = InitRequestBodyMapper(escManagerBehaviour, featureProvider, trackingRepository)
+
         val requestBody = initRequestBodyMapper.map(paymentSettingRepository, null)
         with(requestBody.cardsWithEsc) {
             assertTrue(isNotEmpty())
@@ -101,7 +108,7 @@ class InitRequestBodyMapperTest {
     @Test
     fun mapFromPaymentSettingRepositoryWithEmptyChargesShouldMapEmptyCharges() {
         whenever(paymentConfiguration.charges).thenReturn(arrayListOf())
-        initRequestBodyMapper = InitRequestBodyMapper(escManagerBehaviour, featureProvider, trackingRepository)
+
         val requestBody = initRequestBodyMapper.map(paymentSettingRepository, null)
         assertTrue(requestBody.charges.isEmpty())
     }
@@ -111,7 +118,7 @@ class InitRequestBodyMapperTest {
         val amChargeFree = PaymentTypeChargeRule.createChargeFreeRule(PaymentTypes.ACCOUNT_MONEY, "test msg")
         val debitCharge = PaymentTypeChargeRule.Builder(PaymentTypes.DEBIT_CARD, BigDecimal.TEN).build()
         whenever(paymentConfiguration.charges).thenReturn(arrayListOf(amChargeFree, debitCharge))
-        initRequestBodyMapper = InitRequestBodyMapper(escManagerBehaviour, featureProvider, trackingRepository)
+
         val requestBody = initRequestBodyMapper.map(paymentSettingRepository, null)
         val expectedAMCharge = with(amChargeFree) {
             PaymentTypeChargeRuleDM(paymentTypeId, charge(), message, taxable)
@@ -132,7 +139,7 @@ class InitRequestBodyMapperTest {
             .setLabel("Text custom")
             .build()
         whenever(paymentConfiguration.charges).thenReturn(arrayListOf(debitCharge))
-        initRequestBodyMapper = InitRequestBodyMapper(escManagerBehaviour, featureProvider, trackingRepository)
+
         val expectedDebitCharge = with(debitCharge) {
             PaymentTypeChargeRuleDM(paymentTypeId, charge(), label, taxable)
         }
@@ -142,7 +149,7 @@ class InitRequestBodyMapperTest {
 
     @Test
     fun mapFromPaymentSettingRepositoryWithEmptyDiscountConfigurationShouldMapEmptyDiscountConfiguration() {
-        initRequestBodyMapper = InitRequestBodyMapper(escManagerBehaviour, featureProvider, trackingRepository)
+
         val requestBody = initRequestBodyMapper.map(paymentSettingRepository, null)
         with(requestBody.discountParamsConfiguration) {
             assertNull(productId)
@@ -153,7 +160,7 @@ class InitRequestBodyMapperTest {
 
     @Test
     fun mapFromPaymentSettingRepositoryWithDiscountConfigurationShouldMapDiscountConfiguration() {
-        initRequestBodyMapper = InitRequestBodyMapper(escManagerBehaviour, featureProvider, trackingRepository)
+
         with(discountParamsConfiguration) {
             whenever(productId).thenReturn("1234")
             whenever(labels).thenReturn(setOf("123", "456"))
@@ -179,7 +186,7 @@ class InitRequestBodyMapperTest {
 
     @Test
     fun mapFromPaymentSettingRepositoryWithCheckoutFeaturesShouldMapCheckoutFeatures() {
-        initRequestBodyMapper = InitRequestBodyMapper(escManagerBehaviour, featureProvider, trackingRepository)
+
         val requestBody = initRequestBodyMapper.map(paymentSettingRepository, null)
         with(requestBody.features) {
             assertFalse(express)
@@ -197,7 +204,6 @@ class InitRequestBodyMapperTest {
 
     @Test
     fun mapFromPaymentSettingRepositoryWithOpenPreferenceShouldMapOpenPreferenceAndEmptyCheckoutPreferenceId() {
-        initRequestBodyMapper = InitRequestBodyMapper(escManagerBehaviour, featureProvider, trackingRepository)
         with(initRequestBodyMapper.map(paymentSettingRepository, null)) {
             assertNotNull(preference)
             assertNull(preferenceId)
@@ -208,7 +214,7 @@ class InitRequestBodyMapperTest {
     fun mapFromPaymentSettingRepositoryWithPreferenceIdShouldMapEmptyOpenPreferenceAndPreferenceId() {
         whenever(paymentSettingRepository.checkoutPreference).thenReturn(null)
         whenever(paymentSettingRepository.checkoutPreferenceId).thenReturn("123456")
-        initRequestBodyMapper = InitRequestBodyMapper(escManagerBehaviour, featureProvider, trackingRepository)
+
         with(initRequestBodyMapper.map(paymentSettingRepository, null)) {
             assertNotNull(preferenceId)
             preferenceId!!.assertEquals("123456")
@@ -218,14 +224,14 @@ class InitRequestBodyMapperTest {
 
     @Test
     fun mapFromPaymentSettingRepositoryWithNullCardIdShouldMapNullCardId() {
-        initRequestBodyMapper = InitRequestBodyMapper(escManagerBehaviour, featureProvider, trackingRepository)
+
         val requestBody = initRequestBodyMapper.map(paymentSettingRepository, null)
         assertNull(requestBody.newCardId)
     }
 
     @Test
     fun mapFromPaymentSettingRepositoryWithCardIdShouldMapCardId() {
-        initRequestBodyMapper = InitRequestBodyMapper(escManagerBehaviour, featureProvider, trackingRepository)
+
         val requestBody = initRequestBodyMapper.map(paymentSettingRepository, "card_id_test")
         assertNotNull(requestBody.newCardId)
         requestBody.newCardId!!.assertEquals("card_id_test")
@@ -233,7 +239,7 @@ class InitRequestBodyMapperTest {
 
     @Test
     fun mapFromPaymentSettingRepositoryWithNullFlowShouldMapNullFlow() {
-        initRequestBodyMapper = InitRequestBodyMapper(escManagerBehaviour, featureProvider, trackingRepository)
+
         whenever(trackingRepository.flowId).thenReturn(null)
         val requestBody = initRequestBodyMapper.map(paymentSettingRepository, null)
         assertNull(requestBody.flow)
@@ -241,7 +247,7 @@ class InitRequestBodyMapperTest {
 
     @Test
     fun mapFromPaymentSettingRepositoryWithFlowShouldMapFlow() {
-        initRequestBodyMapper = InitRequestBodyMapper(escManagerBehaviour, featureProvider, trackingRepository)
+
         whenever(trackingRepository.flowId).thenReturn("flow_id")
         val requestBody = initRequestBodyMapper.map(paymentSettingRepository, null)
         assertNotNull(requestBody.flow)

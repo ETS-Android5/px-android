@@ -1,6 +1,9 @@
 ## Unreleased
 _XX_05_2022
 * FEATURE - New pending screen to debin status detail.
+* FEATURE - Custom behavior to support custom texts in payment methods.
+* FEATURE - Rules configuration is supported to apply in the means of payment.
+* ENHANCEMENT - New checkout type on tracker added
 
 ## VERSION 4.113.0
 _28_04_2022_

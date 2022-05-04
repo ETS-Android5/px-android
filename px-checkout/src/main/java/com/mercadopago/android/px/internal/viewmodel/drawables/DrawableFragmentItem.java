@@ -5,7 +5,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.meli.android.carddrawer.model.customview.SwitchModel;
-import com.mercadopago.android.px.internal.features.generic_modal.GenericDialogItem;
 import com.mercadopago.android.px.internal.util.KParcelable;
 import com.mercadopago.android.px.model.Reimbursement;
 import com.mercadopago.android.px.model.internal.Text;
@@ -16,14 +15,12 @@ public class DrawableFragmentItem implements KParcelable, Serializable {
     private final DrawableFragmentCommons.ByApplication commonsByApplication;
     private final Text bottomDescription;
     private final Reimbursement reimbursement;
-    private final GenericDialogItem genericDialogItem;
     private SwitchModel switchModel;
 
     protected DrawableFragmentItem(@NonNull final Parameters parameters) {
         commonsByApplication = parameters.commonsByApplication;
         bottomDescription = parameters.bottomDescription;
         reimbursement = parameters.reimbursement;
-        genericDialogItem = parameters.genericDialogItem;
         switchModel = parameters.switchModel;
     }
 
@@ -31,7 +28,6 @@ public class DrawableFragmentItem implements KParcelable, Serializable {
         commonsByApplication = in.readParcelable(DrawableFragmentCommons.ByApplication.class.getClassLoader());
         bottomDescription = in.readParcelable(Text.class.getClassLoader());
         reimbursement = in.readParcelable(Reimbursement.class.getClassLoader());
-        genericDialogItem = in.readParcelable(GenericDialogItem.class.getClassLoader());
         switchModel = in.readParcelable(SwitchModel.class.getClassLoader());
     }
 
@@ -40,7 +36,6 @@ public class DrawableFragmentItem implements KParcelable, Serializable {
         dest.writeParcelable(commonsByApplication, flags);
         dest.writeParcelable(bottomDescription, flags);
         dest.writeParcelable(reimbursement, flags);
-        dest.writeParcelable(genericDialogItem, flags);
         dest.writeParcelable(switchModel, flags);
     }
 
@@ -76,11 +71,6 @@ public class DrawableFragmentItem implements KParcelable, Serializable {
     }
 
     @Nullable
-    public GenericDialogItem getGenericDialogItem() {
-        return genericDialogItem;
-    }
-
-    @Nullable
     public SwitchModel getSwitchModel() {
         return switchModel;
     }
@@ -89,16 +79,14 @@ public class DrawableFragmentItem implements KParcelable, Serializable {
         /* default */ @NonNull final DrawableFragmentCommons.ByApplication commonsByApplication;
         /* default */ @Nullable final Text bottomDescription;
         /* default */ @Nullable final Reimbursement reimbursement;
-        /* default */ @NonNull final GenericDialogItem genericDialogItem;
         /* default */ @Nullable final SwitchModel switchModel;
 
         /* default */ Parameters(@NonNull final DrawableFragmentCommons.ByApplication commonsByApplication,
             @Nullable final Text bottomDescription, @Nullable final Reimbursement reimbursement,
-            @Nullable final GenericDialogItem genericDialogItem, @Nullable final SwitchModel switchModel) {
+            @Nullable final SwitchModel switchModel) {
             this.commonsByApplication = commonsByApplication;
             this.bottomDescription = bottomDescription;
             this.reimbursement = reimbursement;
-            this.genericDialogItem = genericDialogItem;
             this.switchModel = switchModel;
         }
     }

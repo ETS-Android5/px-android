@@ -173,31 +173,51 @@ public final class Session extends ApplicationModule {
     }
 
     private void clear() {
-        getPaymentRepository().reset();
-        getExperimentsRepository().reset();
-        getConfigurationModule().reset();
-        getExperimentsRepository().reset();
-        getPayerPaymentMethodRepository().reset();
-        getPaymentMethodRepository().reset();
-        getModalRepository().reset();
-        getAmountConfigurationRepository().reset();
-        getDiscountRepository().reset();
+        if (paymentRepository != null) {
+            paymentRepository.reset();
+            paymentRepository = null;
+        }
+        if (experimentsRepository != null) {
+            experimentsRepository.reset();
+            experimentsRepository = null;
+        }
+        if (payerPaymentMethodRepository != null) {
+            payerPaymentMethodRepository.reset();
+            payerPaymentMethodRepository = null;
+        }
+        if (paymentMethodRepository != null) {
+            paymentMethodRepository.reset();
+            paymentMethodRepository = null;
+        }
+        if (modalRepository != null) {
+            modalRepository.reset();
+            modalRepository = null;
+        }
+        if (amountConfigurationRepository != null) {
+            amountConfigurationRepository.reset();
+            amountConfigurationRepository = null;
+        }
+        if (discountRepository != null) {
+            discountRepository.reset();
+            discountRepository = null;
+        }
+        if (configurationModule != null) {
+            configurationModule.reset();
+        }
+        if (oneTapItemRepository != null) {
+            oneTapItemRepository.reset();
+            oneTapItemRepository = null;
+        }
+
         useCaseModule = null;
         factoryModule = null;
         helperModule = null;
-        discountRepository = null;
         amountRepository = null;
         checkoutRepository = null;
-        paymentRepository = null;
-        amountConfigurationRepository = null;
         cardTokenRepository = null;
         congratsRepository = null;
         escPaymentManager = null;
         viewModelModule = null;
-        oneTapItemRepository = null;
-        payerPaymentMethodRepository = null;
-        paymentMethodRepository = null;
-        modalRepository = null;
         configurationSolver = null;
         cardHolderAuthenticatorRepository = null;
         customOptionIdSolver = null;
@@ -416,7 +436,10 @@ public final class Session extends ApplicationModule {
     @NonNull
     public MPTracker getTracker() {
         if (tracker == null) {
-            tracker = new MPTracker(configurationModule.getTrackingRepository());
+            tracker = new MPTracker(
+                configurationModule.getTrackingRepository(),
+                configurationModule.getPaymentSettings().getPaymentConfiguration()
+            );
         }
         return tracker;
     }

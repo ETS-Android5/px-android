@@ -34,8 +34,16 @@ public class PaymentMethodHeaderAdapter
             data.get(currentIndex);
         paymentMethodDescriptorModelByApplication.update(application);
         final PaymentMethodDescriptorView.Model currentModel = paymentMethodDescriptorModelByApplication.getCurrent();
-        view.setPaymentTypeAndSplitSelection(application.getPaymentMethod().getType(), splitSelectionState.userWantsToSplit());
-        view.updateData(currentModel.hasPayerCostList(), currentModel instanceof DisabledPaymentMethodDescriptorModel);
+        view.setPaymentTypeAndSplitSelection(
+            application.getPaymentMethod().getType(),
+            splitSelectionState.userWantsToSplit()
+        );
+
+        view.updateData(
+            currentModel.hasPayerCostList(),
+            currentModel instanceof DisabledPaymentMethodDescriptorModel,
+            currentModel.hasBehaviour()
+        );
     }
 
     @Override

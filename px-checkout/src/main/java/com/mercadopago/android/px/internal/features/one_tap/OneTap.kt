@@ -24,6 +24,7 @@ import com.mercadopago.android.px.model.DiscountConfigurationModel
 import com.mercadopago.android.px.model.StatusMetadata
 import com.mercadopago.android.px.model.internal.Application
 import com.mercadopago.android.px.model.internal.PaymentConfiguration
+import com.mercadopago.android.px.model.one_tap.CheckoutBehaviour
 
 internal interface OneTap {
     interface View : MvpView {
@@ -76,6 +77,7 @@ internal interface OneTap {
         fun onHeaderClicked()
         fun onOtherPaymentMethodClicked()
         fun handlePrePaymentAction(callback: ConfirmButton.OnReadyForProcessCallback)
+        fun handleBehaviour(@CheckoutBehaviour.Type behaviourType: String): Boolean
         fun handleGenericDialogAction(type: ActionType)
         fun onProcessExecuted(paymentConfiguration: PaymentConfiguration)
         fun handleDeepLink()

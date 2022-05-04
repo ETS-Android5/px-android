@@ -34,9 +34,10 @@ public class PaymentMethodHeaderViewV2 extends PaymentMethodHeaderView {
     }
 
     @Override
-    public void updateData(final boolean hasPayerCost, final boolean isDisabled) {
+    public void updateData(final boolean hasPayerCost, final boolean isDisabled, final boolean hasBehaviour) {
         this.isDisabled = isDisabled;
-        setHelperVisibility(isDisabled);
+        this.hasBehaviour = hasBehaviour;
+        setHelperVisibility(isDisabled || hasBehaviour);
         changeInstallmentsState(hasPayerCost);
         configureTitleVisibility(isDisabled, hasPayerCost);
     }
@@ -47,6 +48,8 @@ public class PaymentMethodHeaderViewV2 extends PaymentMethodHeaderView {
         setOnClickListener(v -> {
             if (isDisabled) {
                 listener.onDisabledDescriptorViewClick();
+            } else if (hasBehaviour) {
+                listener.onBehaviourDescriptorViewClick();
             }
         });
     }

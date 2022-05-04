@@ -8,6 +8,7 @@ import com.mercadopago.android.px.internal.datasource.mapper.FromPayerPaymentMet
 import com.mercadopago.android.px.internal.features.FeatureProviderImpl
 import com.mercadopago.android.px.internal.features.business_result.BusinessPaymentResultMapper
 import com.mercadopago.android.px.internal.features.checkout.PostPaymentUrlsMapper
+import com.mercadopago.android.px.internal.features.generic_modal.FromModalToGenericDialogItem
 import com.mercadopago.android.px.internal.features.payment_congrats.model.PaymentCongratsModelMapper
 import com.mercadopago.android.px.internal.features.payment_result.instruction.mapper.InstructionActionMapper
 import com.mercadopago.android.px.internal.features.payment_result.instruction.mapper.InstructionInfoMapper
@@ -20,12 +21,13 @@ import com.mercadopago.android.px.internal.features.payment_result.remedies.Alte
 import com.mercadopago.android.px.internal.features.payment_result.remedies.RemediesLinkableMapper
 import com.mercadopago.android.px.internal.features.security_code.RenderModeMapper
 import com.mercadopago.android.px.internal.features.security_code.mapper.BusinessSecurityCodeDisplayDataMapper
+import com.mercadopago.android.px.internal.mappers.ElementDescriptorMapper
 import com.mercadopago.android.px.internal.mappers.CardDrawerCustomViewModelMapper
 import com.mercadopago.android.px.internal.mappers.CardUiMapper
 import com.mercadopago.android.px.internal.mappers.CustomChargeToPaymentTypeChargeMapper
-import com.mercadopago.android.px.internal.mappers.ElementDescriptorMapper
 import com.mercadopago.android.px.internal.mappers.InitRequestBodyMapper
 import com.mercadopago.android.px.internal.mappers.OneTapItemToDisabledPaymentMethodMapper
+import com.mercadopago.android.px.internal.mappers.PaymentMethodBehaviourDMMapper
 import com.mercadopago.android.px.internal.mappers.PaymentMethodDescriptorMapper
 import com.mercadopago.android.px.internal.mappers.PaymentMethodMapper
 import com.mercadopago.android.px.internal.mappers.PaymentResultAmountMapper
@@ -46,7 +48,8 @@ internal object MapperProvider {
             CardUiMapper,
             CardDrawerCustomViewModelMapper,
             session.payerPaymentMethodRepository,
-            session.modalRepository
+            session.modalRepository,
+            fromModalToGenericDialogItemMapper
         )
     }
 
@@ -125,6 +128,7 @@ internal object MapperProvider {
         return InitRequestBodyMapper(
             session.mercadoPagoESC,
             featureProvider,
+            paymentMethodsBehaviourDMMapper,
             session.configurationModule.trackingRepository
         )
     }
@@ -138,9 +142,13 @@ internal object MapperProvider {
         return InitRequestBodyMapper(
             session.mercadoPagoESC,
             featureProvider,
+            paymentMethodsBehaviourDMMapper,
             session.configurationModule.trackingRepository
         )
     }
+
+    val paymentMethodsBehaviourDMMapper: PaymentMethodBehaviourDMMapper
+        get() = PaymentMethodBehaviourDMMapper()
 
     val oneTapItemToDisabledPaymentMethodMapper: OneTapItemToDisabledPaymentMethodMapper
         get() = OneTapItemToDisabledPaymentMethodMapper()
@@ -186,6 +194,9 @@ internal object MapperProvider {
 
     val paymentResultAmountMapper: PaymentResultAmountMapper
         get() = PaymentResultAmountMapper
+
+    val fromModalToGenericDialogItemMapper: FromModalToGenericDialogItem
+        get() = FromModalToGenericDialogItem()
 
     val paymentResultMethodMapper: PaymentResultMethodMapper
         get() = PaymentResultMethodMapper(Session.getInstance().applicationContext, paymentResultAmountMapper)

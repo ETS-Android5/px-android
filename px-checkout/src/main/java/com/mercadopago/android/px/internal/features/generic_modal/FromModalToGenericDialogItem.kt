@@ -4,16 +4,21 @@ import com.mercadopago.android.px.internal.viewmodel.TextLocalized
 import com.mercadopago.android.px.internal.mappers.Mapper
 import com.mercadopago.android.px.model.internal.Modal
 
-internal class FromModalToGenericDialogItem(
-    private val action: ActionType, private val dialogDescription: String) : Mapper<Modal, GenericDialogItem>() {
-
-    override fun map(value: Modal): GenericDialogItem {
+internal class FromModalToGenericDialogItem : Mapper<FromModalToGenericDialogItem.Params, GenericDialogItem>() {
+    override fun map(value: Params): GenericDialogItem {
+        val modal = value.modal
         return GenericDialogItem(
-            dialogDescription,
-            value.imageUrl,
-            TextLocalized(value.title, 0),
-            TextLocalized(value.description, 0),
-            value.mainButton.let { Actionable(it.label, it.target, action) },
-            value.secondaryButton?.let { Actionable(it.label, it.target, action) })
+            value.dialogDescription,
+            modal.imageUrl,
+            TextLocalized(modal.title, 0),
+            TextLocalized(modal.description, 0),
+            modal.mainButton.let { Actionable(it.label, it.target, value.action) },
+            modal.secondaryButton?.let { Actionable(it.label, it.target, value.action) })
     }
+
+    data class Params(
+        val action: ActionType,
+        val dialogDescription: String,
+        val modal: Modal
+    )
 }

@@ -10,6 +10,7 @@ import com.mercadopago.android.px.model.AmountConfiguration
 import com.mercadopago.android.px.model.PayerCost
 import com.mercadopago.android.px.model.PaymentTypes.*
 import com.mercadopago.android.px.model.internal.OneTapItem
+import com.mercadopago.android.px.model.one_tap.CheckoutBehaviour
 import com.mercadopago.android.px.internal.view.PaymentMethodDescriptorModelByApplication as Model
 
 internal class PaymentMethodDescriptorMapper(
@@ -29,15 +30,18 @@ internal class PaymentMethodDescriptorMapper(
                 val paymentTypeId = application.paymentMethod.type
                 val payerPaymentMethodKey = PayerPaymentMethodKey(customOptionIdByApplication, paymentTypeId)
 
-                model[application] = when {
+                val defaultBehaviour = value.getBehaviour(CheckoutBehaviour.Type.TAP_CARD)
+                val hasBehaviour = (application.behaviours[CheckoutBehaviour.Type.TAP_CARD] ?: defaultBehaviour) != null
+
+                val descriptorModel = when {
                     disabledPaymentMethodRepository.hasKey(payerPaymentMethodKey) ->
                         DisabledPaymentMethodDescriptorModel.createFrom(application.status.mainMessage)
                     isCreditCardPaymentType(paymentTypeId) || value.isConsumerCredits ->
-                        amountConfigurationRepository.getConfigurationFor(payerPaymentMethodKey)?.let {
+                        getAmountConfiguration(payerPaymentMethodKey)?.let {
                             mapCredit(value, it)
                         }
                     isCardPaymentType(paymentTypeId) ->
-                        amountConfigurationRepository.getConfigurationFor(payerPaymentMethodKey)?.let {
+                        getAmountConfiguration(payerPaymentMethodKey)?.let {
                             DebitCardDescriptorModel.createFrom(currency, it)
                         }
                     isAccountMoney(value.paymentMethodId) ->
@@ -54,8 +58,18 @@ internal class PaymentMethodDescriptorMapper(
                     }
                     else -> EmptyInstallmentsDescriptorModel.create()
                 } ?: EmptyInstallmentsDescriptorModel.create()
+
+                if (getAmountConfiguration(payerPaymentMethodKey)?.payerCosts.isNullOrEmpty()) {
+                    descriptorModel.setHasBehaviour(hasBehaviour)
+                }
+
+                model[application] = descriptorModel
             }
         }
+    }
+
+    private fun getAmountConfiguration(payerPaymentMethodKey: PayerPaymentMethodKey): AmountConfiguration? {
+        return amountConfigurationRepository.getConfigurationFor(payerPaymentMethodKey)
     }
 
     private fun mapCredit(oneTapItem: OneTapItem, amountConfiguration: AmountConfiguration)

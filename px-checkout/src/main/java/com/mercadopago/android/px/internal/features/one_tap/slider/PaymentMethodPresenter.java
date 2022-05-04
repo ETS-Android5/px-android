@@ -6,8 +6,10 @@ import com.mercadopago.android.px.internal.repository.AmountConfigurationReposit
 import com.mercadopago.android.px.internal.repository.PayerCostSelectionRepository;
 import com.mercadopago.android.px.internal.viewmodel.drawables.DrawableFragmentItem;
 import com.mercadopago.android.px.model.AmountConfiguration;
+import com.mercadopago.android.px.model.exceptions.MercadoPagoError;
 import com.mercadopago.android.px.tracking.internal.MPTracker;
 import com.mercadopago.android.px.tracking.internal.events.ComboSwitchEvent;
+import com.mercadopago.android.px.tracking.internal.events.FrictionEventTracker;
 import org.jetbrains.annotations.Nullable;
 
 class PaymentMethodPresenter extends BasePresenter<PaymentMethod.View> implements PaymentMethod.Action {
@@ -61,5 +63,15 @@ class PaymentMethodPresenter extends BasePresenter<PaymentMethod.View> implement
         onFocusOut();
         getView().updateView();
         getView().updateState();
+    }
+
+    @Override
+    public void onTrackActivityNotFoundFriction(@NonNull final MercadoPagoError error) {
+        track(FrictionEventTracker.with(
+            "${TrackWrapper.BASE_PATH}/post_payment_deep_link",
+            FrictionEventTracker.Id.INVALID_POST_PAYMENT_DEEP_LINK,
+            FrictionEventTracker.Style.SCREEN,
+            error
+        ));
     }
 }

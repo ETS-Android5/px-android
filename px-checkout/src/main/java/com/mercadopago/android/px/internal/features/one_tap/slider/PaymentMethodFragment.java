@@ -1,5 +1,6 @@
 package com.mercadopago.android.px.internal.features.one_tap.slider;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
@@ -19,14 +20,17 @@ import com.meli.android.carddrawer.model.Label;
 import com.meli.android.carddrawer.model.customview.CardDrawerSwitch;
 import com.meli.android.carddrawer.model.customview.SwitchModel;
 import com.mercadopago.android.px.R;
+import com.mercadopago.android.px.core.commons.extensions.StringExtKt;
 import com.mercadopago.android.px.internal.base.BasePagerFragment;
 import com.mercadopago.android.px.internal.di.Session;
 import com.mercadopago.android.px.internal.features.disable_payment_method.DisabledPaymentMethodDetailDialog;
 import com.mercadopago.android.px.internal.features.generic_modal.GenericDialog;
 import com.mercadopago.android.px.internal.features.generic_modal.GenericDialogAction;
 import com.mercadopago.android.px.internal.features.generic_modal.GenericDialogItem;
+import com.mercadopago.android.px.internal.util.MercadoPagoUtil;
 import com.mercadopago.android.px.internal.util.TextUtil;
 import com.mercadopago.android.px.internal.viewmodel.drawables.DrawableFragmentItem;
+import com.mercadopago.android.px.model.exceptions.MercadoPagoError;
 import com.mercadopago.android.px.model.internal.DisabledPaymentMethod;
 import com.mercadopago.android.px.model.internal.Text;
 
@@ -111,7 +115,8 @@ public abstract class PaymentMethodFragment<T extends DrawableFragmentItem>
     private void setBottomLabel() {
         if (!model.shouldHighlightBottomDescription()) {
             Text text = model.getBottomDescription();
-            Label label = new Label(text.getMessage(), text.getBackgroundColor(), text.getTextColor(), text.getWeight(), false);
+            Label label =
+                new Label(text.getMessage(), text.getBackgroundColor(), text.getTextColor(), text.getWeight(), false);
             cardDrawerView.setBottomLabel(label);
             cardDrawerView.showBottomLabel();
         }
@@ -294,7 +299,8 @@ public abstract class PaymentMethodFragment<T extends DrawableFragmentItem>
     }
 
     public void enable() {
-        final GenericDialogItem genericDialogItem = model.getGenericDialogItem();
+        final GenericDialogItem genericDialogItem = model.getCommonsByApplication().getCurrent().getGenericDialogItem();
+
         if (genericDialogItem != null) {
             card.setOnClickListener(v -> GenericDialog.showDialog(getChildFragmentManager(), genericDialogItem));
         } else {
@@ -304,7 +310,18 @@ public abstract class PaymentMethodFragment<T extends DrawableFragmentItem>
 
     @Override
     public void onAction(@NonNull final GenericDialogAction genericDialogAction) {
-        //Do nothing
+        if (genericDialogAction instanceof GenericDialogAction.DeepLinkAction) {
+            startDeepLink(((GenericDialogAction.DeepLinkAction) genericDialogAction).getDeepLink());
+        }
+    }
+
+    private void startDeepLink(@NonNull final String deepLink) {
+        try {
+            startActivity(MercadoPagoUtil.getIntent(deepLink));
+        } catch (@NonNull final ActivityNotFoundException e) {
+            final String errorMessage = StringExtKt.orIfEmpty(e.getLocalizedMessage(), StringExtKt.EMPTY);
+            presenter.onTrackActivityNotFoundFriction(MercadoPagoError.createNotRecoverable(errorMessage));
+        }
     }
 
     protected void tintBackground(@NonNull final ImageView background, @NonNull final String color) {

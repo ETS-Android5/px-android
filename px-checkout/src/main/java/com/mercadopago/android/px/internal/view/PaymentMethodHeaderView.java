@@ -17,6 +17,7 @@ public abstract class PaymentMethodHeaderView extends FrameLayout {
     /* default */ final ImageView helper;
     protected final TitlePager titlePager;
     protected boolean isDisabled;
+    protected boolean hasBehaviour;
     protected String paymentType;
     protected boolean splitSelection;
 
@@ -33,6 +34,8 @@ public abstract class PaymentMethodHeaderView extends FrameLayout {
     public interface Listener {
         void onDescriptorViewClicked();
 
+        void onBehaviourDescriptorViewClick();
+
         void onDisabledDescriptorViewClick();
 
         void onInstallmentsSelectorCancelClicked();
@@ -40,8 +43,9 @@ public abstract class PaymentMethodHeaderView extends FrameLayout {
         void onInstallmentViewUpdated();
     }
 
-    public void updateData(final boolean hasPayerCost, final boolean isDisabled) {
+    public void updateData(final boolean hasPayerCost, final boolean isDisabled, final boolean hasBehaviour) {
         this.isDisabled = isDisabled;
+        this.hasBehaviour = hasBehaviour;
     }
 
     public abstract void setListener(final Listener listener);
