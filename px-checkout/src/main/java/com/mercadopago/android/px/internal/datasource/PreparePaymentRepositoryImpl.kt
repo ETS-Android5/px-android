@@ -12,8 +12,6 @@ import com.mercadopago.android.px.internal.repository.PreparePaymentRepository
 import com.mercadopago.android.px.internal.repository.UserSelectionRepository
 import com.mercadopago.android.px.internal.services.PreparePaymentService
 import com.mercadopago.android.px.internal.util.ApiUtil
-import com.mercadopago.android.px.model.Card
-import com.mercadopago.android.px.model.PaymentMethod
 import com.mercadopago.android.px.model.Split
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError
 import com.mercadopago.android.px.model.internal.DiscountParamsConfigurationDM
@@ -21,7 +19,6 @@ import com.mercadopago.android.px.model.internal.payment_prepare.PaymentMethodDM
 import com.mercadopago.android.px.model.internal.payment_prepare.PreparePaymentBody
 import com.mercadopago.android.px.model.internal.payment_prepare.PreparePaymentResponse
 import com.mercadopago.android.px.preferences.CheckoutPreference
-import java.math.BigDecimal
 
 internal class PreparePaymentRepositoryImpl(
     private val paymentSettingRepository: PaymentSettingRepository,

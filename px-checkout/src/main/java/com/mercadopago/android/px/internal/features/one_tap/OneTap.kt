@@ -66,6 +66,7 @@ internal interface OneTap {
         fun onFreshStart()
         fun cancel()
         fun onBack()
+        fun reloadCheckout()
         fun loadViewModel()
         fun onInstallmentsRowPressed()
         fun updateInstallments()

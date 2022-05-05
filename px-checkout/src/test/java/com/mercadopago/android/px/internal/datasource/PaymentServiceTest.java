@@ -12,7 +12,6 @@ import com.mercadopago.android.px.core.internal.PaymentWrapper;
 import com.mercadopago.android.px.core.v2.PaymentProcessor;
 import com.mercadopago.android.px.internal.callbacks.PaymentServiceHandler;
 import com.mercadopago.android.px.internal.core.FileManager;
-import com.mercadopago.android.px.internal.domain.PreparePaymentUseCase;
 import com.mercadopago.android.px.internal.features.validation_program.ValidationProgramUseCase;
 import com.mercadopago.android.px.internal.model.SecurityType;
 import com.mercadopago.android.px.internal.repository.AmountConfigurationRepository;
@@ -210,7 +209,6 @@ public class PaymentServiceTest {
 
         savedCreditCardOneTapPresent(CARD_ID_ESC_NOT_AVAILABLE);
         when(paymentProcessor.shouldShowFragmentOnPayment(any(CheckoutPreference.class))).thenReturn(false);
-
 
         final PaymentConfiguration configuration = mockPaymentConfiguration(node, payerCost);
         paymentService.startExpressPayment();

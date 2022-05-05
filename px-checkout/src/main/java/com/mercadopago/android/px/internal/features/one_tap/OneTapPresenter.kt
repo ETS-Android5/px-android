@@ -450,7 +450,7 @@ internal class OneTapPresenter(
         val payerPaymentMethodId = customOptionIdSolver[getCurrentOneTapItem()]
         val paymentTypeId = applicationSelectionRepository[payerPaymentMethodId].paymentMethod.type
         return uiState === ConfirmButton.State.ENABLE && (getCurrentOneTapItem().isNewCard ||
-            getCurrentOneTapItem().isOfflineMethods || disabledPaymentMethodRepository.hasKey(
+                getCurrentOneTapItem().isOfflineMethods || disabledPaymentMethodRepository.hasKey(
             PayerPaymentMethodKey(payerPaymentMethodId, paymentTypeId)
         ))
     }
@@ -462,7 +462,7 @@ internal class OneTapPresenter(
         loadViewModel()
     }
 
-    fun reloadCheckout() {
+    override fun reloadCheckout() {
         disabledPaymentMethodRepository.reset()
         if (isViewAttached) {
             view.showLoading()

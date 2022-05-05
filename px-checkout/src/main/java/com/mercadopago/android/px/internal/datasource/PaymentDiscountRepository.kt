@@ -1,8 +1,5 @@
 package com.mercadopago.android.px.internal.datasource
 
-import com.mercadopago.android.px.internal.repository.PayerPaymentMethodKey
-import com.mercadopago.android.px.internal.repository.PaymentDiscountRepositoryImpl
-import com.mercadopago.android.px.internal.repository.PaymentDiscountRepositoryImpl.*
 import com.mercadopago.android.px.model.Discount
 
 /**

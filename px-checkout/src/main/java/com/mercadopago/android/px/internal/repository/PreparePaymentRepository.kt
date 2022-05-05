@@ -5,5 +5,5 @@ import com.mercadopago.android.px.model.exceptions.MercadoPagoError
 import com.mercadopago.android.px.model.internal.payment_prepare.PreparePaymentResponse
 
 internal interface PreparePaymentRepository {
-    suspend fun prepare() : Response<PreparePaymentResponse, MercadoPagoError>
+    suspend fun prepare(): Response<PreparePaymentResponse, MercadoPagoError>
 }
