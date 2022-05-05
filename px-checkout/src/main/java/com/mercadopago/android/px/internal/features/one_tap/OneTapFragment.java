@@ -34,7 +34,6 @@ import com.mercadopago.android.px.core.DynamicDialogCreator;
 import com.mercadopago.android.px.databinding.PxFragmentOneTapPaymentBinding;
 import com.mercadopago.android.px.internal.base.BaseFragment;
 import com.mercadopago.android.px.internal.di.CheckoutConfigurationModule;
-import com.mercadopago.android.px.internal.di.FactoryProvider;
 import com.mercadopago.android.px.internal.di.MapperProvider;
 import com.mercadopago.android.px.internal.di.Session;
 import com.mercadopago.android.px.internal.experiments.ScrolledVariant;
@@ -83,6 +82,7 @@ import com.mercadopago.android.px.internal.view.DiscountDetailDialog;
 import com.mercadopago.android.px.internal.view.ElementDescriptorView;
 import com.mercadopago.android.px.internal.view.LinkableTextView;
 import com.mercadopago.android.px.internal.view.PaymentMethodHeaderView;
+import com.mercadopago.android.px.internal.view.SummaryView;
 import com.mercadopago.android.px.internal.view.TitlePager;
 import com.mercadopago.android.px.internal.view.animator.OneTapTransition;
 import com.mercadopago.android.px.internal.view.experiments.ExperimentHelper;
@@ -453,35 +453,37 @@ public class OneTapFragment extends BaseFragment implements OneTap.View,
         final Session session = Session.getInstance();
         final CheckoutConfigurationModule configurationModule = session.getConfigurationModule();
         return new OneTapPresenter(configurationModule.getPaymentSettings(),
-            configurationModule.getDisabledPaymentMethodRepository(),
-            configurationModule.getPayerCostSelectionRepository(),
-            configurationModule.getApplicationSelectionRepository(),
-            session.getDiscountRepository(),
-            session.getAmountRepository(),
-            session.getUseCaseModule().getCheckoutUseCase(),
-            session.getUseCaseModule().getCheckoutWithNewCardUseCase(),
-            session.getAmountConfigurationRepository(),
-            session.getConfigurationModule().getChargeRepository(),
-            session.getMercadoPagoESC(),
-            session.getExperimentsRepository(),
-            configurationModule.getTrackingRepository(), configurationModule.getCustomTextsRepository(),
-            session.getOneTapItemRepository(), session.getPayerPaymentMethodRepository(), session.getModalRepository(),
-            session.getCustomOptionIdSolver(),
-            MapperProvider.INSTANCE.getPaymentMethodDrawableItemMapper(),
-            MapperProvider.INSTANCE.getPaymentMethodDescriptorMapper(),
-            MapperProvider.INSTANCE.getSummaryDetailDescriptorMapper(),
-            MapperProvider.INSTANCE.getSummaryInfoMapper(),
-            MapperProvider.INSTANCE.getElementDescriptorMapper(),
-            MapperProvider.INSTANCE.getFromApplicationToApplicationInfo(),
-            configurationModule.getAuthorizationProvider(),
-            FactoryProvider.INSTANCE.getAmountDescriptorViewModelFactory(),
-            session.getUseCaseModule().getTokenizeWithEscUseCase(),
-            MapperProvider.INSTANCE.getPaymentConfigurationMapper(),
-            configurationModule.getFlowConfigurationProvider(),
-            Session.getInstance().getHelperModule().getBankInfoHelper(),
-            MapperProvider.INSTANCE.getFromModalToGenericDialogItemMapper(),
-            session.getTracker()
+                configurationModule.getDisabledPaymentMethodRepository(),
+                configurationModule.getPayerCostSelectionRepository(),
+                configurationModule.getApplicationSelectionRepository(),
+                session.getDiscountRepository(),
+                session.getUseCaseModule().getCheckoutUseCase(),
+                session.getUseCaseModule().getCheckoutWithNewCardUseCase(),
+                session.getAmountConfigurationRepository(),
+                session.getMercadoPagoESC(),
+                session.getExperimentsRepository(),
+                configurationModule.getTrackingRepository(),
+                session.getOneTapItemRepository(), session.getPayerPaymentMethodRepository(), session.getModalRepository(),
+                session.getCustomOptionIdSolver(),
+                MapperProvider.INSTANCE.getPaymentMethodDrawableItemMapper(),
+                MapperProvider.INSTANCE.getPaymentMethodDescriptorMapper(),
+                MapperProvider.INSTANCE.getSummaryInfoMapper(),
+                MapperProvider.INSTANCE.getElementDescriptorMapper(),
+                MapperProvider.INSTANCE.getFromApplicationToApplicationInfo(),
+                configurationModule.getAuthorizationProvider(),
+                session.getUseCaseModule().getTokenizeWithEscUseCase(),
+                MapperProvider.INSTANCE.getPaymentConfigurationMapper(),
+                configurationModule.getFlowConfigurationProvider(),
+                Session.getInstance().getHelperModule().getBankInfoHelper(),
+                MapperProvider.INSTANCE.getFromModalToGenericDialogItemMapper(),
+                MapperProvider.INSTANCE.getSummaryViewModelMapper(),
+                session.getTracker()
         );
+    }
+
+    @Override
+    public void updateTotalValue(@NonNull final SummaryView.Model model) {
+        binding.summaryView.updateTotalValue(model);
     }
 
     @Override

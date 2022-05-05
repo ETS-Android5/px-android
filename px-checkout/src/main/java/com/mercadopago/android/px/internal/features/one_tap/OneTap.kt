@@ -16,6 +16,7 @@ import com.mercadopago.android.px.model.exceptions.MercadoPagoError
 import com.mercadopago.android.px.internal.features.generic_modal.ActionType
 import com.mercadopago.android.px.internal.features.one_tap.confirm_button.ConfirmButton
 import com.mercadopago.android.px.internal.viewmodel.PostPaymentAction
+import com.mercadopago.android.px.internal.view.SummaryView
 import com.mercadopago.android.px.internal.viewmodel.FlowConfigurationModel
 import com.mercadopago.android.px.internal.features.pay_button.PaymentState
 import com.mercadopago.android.px.model.Currency
@@ -41,6 +42,7 @@ internal interface OneTap {
             splitSelectionState: SplitSelectionState,
             application: Application
         )
+        fun updateTotalValue(model: SummaryView.Model)
         fun updateInstallmentsList(selectedIndex: Int, models: List<InstallmentRowHolder.Model?>)
         fun animateInstallmentsList()
         fun showHorizontalElementDescriptor(elementDescriptorModel: ElementDescriptorView.Model)

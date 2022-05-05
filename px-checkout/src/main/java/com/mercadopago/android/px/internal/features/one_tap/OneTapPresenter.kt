@@ -19,7 +19,6 @@ import com.mercadopago.android.px.internal.experiments.KnownExperiment
 import com.mercadopago.android.px.internal.experiments.KnownVariant
 import com.mercadopago.android.px.internal.experiments.ScrolledVariant
 import com.mercadopago.android.px.internal.experiments.VariantHandler
-import com.mercadopago.android.px.internal.features.AmountDescriptorViewModelFactory
 import com.mercadopago.android.px.internal.features.generic_modal.ActionType
 import com.mercadopago.android.px.internal.features.generic_modal.ActionTypeWrapper
 import com.mercadopago.android.px.internal.features.generic_modal.FromModalToGenericDialogItem
@@ -28,17 +27,16 @@ import com.mercadopago.android.px.internal.features.one_tap.offline_methods.Offl
 import com.mercadopago.android.px.internal.features.one_tap.slider.HubAdapter
 import com.mercadopago.android.px.internal.features.pay_button.PaymentState
 import com.mercadopago.android.px.internal.mappers.ConfirmButtonViewModelMapper
+import com.mercadopago.android.px.internal.mappers.CustomTotal
 import com.mercadopago.android.px.internal.mappers.ElementDescriptorMapper
 import com.mercadopago.android.px.internal.mappers.InstallmentViewModelMapper
 import com.mercadopago.android.px.internal.mappers.PaymentMethodDescriptorMapper
 import com.mercadopago.android.px.internal.mappers.SplitHeaderMapper
 import com.mercadopago.android.px.internal.mappers.SummaryInfoMapper
+import com.mercadopago.android.px.internal.mappers.SummaryModelMapper
 import com.mercadopago.android.px.internal.mappers.SummaryViewModelMapper
 import com.mercadopago.android.px.internal.repository.AmountConfigurationRepository
-import com.mercadopago.android.px.internal.repository.AmountRepository
 import com.mercadopago.android.px.internal.repository.ApplicationSelectionRepository
-import com.mercadopago.android.px.internal.repository.ChargeRepository
-import com.mercadopago.android.px.internal.repository.CustomTextsRepository
 import com.mercadopago.android.px.internal.repository.DisabledPaymentMethodRepository
 import com.mercadopago.android.px.internal.repository.DiscountRepository
 import com.mercadopago.android.px.internal.repository.ExperimentsRepository
@@ -53,7 +51,6 @@ import com.mercadopago.android.px.internal.util.ApiUtil
 import com.mercadopago.android.px.internal.util.CardFormWrapper
 import com.mercadopago.android.px.internal.util.TextUtil
 import com.mercadopago.android.px.internal.view.AmountDescriptorView
-import com.mercadopago.android.px.internal.view.SummaryDetailDescriptorMapper
 import com.mercadopago.android.px.internal.view.experiments.ExperimentHelper
 import com.mercadopago.android.px.internal.view.experiments.ExperimentHelper.getVariantFrom
 import com.mercadopago.android.px.internal.viewmodel.PostPaymentAction
@@ -88,33 +85,29 @@ internal class OneTapPresenter(
     private val disabledPaymentMethodRepository: DisabledPaymentMethodRepository,
     private val payerCostSelectionRepository: PayerCostSelectionRepository,
     private val applicationSelectionRepository: ApplicationSelectionRepository,
-    private val discountRepository: DiscountRepository,
-    private val amountRepository: AmountRepository,
+    discountRepository: DiscountRepository,
     private val checkoutUseCase: CheckoutUseCase,
     private val checkoutWithNewCardUseCase: CheckoutWithNewCardUseCase,
     private val amountConfigurationRepository: AmountConfigurationRepository,
-    private val chargeRepository: ChargeRepository,
     private val escManagerBehaviour: ESCManagerBehaviour,
     private val experimentsRepository: ExperimentsRepository,
     private val trackingRepository: TrackingRepository,
-    private val customTextsRepository: CustomTextsRepository,
     private val oneTapItemRepository: OneTapItemRepository,
     payerPaymentMethodRepository: PayerPaymentMethodRepository,
     private val modalRepository: ModalRepository,
     private val customOptionIdSolver: CustomOptionIdSolver,
     private val paymentMethodDrawableItemMapper: PaymentMethodDrawableItemMapper,
     private val paymentMethodDescriptorMapper: PaymentMethodDescriptorMapper,
-    private val summaryDetailDescriptorMapper: SummaryDetailDescriptorMapper,
     private val summaryInfoMapper: SummaryInfoMapper,
     private val elementDescriptorMapper: ElementDescriptorMapper,
     private val fromApplicationToApplicationInfo: FromApplicationToApplicationInfo,
     private val authorizationProvider: AuthorizationProvider,
-    private val amountDescriptorViewModelFactory: AmountDescriptorViewModelFactory,
     private val tokenizeUseCase: TokenizeWithEscUseCase,
     private val paymentConfigurationMapper: PaymentConfigurationMapper,
     private val flowConfigurationProvider: FlowConfigurationProvider,
     private val bankInfoHelper: BankInfoHelper,
     private val fromModalToGenericDialogItemMapper: FromModalToGenericDialogItem,
+    private val summaryViewModelMapper: SummaryViewModelMapper,
     tracker: MPTracker
 ) : BasePresenterWithState<OneTap.View, OneTapState>(tracker), OneTap.Presenter, AmountDescriptorView.OnClickListener {
 
@@ -145,10 +138,9 @@ internal class OneTapPresenter(
         val summaryInfo = summaryInfoMapper.map(paymentSettingRepository.checkoutPreference!!)
         val elementDescriptorModel = elementDescriptorMapper.map(summaryInfo)
         val oneTapItemList = oneTapItemRepository.value
-        val summaryModels: List<SummaryModel> = SummaryViewModelMapper(
-            discountRepository, amountRepository, elementDescriptorModel, this,
-            chargeRepository, amountConfigurationRepository, customTextsRepository, summaryDetailDescriptorMapper,
-            applicationSelectionRepository, amountDescriptorViewModelFactory
+        summaryViewModelMapper.setAmountDescriptorListener(this)
+        val summaryModels: List<SummaryModel> = SummaryModelMapper(
+            amountConfigurationRepository, applicationSelectionRepository, summaryViewModelMapper
         ).map(oneTapItemList)
         val paymentModels = paymentMethodDescriptorMapper.map(oneTapItemList)
         val splitHeaderModels = SplitHeaderMapper(
@@ -266,6 +258,7 @@ internal class OneTapPresenter(
         state.paymentMethodIndex = paymentMethodIndex
         track(SwipeOneTapEventTracker())
         updateElementPosition(payerCostSelectionRepository[customOptionIdSolver[getCurrentOneTapItem()]])
+        updateTotalValue()
     }
 
     private fun updateElements() {
@@ -296,6 +289,7 @@ internal class OneTapPresenter(
                 }
             }
         })
+        updateTotalValue()
     }
 
     fun onDisabledDescriptorViewClick() {
@@ -325,9 +319,32 @@ internal class OneTapPresenter(
             resetPayerCostSelection()
         }
         state.splitSelectionState.setUserWantsToSplit(isChecked)
+        updateTotalValue()
         // cancel also update the position.
         // it is used because the installment selection can be expanded by the user.
         onInstallmentSelectionCanceled()
+    }
+
+    private fun updateTotalValue() {
+        val customOptionId = customOptionIdSolver[getCurrentOneTapItem()]
+        val isSplitChecked = state.splitSelectionState.userWantsToSplit()
+        val amountConfiguration = amountConfigurationRepository.getConfigurationSelectedFor(customOptionId)
+        val application = applicationSelectionRepository[customOptionId]
+        val paymentTypeId = application.paymentMethod.type
+        val selectedPayerCostIndex = amountConfiguration?.getCurrentPayerCostIndex(
+            isSplitChecked,
+            payerCostSelectionRepository[customOptionId]
+        )
+        val model = summaryViewModelMapper.map(
+            CustomTotal(
+                customOptionId = customOptionId,
+                paymentTypeId = paymentTypeId,
+                amountConfiguration = amountConfiguration,
+                isSplitChecked = isSplitChecked,
+                selectedPayerCostIndex = selectedPayerCostIndex
+            )
+        )
+        view.updateTotalValue(model)
     }
 
     override fun onHeaderClicked() {
@@ -498,6 +515,7 @@ internal class OneTapPresenter(
                 updateElements()
             }
         }
+        updateTotalValue()
     }
 
     private fun getVariants() = ExperimentHelper.getVariantsFrom(

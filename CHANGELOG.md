@@ -4,6 +4,7 @@ _XX_05_2022
 * FEATURE - Custom behavior to support custom texts in payment methods.
 * FEATURE - Rules configuration is supported to apply in the means of payment.
 * ENHANCEMENT - New checkout type on tracker added
+* ENHANCEMENT - Update Total value when user selects an installment or split payment or both.
 
 ## VERSION 4.113.0
 _28_04_2022_

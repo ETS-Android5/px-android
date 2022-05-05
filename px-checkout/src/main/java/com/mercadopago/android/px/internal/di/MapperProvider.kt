@@ -33,6 +33,7 @@ import com.mercadopago.android.px.internal.mappers.PaymentMethodMapper
 import com.mercadopago.android.px.internal.mappers.PaymentResultAmountMapper
 import com.mercadopago.android.px.internal.mappers.PaymentResultMethodMapper
 import com.mercadopago.android.px.internal.mappers.SummaryInfoMapper
+import com.mercadopago.android.px.internal.mappers.SummaryViewModelMapper
 import com.mercadopago.android.px.internal.view.SummaryDetailDescriptorMapper
 import com.mercadopago.android.px.internal.viewmodel.drawables.PaymentMethodDrawableItemMapper
 import com.mercadopago.android.px.model.internal.PaymentConfigurationMapper
@@ -225,6 +226,25 @@ internal object MapperProvider {
                 configurationModule.payerCostSelectionRepository,
                 configurationModule.applicationSelectionRepository,
                 session.customOptionIdSolver
+            )
+        }
+
+    val summaryViewModelMapper: SummaryViewModelMapper
+        get() {
+            val session = Session.getInstance()
+            val summaryInfo =
+                getSummaryInfoMapper().map(session.configurationModule.paymentSettings.checkoutPreference!!)
+            val elementDescriptorModel = getElementDescriptorMapper().map(summaryInfo)
+            val configurationModule = session.configurationModule
+            return SummaryViewModelMapper(
+                session.amountRepository,
+                configurationModule.chargeRepository,
+                session.discountRepository,
+                elementDescriptorModel,
+                session.amountConfigurationRepository,
+                FactoryProvider.amountDescriptorViewModelFactory,
+                configurationModule.customTextsRepository,
+                getSummaryDetailDescriptorMapper()
             )
         }
 
