@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:clipChildren="false">
-
-    <include layout="@layout/px_other_payment_method_small_low_res" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>

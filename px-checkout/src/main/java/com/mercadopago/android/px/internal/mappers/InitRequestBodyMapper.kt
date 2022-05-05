@@ -27,18 +27,20 @@ internal class InitRequestBodyMapper (
             checkout.advancedConfiguration,
             checkout.preferenceId,
             checkout.checkoutPreference,
+            null,
             null
         )
     }
 
-    fun map(paymentSettingRepository: PaymentSettingRepository, cardId: String?): InitRequestBody {
+    fun map(paymentSettingRepository: PaymentSettingRepository, cardId: String?, bankAccountId: String?): InitRequestBody {
         return map(
             paymentSettingRepository.publicKey,
             paymentSettingRepository.paymentConfiguration,
             paymentSettingRepository.advancedConfiguration,
             paymentSettingRepository.checkoutPreferenceId,
             paymentSettingRepository.checkoutPreference,
-            cardId
+            cardId,
+            bankAccountId
         )
     }
 
@@ -48,7 +50,8 @@ internal class InitRequestBodyMapper (
         advancedConfiguration : AdvancedConfiguration,
         checkoutPreferenceId: String?,
         checkoutPreference: CheckoutPreference?,
-        cardId: String?
+        cardId: String?,
+        bankAccountId: String?
     ): InitRequestBody {
         val features = featureProvider.availableFeatures
         val paymentMethodBehaviours = paymentMethodBehaviourMapper.map(advancedConfiguration.paymentMethodBehaviours)
@@ -71,7 +74,8 @@ internal class InitRequestBodyMapper (
             CheckoutFeaturesDM(
                 features.express, features.split, features.odrFlag, features.comboCard, features.hybridCard,
                 features.pix, features.customTaxesCharges, features.cardsCustomTaxesCharges, features.taxableCharges,
-                features.styleVersion, features.threedsSdkVersion, features.validationPrograms, features.debin
+                features.styleVersion, features.threedsSdkVersion, features.validationPrograms, features.debin,
+                features.newPaymentMethodVersion
             ),
             paymentMethodBehaviours,
             paymentConfiguration.getCheckoutType(),
@@ -79,6 +83,7 @@ internal class InitRequestBodyMapper (
             checkoutPreference,
             trackingRepository.flowId,
             cardId,
+            bankAccountId,
             advancedConfiguration.paymentMethodRuleSet
         )
     }

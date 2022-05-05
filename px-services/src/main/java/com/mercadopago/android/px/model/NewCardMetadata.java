@@ -14,6 +14,8 @@ public final class NewCardMetadata implements Parcelable, Serializable {
     private final Text description;
     private final String version;
     private final CardFormInitType cardFormInitType;
+    @Nullable private final String deeplink;
+    @Nullable private final GenericCardDisplayInfo genericCardDisplayInfo;
 
     @Nullable
     private final ArrayList<CardFormOption> sheetOptions;
@@ -47,6 +49,16 @@ public final class NewCardMetadata implements Parcelable, Serializable {
     }
 
     @Nullable
+    public String getDeepLink() {
+        return deeplink;
+    }
+
+    @Nullable
+    public GenericCardDisplayInfo getGenericCardDisplayInfo() {
+        return genericCardDisplayInfo;
+    }
+
+    @Nullable
     public ArrayList<CardFormOption> getSheetOptions() {
         return sheetOptions;
     }
@@ -57,6 +69,8 @@ public final class NewCardMetadata implements Parcelable, Serializable {
         version = in.readString();
         cardFormInitType = CardFormInitType.valueOf(in.readString());
         sheetOptions = in.readArrayList(CardFormOption.class.getClassLoader());
+        deeplink = in.readString();
+        genericCardDisplayInfo =  in.readParcelable(GenericCardDisplayInfo.class.getClassLoader());
     }
 
     @Override
@@ -66,6 +80,8 @@ public final class NewCardMetadata implements Parcelable, Serializable {
         dest.writeString(version);
         dest.writeString(cardFormInitType != null ? cardFormInitType.name() : CardFormInitType.STANDARD.name());
         dest.writeList(sheetOptions);
+        dest.writeString(deeplink);
+        dest.writeParcelable(genericCardDisplayInfo, flags);
     }
 
     @Override

@@ -93,9 +93,9 @@ import com.mercadopago.android.px.internal.viewmodel.SplitSelectionState;
 import com.mercadopago.android.px.internal.viewmodel.drawables.DrawableFragmentItem;
 import com.mercadopago.android.px.model.Currency;
 import com.mercadopago.android.px.model.DiscountConfigurationModel;
+import com.mercadopago.android.px.model.TermsAndConditionsLinks;
 import com.mercadopago.android.px.model.PayerCost;
 import com.mercadopago.android.px.model.StatusMetadata;
-import com.mercadopago.android.px.model.TermsAndConditionsLinks;
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError;
 import com.mercadopago.android.px.model.internal.Application;
 import com.mercadopago.android.px.model.internal.DisabledPaymentMethod;
@@ -119,9 +119,9 @@ public class OneTapFragment extends BaseFragment implements OneTap.View,
     private static final String TAG = OneTapFragment.class.getSimpleName();
     private static final String TAG_HEADER_DYNAMIC_DIALOG = "TAG_HEADER_DYNAMIC_DIALOG";
     private static final String EXTRA_VARIANT = "EXTRA_VARIANT";
-    private static final String EXTRA_FROM_DEEPLINK = "FROM_DEEPLINK";
     private static final String EXTRA_RENDER_MODE = "render_mode";
     private static final String EXTRA_NAVIGATION_STATE = "navigation_state";
+    private static final String EXTRA_URI = "EXTRA_URI";
 
     private static final int REQ_CODE_DISABLE_DIALOG = 105;
     public static final int REQ_CARD_FORM_WEB_VIEW = 953;
@@ -155,11 +155,11 @@ public class OneTapFragment extends BaseFragment implements OneTap.View,
 
     private PxFragmentOneTapPaymentBinding binding;
 
-    public static Fragment getInstance(@NonNull final Variant variant, final boolean fromDeeplink) {
+    public static Fragment getInstance(@NonNull final Variant variant, @Nullable final Uri uri) {
         final OneTapFragment oneTapFragment = new OneTapFragment();
         final Bundle bundle = new Bundle();
         bundle.putParcelable(EXTRA_VARIANT, variant);
-        bundle.putBoolean(EXTRA_FROM_DEEPLINK, fromDeeplink);
+        bundle.putParcelable(EXTRA_URI, uri);
         oneTapFragment.setArguments(bundle);
         return oneTapFragment;
     }
@@ -299,6 +299,8 @@ public class OneTapFragment extends BaseFragment implements OneTap.View,
             paymentMethodHeaderView, indicator, binding.splitPaymentView, binding.oneTapContainer);
 
         presenter = createPresenter();
+        presenter.attachView(this);
+
         if (savedInstanceState != null) {
             renderMode = (RenderMode) savedInstanceState.getSerializable(EXTRA_RENDER_MODE);
             navigationState =
@@ -306,12 +308,8 @@ public class OneTapFragment extends BaseFragment implements OneTap.View,
             presenter.restoreState(savedInstanceState.getParcelable(BUNDLE_STATE));
         } else {
             presenter.onFreshStart();
-            if (getArguments() != null && getArguments().getBoolean(EXTRA_FROM_DEEPLINK)) {
-                onDeepLinkReceived();
-            }
+            resolveDeepLink();
         }
-
-        presenter.attachView(this);
 
         binding.summaryView.setOnLogoClickListener(v -> presenter.onHeaderClicked());
 
@@ -348,6 +346,13 @@ public class OneTapFragment extends BaseFragment implements OneTap.View,
             }
         };
         getActivity().getSupportFragmentManager().registerFragmentLifecycleCallbacks(fragmentLifecycleCallbacks, false);
+    }
+
+    private void resolveDeepLink() {
+        final Bundle arguments = getArguments();
+        if (arguments != null && arguments.getParcelable(EXTRA_URI) != null) {
+            onDeepLinkReceived(arguments.getParcelable(EXTRA_URI));
+        }
     }
 
     @Override
@@ -477,6 +482,8 @@ public class OneTapFragment extends BaseFragment implements OneTap.View,
                 Session.getInstance().getHelperModule().getBankInfoHelper(),
                 MapperProvider.INSTANCE.getFromModalToGenericDialogItemMapper(),
                 MapperProvider.INSTANCE.getSummaryViewModelMapper(),
+                MapperProvider.INSTANCE.getUriToFromMapper(),
+                session.getUseCaseModule().getCheckoutWithNewBankAccountCardUseCase(),
                 session.getTracker()
         );
     }
@@ -677,7 +684,7 @@ public class OneTapFragment extends BaseFragment implements OneTap.View,
 
     public void handleCardFormResult(final int resultCode) {
         if (resultCode == RESULT_OK) {
-            presenter.onCardFormResult();
+            presenter.onCardAddedResult();
         }
     }
 
@@ -688,7 +695,7 @@ public class OneTapFragment extends BaseFragment implements OneTap.View,
             presenter.onCardAdded(cardId, new LifecycleListener.Callback() {
                 @Override
                 public void onSuccess() {
-                    presenter.onCardFormResult();
+                    presenter.onCardAddedResult();
                     hideLoading();
                 }
 
@@ -801,8 +808,8 @@ public class OneTapFragment extends BaseFragment implements OneTap.View,
     }
 
     @Override
-    public void onDeepLinkReceived() {
-        presenter.handleDeepLink();
+    public void onDeepLinkReceived(@NonNull final Uri uri) {
+        presenter.resolveDeepLink(uri);
     }
 
     @Override

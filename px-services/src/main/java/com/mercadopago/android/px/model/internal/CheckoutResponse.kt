@@ -23,5 +23,6 @@ data class CheckoutResponse(
     val customCharges: Map<String, CustomChargeDM>? = null, // Maps payment type id to charges
     val preference: CheckoutPreference? = null,
     val experiments: List<Experiment>? = null,
-    val payerCompliance: PayerCompliance? = null
+    val payerCompliance: PayerCompliance? = null,
+    val retry: Retry? = null
 )

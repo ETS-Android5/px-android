@@ -23,10 +23,6 @@ public class OtherPaymentMethodLowResFragment extends OtherPaymentMethodFragment
     @Override
     public View onCreateView(@NonNull final LayoutInflater inflater, @Nullable final ViewGroup container,
         @Nullable final Bundle savedInstanceState) {
-        final boolean smallMode = model.getNewCardMetadata() != null && model.getOfflineMethodsMetadata() != null;
-
-        return smallMode ? inflater.inflate(R.layout.px_fragment_other_payment_method_small_low_res, container, false) :
-            inflater.inflate(R.layout.px_fragment_other_payment_method_large_low_res, container, false);
+        return inflater.inflate(R.layout.px_fragment_other_payment_method_large_low_res, container, false);
     }
-
 }

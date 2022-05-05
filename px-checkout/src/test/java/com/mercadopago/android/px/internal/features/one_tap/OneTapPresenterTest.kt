@@ -11,11 +11,13 @@ import com.mercadopago.android.px.internal.callbacks.Response
 import com.mercadopago.android.px.internal.core.AuthorizationProvider
 import com.mercadopago.android.px.internal.datasource.CustomOptionIdSolver
 import com.mercadopago.android.px.internal.domain.CheckoutUseCase
+import com.mercadopago.android.px.internal.domain.CheckoutWithNewBankAccountCardUseCase
 import com.mercadopago.android.px.internal.domain.CheckoutWithNewCardUseCase
 import com.mercadopago.android.px.internal.features.generic_modal.FromModalToGenericDialogItem
 import com.mercadopago.android.px.internal.features.pay_button.PayButtonFragment
 import com.mercadopago.android.px.internal.mappers.ElementDescriptorMapper
 import com.mercadopago.android.px.internal.mappers.SummaryInfoMapper
+import com.mercadopago.android.px.internal.mappers.UriToFromMapper
 import com.mercadopago.android.px.internal.repository.AmountConfigurationRepository
 import com.mercadopago.android.px.internal.repository.ApplicationSelectionRepository
 import com.mercadopago.android.px.internal.repository.CheckoutRepository
@@ -127,6 +129,8 @@ class OneTapPresenterTest {
     private val flowConfigurationProvider = mockk<FlowConfigurationProvider>()
     private val bankInfoHelper = mockk<BankInfoHelper>()
     private val flowConfigurationModel = mockk<FlowConfigurationModel>()
+    private val uriToFromMapper = mockk<UriToFromMapper>()
+    private val checkoutWithNewBankAccountCardUseCase = mockk<CheckoutWithNewBankAccountCardUseCase>()
 
     private lateinit var checkoutUseCase: CheckoutUseCase
     private lateinit var checkoutWithNewCardUseCase: CheckoutWithNewCardUseCase
@@ -201,6 +205,8 @@ class OneTapPresenterTest {
             bankInfoHelper,
             fromModalToGenericDialogItem,
             mockk(relaxed = true),
+            uriToFromMapper,
+            checkoutWithNewBankAccountCardUseCase,
             tracker
         )
         verifyAttachView()

@@ -16,6 +16,7 @@ data class InitRequestBody(
     val preference: CheckoutPreference?,
     val flow: String?,
     val newCardId: String?,
+    val newBankAccountId: String?,
     @SerializedName("payment_methods_rulesets")
     val paymentMethodRuleSet: List<String>
 )

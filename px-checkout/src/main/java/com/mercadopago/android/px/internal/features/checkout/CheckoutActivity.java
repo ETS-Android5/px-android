@@ -51,7 +51,6 @@ public class CheckoutActivity extends PXActivity<CheckoutPresenter>
     @Nullable private String privateKey;
     private Intent customDataBundle;
     private View progress;
-    private boolean fromDeeplink;
 
     public static Intent getIntent(@NonNull final Context context, final boolean withPrefetch) {
         return new Intent(context, CheckoutActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -76,7 +75,7 @@ public class CheckoutActivity extends PXActivity<CheckoutPresenter>
     protected void onNewIntent(final Intent intent) {
         //The only way of reaching onNewIntent should be through mercadopago://px/one_tap deeplink
         super.onNewIntent(intent);
-        fromDeeplink = true;
+        setIntent(intent);
         final FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
         FragmentUtil.tryRemoveNow(fragmentManager, TAG_ONETAP_FRAGMENT);
@@ -176,7 +175,7 @@ public class CheckoutActivity extends PXActivity<CheckoutPresenter>
             session.getExperimentsRepository(),
             MapperProvider.INSTANCE.getPostPaymentUrlsMapper(),
             session.getTracker(),
-            getIntent().getBooleanExtra(ARGS_WITH_PREFETCH, false)
+            getIntent().getBooleanExtra(ARGS_WITH_PREFETCH, false) || getIntent().getData() != null
         );
     }
 
@@ -186,7 +185,7 @@ public class CheckoutActivity extends PXActivity<CheckoutPresenter>
         if (fragmentManager.findFragmentByTag(TAG_ONETAP_FRAGMENT) == null) {
             fragmentManager.beginTransaction()
                 .setCustomAnimations(R.anim.px_slide_right_to_left_in, R.anim.px_slide_right_to_left_out)
-                .replace(R.id.one_tap_fragment, OneTapFragment.getInstance(variant, fromDeeplink), TAG_ONETAP_FRAGMENT)
+                .replace(R.id.one_tap_fragment, OneTapFragment.getInstance(variant, getIntent().getData()), TAG_ONETAP_FRAGMENT)
                 .commitNowAllowingStateLoss();
         }
     }

@@ -37,7 +37,7 @@ internal open class CheckoutRepositoryImpl(
     private val oneTapItemToDisabledPaymentMethodMapper: OneTapItemToDisabledPaymentMethodMapper
 ) : CheckoutRepository {
 
-    override suspend fun checkout() = doCheckout(null)
+    override suspend fun checkout() = doCheckout()
 
     override fun configure(checkoutResponse: CheckoutResponse) {
         if (checkoutResponse.preference != null) {
@@ -68,24 +68,32 @@ internal open class CheckoutRepositoryImpl(
         tracker.setExperiments(experimentsRepository.experiments)
     }
 
-    override suspend fun checkoutWithNewCard(cardId: String): Response<CheckoutResponse, MercadoPagoError> {
+    override suspend fun checkoutWithNewCard(cardId: String): ResponseCallback<CheckoutResponse> {
+        return updateCheckout(cardId = cardId)
+    }
+
+    private suspend fun updateCheckout(cardId: String? = null, bankAccountId: String? = null): ResponseCallback<CheckoutResponse> {
         var retriesAvailable = MAX_REFRESH_RETRIES
-        var findCardResult = checkoutAndFindCard(cardId)
-        var lastSuccessResponse = findCardResult.response.takeIf { it is Response.Success }
-        while (findCardResult.retryNeeded && retriesAvailable > 0) {
+        var findPaymentMethodResult = checkoutAndFindPaymentMethod(cardId, bankAccountId)
+        var lastSuccessResponse = findPaymentMethodResult.response.takeIf { it is Response.Success }
+        while (findPaymentMethodResult.retryNeeded && retriesAvailable > 0) {
             retriesAvailable--
             delay(RETRY_DELAY)
-            findCardResult = checkoutAndFindCard(cardId)
-            if (findCardResult.response is Response.Success) {
-                lastSuccessResponse = findCardResult.response
+            findPaymentMethodResult = checkoutAndFindPaymentMethod(cardId, bankAccountId)
+            if (findPaymentMethodResult.response is Response.Success) {
+                lastSuccessResponse = findPaymentMethodResult.response
             }
         }
 
-        return lastSuccessResponse ?: findCardResult.response
+        return lastSuccessResponse ?: findPaymentMethodResult.response
     }
 
-    private suspend fun doCheckout(cardId: String?): ResponseCallback<CheckoutResponse> {
-        val body = initRequestBodyMapper.map(paymentSettingRepository, cardId)
+    override suspend fun checkoutWithNewBankAccountCard(accountNumber: String): ResponseCallback<CheckoutResponse> {
+        return updateCheckout(bankAccountId = accountNumber)
+    }
+
+    private suspend fun doCheckout(cardId: String? = null, bankAccountId: String? = null): ResponseCallback<CheckoutResponse> {
+        val body = initRequestBodyMapper.map(paymentSettingRepository, cardId, bankAccountId)
         val preferenceId = paymentSettingRepository.checkoutPreferenceId
         val apiResponse = networkApi.apiCallForResponse(CheckoutService::class.java) {
             if (preferenceId != null) {
@@ -105,27 +113,19 @@ internal open class CheckoutRepositoryImpl(
         }
     }
 
-    private suspend fun checkoutAndFindCard(cardId: String): FindCardResult {
-        return when (val response = doCheckout(cardId)) {
-            is Response.Success -> findCard(response, cardId)
-            is Response.Failure -> FindCardResult(false, response)
-        }
-    }
-
-    private fun findCard(response: Response.Success<CheckoutResponse>, cardId: String): FindCardResult {
-        var retryNeeded = false
-        for (node in response.result.oneTapItems) {
-            if (node.isCard && node.card.id == cardId) {
-                retryNeeded = node.card.retry.isNeeded
-                break
+    private suspend fun checkoutAndFindPaymentMethod(cardId: String?, bankAccountId: String?): FindPaymentMethodResult {
+        return when (val response = doCheckout(cardId, bankAccountId)) {
+            is Response.Success -> {
+                val retryNeeded = response.result.retry?.isNeeded ?: true
+                FindPaymentMethodResult(response, retryNeeded)
             }
+            is Response.Failure -> FindPaymentMethodResult(response)
         }
-        return FindCardResult(retryNeeded, response)
     }
 
-    private data class FindCardResult(
-        val retryNeeded: Boolean,
-        var response: ResponseCallback<CheckoutResponse>
+    data class FindPaymentMethodResult(
+        val response: ResponseCallback<CheckoutResponse>,
+        val retryNeeded: Boolean = false
     )
 
     companion object {

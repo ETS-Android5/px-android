@@ -34,6 +34,7 @@ import com.mercadopago.android.px.internal.mappers.PaymentResultAmountMapper
 import com.mercadopago.android.px.internal.mappers.PaymentResultMethodMapper
 import com.mercadopago.android.px.internal.mappers.SummaryInfoMapper
 import com.mercadopago.android.px.internal.mappers.SummaryViewModelMapper
+import com.mercadopago.android.px.internal.mappers.UriToFromMapper
 import com.mercadopago.android.px.internal.view.SummaryDetailDescriptorMapper
 import com.mercadopago.android.px.internal.viewmodel.drawables.PaymentMethodDrawableItemMapper
 import com.mercadopago.android.px.model.internal.PaymentConfigurationMapper
@@ -248,4 +249,6 @@ internal object MapperProvider {
             )
         }
 
+    val uriToFromMapper: UriToFromMapper
+        get() = UriToFromMapper()
 }

@@ -1,6 +1,7 @@
 package com.mercadopago.android.px.internal.features.one_tap
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import com.mercadolibre.android.cardform.internal.LifecycleListener
 import com.mercadopago.android.px.addons.ESCManagerBehaviour
 import com.mercadopago.android.px.addons.model.internal.Configuration
@@ -11,9 +12,11 @@ import com.mercadopago.android.px.core.internal.FlowConfigurationProvider
 import com.mercadopago.android.px.core.internal.TriggerableQueue
 import com.mercadopago.android.px.internal.base.BasePresenterWithState
 import com.mercadopago.android.px.internal.base.use_case.TokenizeWithEscUseCase
+import com.mercadopago.android.px.internal.callbacks.DeepLinkFrom
 import com.mercadopago.android.px.internal.core.AuthorizationProvider
 import com.mercadopago.android.px.internal.datasource.CustomOptionIdSolver
 import com.mercadopago.android.px.internal.domain.CheckoutUseCase
+import com.mercadopago.android.px.internal.domain.CheckoutWithNewBankAccountCardUseCase
 import com.mercadopago.android.px.internal.domain.CheckoutWithNewCardUseCase
 import com.mercadopago.android.px.internal.experiments.KnownExperiment
 import com.mercadopago.android.px.internal.experiments.KnownVariant
@@ -35,6 +38,7 @@ import com.mercadopago.android.px.internal.mappers.SplitHeaderMapper
 import com.mercadopago.android.px.internal.mappers.SummaryInfoMapper
 import com.mercadopago.android.px.internal.mappers.SummaryModelMapper
 import com.mercadopago.android.px.internal.mappers.SummaryViewModelMapper
+import com.mercadopago.android.px.internal.mappers.UriToFromMapper
 import com.mercadopago.android.px.internal.repository.AmountConfigurationRepository
 import com.mercadopago.android.px.internal.repository.ApplicationSelectionRepository
 import com.mercadopago.android.px.internal.repository.DisabledPaymentMethodRepository
@@ -63,17 +67,17 @@ import com.mercadopago.android.px.model.PaymentData
 import com.mercadopago.android.px.model.exceptions.ApiException
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError
 import com.mercadopago.android.px.model.exceptions.SecurityCodeRequiredError
-import com.mercadopago.android.px.model.internal.PaymentConfigurationMapper
 import com.mercadopago.android.px.model.internal.PaymentConfiguration
 import com.mercadopago.android.px.model.internal.PaymentConfigurationData
+import com.mercadopago.android.px.model.internal.PaymentConfigurationMapper
 import com.mercadopago.android.px.model.one_tap.CheckoutBehaviour
 import com.mercadopago.android.px.tracking.internal.BankInfoHelper
 import com.mercadopago.android.px.tracking.internal.MPTracker
-import com.mercadopago.android.px.tracking.internal.events.ConfirmEvent
 import com.mercadopago.android.px.tracking.internal.events.InstallmentsEventTrack
-import com.mercadopago.android.px.tracking.internal.events.SuspendedFrictionTracker
 import com.mercadopago.android.px.tracking.internal.events.SwipeOneTapEventTracker
 import com.mercadopago.android.px.tracking.internal.events.TargetBehaviourEvent
+import com.mercadopago.android.px.tracking.internal.events.SuspendedFrictionTracker
+import com.mercadopago.android.px.tracking.internal.events.ConfirmEvent
 import com.mercadopago.android.px.tracking.internal.mapper.FromApplicationToApplicationInfo
 import com.mercadopago.android.px.tracking.internal.mapper.FromSelectedExpressMetadataToAvailableMethods
 import com.mercadopago.android.px.tracking.internal.model.ConfirmData
@@ -108,6 +112,8 @@ internal class OneTapPresenter(
     private val bankInfoHelper: BankInfoHelper,
     private val fromModalToGenericDialogItemMapper: FromModalToGenericDialogItem,
     private val summaryViewModelMapper: SummaryViewModelMapper,
+    private val uriToFromMapper: UriToFromMapper,
+    private val checkoutWithNewBankAccountCardUseCase: CheckoutWithNewBankAccountCardUseCase,
     tracker: MPTracker
 ) : BasePresenterWithState<OneTap.View, OneTapState>(tracker), OneTap.Presenter, AmountDescriptorView.OnClickListener {
 
@@ -191,6 +197,13 @@ internal class OneTapPresenter(
 
     override fun onGetViewTrackPath(callback: ConfirmButton.ViewTrackPathCallback) {
         callback.call(viewTrack!!.getTrack()!!.path)
+    }
+
+    override fun resolveDeepLink(uri: Uri) {
+        when (uriToFromMapper.map(uri)) {
+            DeepLinkFrom.MONEY_IN -> onBankAccountAdded(uri)
+            DeepLinkFrom.NONE -> handleDeepLink()
+        }
     }
 
     private fun getCurrentOneTapItem() = oneTapItemRepository.value[state.paymentMethodIndex]
@@ -503,7 +516,20 @@ internal class OneTapPresenter(
         checkoutWithNewCardUseCase.execute(cardId, { callback.onSuccess() }, { callback.onError() })
     }
 
-    override fun onCardFormResult() {
+    override fun onBankAccountAdded(uri: Uri) {
+        view.showLoading()
+        checkoutWithNewBankAccountCardUseCase.execute(uri,
+            success = {
+                onCardAddedResult()
+                view.hideLoading()
+            },
+            failure = {
+                view.hideLoading()
+            }
+        )
+    }
+
+    override fun onCardAddedResult() {
         postDisableModelUpdate()
     }
 
