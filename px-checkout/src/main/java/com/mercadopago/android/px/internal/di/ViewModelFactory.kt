@@ -26,7 +26,6 @@ internal class ViewModelFactory : ViewModelProvider.Factory {
                 PayButtonViewModel(
                     session.congratsResultFactory,
                     session.paymentRepository,
-                    configurationModule.productIdProvider,
                     session.networkModule.connectionHelper,
                     paymentSetting,
                     configurationModule.customTextsRepository,
@@ -37,6 +36,7 @@ internal class ViewModelFactory : ViewModelProvider.Factory {
                     session.paymentResultViewModelFactory,
                     session.factoryModule.paymentDataFactory,
                     session.audioPlayer,
+                    session.factoryModule.securityValidationDataFactory,
                     session.tracker
                 )
             }

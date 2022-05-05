@@ -27,6 +27,7 @@ import com.mercadopago.android.px.internal.mappers.CardUiMapper
 import com.mercadopago.android.px.internal.mappers.CustomChargeToPaymentTypeChargeMapper
 import com.mercadopago.android.px.internal.mappers.InitRequestBodyMapper
 import com.mercadopago.android.px.internal.mappers.OneTapItemToDisabledPaymentMethodMapper
+import com.mercadopago.android.px.internal.mappers.PaymentMethodReauthMapper
 import com.mercadopago.android.px.internal.mappers.PaymentMethodBehaviourDMMapper
 import com.mercadopago.android.px.internal.mappers.PaymentMethodDescriptorMapper
 import com.mercadopago.android.px.internal.mappers.PaymentMethodMapper
@@ -251,4 +252,6 @@ internal object MapperProvider {
 
     val uriToFromMapper: UriToFromMapper
         get() = UriToFromMapper()
+    val paymentMethodReauthMapper: PaymentMethodReauthMapper
+        get() = PaymentMethodReauthMapper()
 }

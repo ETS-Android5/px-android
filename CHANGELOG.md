@@ -6,6 +6,7 @@ _##_05_2022
 _05_05_2022
 * FEATURE - Bank account registration.
 * ENHANCEMENT - Update Total value when user selects an installment or split payment or both.
+* FEATURE - Migrate screenlock to reauth.
 
 ## VERSION 4.114.0
 _04_05_2022

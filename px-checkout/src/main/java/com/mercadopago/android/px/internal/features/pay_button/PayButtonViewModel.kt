@@ -11,7 +11,6 @@ import com.mercadopago.android.px.internal.base.BaseState
 import com.mercadopago.android.px.internal.base.use_case.UserSelectionUseCase
 import com.mercadopago.android.px.internal.callbacks.PaymentServiceEventHandler
 import com.mercadopago.android.px.internal.core.ConnectionHelper
-import com.mercadopago.android.px.internal.core.ProductIdProvider
 import com.mercadopago.android.px.internal.datasource.PaymentDataFactory
 import com.mercadopago.android.px.internal.extensions.isNotNullNorEmpty
 import com.mercadopago.android.px.internal.features.PaymentResultViewModelFactory
@@ -52,7 +51,6 @@ import kotlinx.android.parcel.Parcelize
 internal class PayButtonViewModel(
     private val congratsResultFactory: CongratsResultFactory,
     private val paymentService: PaymentRepository,
-    private val productIdProvider: ProductIdProvider,
     private val connectionHelper: ConnectionHelper,
     private val paymentSettingRepository: PaymentSettingRepository,
     customTextsRepository: CustomTextsRepository,
@@ -63,6 +61,7 @@ internal class PayButtonViewModel(
     private val factory: PaymentResultViewModelFactory,
     private val paymentDataFactory: PaymentDataFactory,
     private val audioPlayer: AudioPlayer,
+    private val securityValidationDataFactory: SecurityValidationDataFactory,
     tracker: MPTracker
 ) : ConfirmButtonViewModel<PayButtonViewModel.State, PayButton.Handler>(customTextsRepository,
     payButtonViewModelMapper,
@@ -95,7 +94,14 @@ internal class PayButtonViewModel(
                     if (paymentConfiguration.customOptionId.isNotNullNorEmpty()) {
                         paymentSettingRepository.clearToken()
                     }
-                    startAuthentication(paymentConfiguration)
+                    userSelectionUseCase
+                        .execute(paymentConfiguration,
+                            success = { startAuthentication(paymentConfiguration) },
+                            failure = {
+                                handler.onProcessError(it)
+                                uiStateMutableLiveData.value = ButtonLoadingCanceled
+                            }
+                        )
                 }
             })
         } else {
@@ -105,8 +111,7 @@ internal class PayButtonViewModel(
 
     private fun startAuthentication(paymentConfiguration: PaymentConfiguration) {
         state.paymentConfiguration = paymentConfiguration
-        val data: SecurityValidationData = SecurityValidationDataFactory
-            .create(productIdProvider, paymentSettingRepository.checkoutPreference!!.totalAmount, paymentConfiguration)
+        val data: SecurityValidationData = securityValidationDataFactory.create(paymentConfiguration, paymentDataFactory.create())
         uiStateMutableLiveData.value = FingerprintRequired(data)
     }
 
@@ -127,14 +132,7 @@ internal class PayButtonViewModel(
                 uiStateMutableLiveData.value = ButtonLoadingStarted(paymentService.paymentTimeout, buttonConfig)
             }
 
-            userSelectionUseCase
-                .execute(configuration,
-                    success = { onEnqueueProcess(configuration) },
-                    failure = {
-                        handler.onProcessError(it)
-                        uiStateMutableLiveData.value = ButtonLoadingCanceled
-                    }
-                )
+            onEnqueueProcess(configuration)
         }.onFailure { uiStateMutableLiveData.value = UIError.NotRecoverableError(it) }
     }
 
