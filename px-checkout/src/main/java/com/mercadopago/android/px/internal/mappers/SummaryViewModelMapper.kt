@@ -70,7 +70,7 @@ internal class SummaryViewModelMapper(
             false
         else
             value.selectedPayerCostIndex >= 0
-        return if (hasInstallmentOrSplit && value.selectedPayerCostIndex.isNotNull() && value.amountConfiguration.isNotNull()
+        return if (hasInstallmentOrSplit && value.selectedPayerCostIndex.isNotNull() && value.amountConfiguration.isNotNull() && value.selectedPayerCostIndex > 0
             && !PaymentTypes.isAccountMoney(value.customOptionId)) {
             value.amountConfiguration.getCurrentPayerCost(value.isSplitChecked, value.selectedPayerCostIndex).totalAmount
         } else {

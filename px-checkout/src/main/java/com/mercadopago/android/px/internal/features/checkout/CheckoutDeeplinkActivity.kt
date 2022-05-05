@@ -11,6 +11,7 @@ internal class CheckoutDeeplinkActivity : AppCompatActivity() {
         startActivity(Intent(this, CheckoutActivity::class.java).also {
             it.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             it.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            it.data = intent.data
         })
     }
 }

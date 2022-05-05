@@ -9,9 +9,7 @@ import com.mercadopago.android.px.model.CardFormInitType;
 
     interface View extends MvpView {
         void startCardForm(@NonNull final CardFormWrapper cardFormWrapper, @NonNull final CardFormInitType initType);
-    }
-
-    interface Actions {
-        void onAddNewCardSelected(@NonNull CardFormInitType initType);
+        void launchDeepLink(@NonNull final String deepLink);
+        void onNewCardWithSheetOptions();
     }
 }

@@ -16,8 +16,6 @@ internal class CheckoutWithNewCardUseCase(
 ) : UseCase<String, CheckoutResponse>(tracker) {
 
     override suspend fun doExecute(param: String): Response<CheckoutResponse, MercadoPagoError> {
-        return checkoutRepository.checkoutWithNewCard(param).ifSuccess {
-            checkoutRepository.configure(it)
-        }
+        return with(checkoutRepository) { checkoutWithNewCard(param).ifSuccess(::configure) }
     }
 }

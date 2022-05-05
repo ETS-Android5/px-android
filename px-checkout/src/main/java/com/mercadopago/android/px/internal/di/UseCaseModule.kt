@@ -7,6 +7,7 @@ import com.mercadopago.android.px.internal.base.use_case.TokenizeWithEscUseCase
 import com.mercadopago.android.px.internal.base.use_case.TokenizeWithPaymentRecoveryUseCase
 import com.mercadopago.android.px.internal.base.use_case.UserSelectionUseCase
 import com.mercadopago.android.px.internal.domain.CheckoutUseCase
+import com.mercadopago.android.px.internal.domain.CheckoutWithNewBankAccountCardUseCase
 import com.mercadopago.android.px.internal.domain.CheckoutWithNewCardUseCase
 import com.mercadopago.android.px.internal.features.security_code.domain.use_case.DisplayDataUseCase
 import com.mercadopago.android.px.internal.features.security_code.domain.use_case.SecurityTrackModelUseCase
@@ -118,5 +119,11 @@ internal class UseCaseModule(
         get() {
             val session = Session.getInstance()
             return CheckoutWithNewCardUseCase(session.checkoutRepository, session.tracker)
+        }
+
+    val checkoutWithNewBankAccountCardUseCase: CheckoutWithNewBankAccountCardUseCase
+        get() {
+            val session = Session.getInstance()
+            return CheckoutWithNewBankAccountCardUseCase(session.checkoutRepository, session.tracker)
         }
 }

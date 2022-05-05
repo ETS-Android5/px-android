@@ -18,5 +18,6 @@ data class CheckoutFeaturesDM(
     val threedsSdkVersion: String,
     @SerializedName("validations_programs")
     val validationPrograms: List<String>,
-    val debin: String
+    val debin: String,
+    val newPaymentMethodVersion: String
 )

@@ -35,7 +35,7 @@ private const val BACKGROUND_COLOR = "#000000"
 private const val TEXT_COLOR = "#FFFFFF"
 private const val WEIGHT = "semi_bold"
 
-class DisplayInfoHelperTest {
+class OfflinePaymentMethodDisplayInfoHelperTest {
 
     @MockK
     private lateinit var payerPaymentMethodRepository: PayerPaymentMethodRepository

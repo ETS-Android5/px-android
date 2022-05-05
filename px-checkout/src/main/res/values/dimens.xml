@@ -99,4 +99,9 @@
     <dimen name="card_drawer_tag_vertical_padding_small">2dp</dimen>
     <dimen name="cc_tag_font">11dp</dimen>
 
+    <!-- Card view -->
+    <dimen name="px_card_view_stroke_width">2dp</dimen>
+    <dimen name="px_card_view_stroke_dash_width">4dp</dimen>
+    <dimen name="px_card_view_stroke_dash_gap">4dp</dimen>
+
 </resources>

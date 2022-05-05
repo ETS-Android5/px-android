@@ -25,6 +25,7 @@ internal class CheckoutFeatures(builder: Builder) {
     @SerializedName("validations_programs")
     val validationPrograms: List<String>
     val debin: String
+    val newPaymentMethodVersion: String
 
     /* default */
     init {
@@ -41,6 +42,7 @@ internal class CheckoutFeatures(builder: Builder) {
         taxableCharges = builder.taxableCharges
         cardsCustomTaxesCharges = builder.cardsCustomTaxesCharges
         debin = DEBIN_VERSION
+        newPaymentMethodVersion = NEW_PAYMENT_METHOD_VERSION
     }
 
     class Builder {
@@ -86,5 +88,6 @@ internal class CheckoutFeatures(builder: Builder) {
         const val STYLE_VERSION = "v1"
         const val THREEDS_SDK_VERSION = "v1"
         const val DEBIN_VERSION = "v1"
+        const val NEW_PAYMENT_METHOD_VERSION = "v1"
     }
 }

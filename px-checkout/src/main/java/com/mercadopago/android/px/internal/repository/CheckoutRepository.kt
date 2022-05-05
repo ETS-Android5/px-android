@@ -9,5 +9,6 @@ typealias ResponseCallback<D> = Response<D, MercadoPagoError>
 interface CheckoutRepository {
     suspend fun checkout(): ResponseCallback<CheckoutResponse>
     suspend fun checkoutWithNewCard(cardId: String): ResponseCallback<CheckoutResponse>
+    suspend fun checkoutWithNewBankAccountCard(accountNumber: String): ResponseCallback<CheckoutResponse>
     fun configure(checkoutResponse: CheckoutResponse)
 }

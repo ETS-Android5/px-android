@@ -10,9 +10,7 @@ import com.mercadopago.android.px.internal.viewmodel.drawables.OtherPaymentMetho
 class OtherPaymentMethodDynamicFragment : OtherPaymentMethodFragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        val smallMode = model.newCardMetadata != null && model.offlineMethodsMetadata != null
-        return inflater.inflate(if (smallMode) R.layout.px_fragment_other_payment_method_small_dynamic else
-            R.layout.px_fragment_other_payment_method_large_dynamic, container, false)
+        return inflater.inflate(R.layout.px_fragment_other_payment_method_large_dynamic, container, false)
     }
 
     companion object {
