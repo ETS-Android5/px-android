@@ -466,12 +466,6 @@ public final class Session extends ApplicationModule {
     public PreparePaymentRepository getPreparePaymentRepository() {
         if (preparePaymentRepository == null) {
             preparePaymentRepository = new PreparePaymentRepositoryImpl(
-                configurationModule.getPaymentSettings(),
-                configurationModule.getUserSelectionRepository(),
-                payerPaymentMethodRepository,
-                amountConfigurationRepository,
-                discountRepository,
-                configurationModule.getChargeRepository(),
                 networkModule.getNetworkApi()
             );
         }

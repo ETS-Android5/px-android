@@ -8,6 +8,7 @@ import com.mercadopago.android.px.internal.base.use_case.TokenizeWithPaymentReco
 import com.mercadopago.android.px.internal.base.use_case.UserSelectionUseCase
 import com.mercadopago.android.px.internal.domain.CheckoutUseCase
 import com.mercadopago.android.px.internal.domain.CheckoutWithNewCardUseCase
+import com.mercadopago.android.px.internal.domain.GeneratePreparePaymentBodyUseCase
 import com.mercadopago.android.px.internal.domain.PreparePaymentUseCase
 import com.mercadopago.android.px.internal.features.security_code.domain.use_case.DisplayDataUseCase
 import com.mercadopago.android.px.internal.features.security_code.domain.use_case.SecurityTrackModelUseCase
@@ -121,6 +122,21 @@ internal class UseCaseModule(
             return CheckoutWithNewCardUseCase(session.checkoutRepository, session.tracker)
         }
 
+    private val generatePreparePaymentBodyUseCase: GeneratePreparePaymentBodyUseCase
+        get() {
+            val session = Session.getInstance()
+            val configurationModule = session.configurationModule
+            return GeneratePreparePaymentBodyUseCase(
+                configurationModule.paymentSettings,
+                configurationModule.userSelectionRepository,
+                session.payerPaymentMethodRepository,
+                session.amountConfigurationRepository,
+                session.discountRepository,
+                configurationModule.chargeRepository,
+                session.tracker
+            )
+        }
+
     val preparePaymentUseCase: PreparePaymentUseCase
         get() {
             val session = Session.getInstance()
@@ -130,6 +146,7 @@ internal class UseCaseModule(
                 session.discountRepository,
                 session.amountConfigurationRepository,
                 session.configurationModule.userSelectionRepository,
+                generatePreparePaymentBodyUseCase,
                 session.tracker
             )
         }

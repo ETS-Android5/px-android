@@ -16,6 +16,7 @@ import com.mercadopago.android.px.model.exceptions.MercadoPagoError
 import com.mercadopago.android.px.model.exceptions.PreparePaymentMismatchError
 import com.mercadopago.android.px.model.internal.ResponseSectionStatus
 import com.mercadopago.android.px.model.internal.payment_prepare.PaymentMethodDM
+import com.mercadopago.android.px.model.internal.payment_prepare.PreparePaymentBody
 import com.mercadopago.android.px.model.internal.payment_prepare.getDiscountStatus
 import com.mercadopago.android.px.tracking.internal.MPTracker
 
@@ -25,29 +26,32 @@ internal class PreparePaymentUseCase(
     private val discountRepository: DiscountRepository,
     private val amountConfigurationRepository: AmountConfigurationRepository,
     private val userSelectionRepository: UserSelectionRepository,
+    private val generatePreparePaymentBodyUseCase: GeneratePreparePaymentBodyUseCase,
     tracker: MPTracker,
     override val contextProvider: CoroutineContextProvider = CoroutineContextProvider()
 ) : UseCase<Unit, Unit>(tracker) {
     override suspend fun doExecute(param: Unit): Response<Unit, MercadoPagoError> {
         return runCatching {
             paymentDiscountRepository.reset()
-            preparePaymentRepository.prepare()
-                .ifFailure {
-                    configureDiscounts(null)
-                }
-                .next {
-                    val discountStatus = it.getDiscountStatus()
-                    when (discountStatus?.code) {
-                        ResponseSectionStatus.Code.OK,
-                        ResponseSectionStatus.Code.USE_FALLBACK -> {
-                            configureDiscounts(it.paymentMethod)
-                            Response.Success(Unit)
-                        }
-                        ResponseSectionStatus.Code.MISMATCH ->
-                            Response.Failure(PreparePaymentMismatchError(discountStatus.message))
-                        else -> Response.Success(Unit)
+            generatePreparePaymentBodyUseCase.execute(Unit).next { body ->
+                preparePaymentRepository.prepare(body)
+                    .ifFailure {
+                        configureDiscounts(null)
                     }
-                }
+                    .next { response ->
+                        val discountStatus = response.getDiscountStatus()
+                        when (discountStatus?.code) {
+                            ResponseSectionStatus.Code.OK,
+                            ResponseSectionStatus.Code.USE_FALLBACK -> {
+                                configureDiscounts(response.paymentMethod)
+                                Response.Success(Unit)
+                            }
+                            ResponseSectionStatus.Code.MISMATCH ->
+                                Response.Failure(PreparePaymentMismatchError(discountStatus.message))
+                            else -> Response.Success(Unit)
+                        }
+                    }
+            }
         }.getOrElse {
             configureDiscounts(null)
             Response.Success(Unit)
