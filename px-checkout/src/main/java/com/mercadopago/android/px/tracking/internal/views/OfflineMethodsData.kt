@@ -1,27 +1,29 @@
-package com.mercadopago.android.px.tracking.internal.views;
+package com.mercadopago.android.px.tracking.internal.views
 
-import androidx.annotation.NonNull;
-import com.mercadopago.android.px.model.OfflinePaymentMethod;
-import com.mercadopago.android.px.model.OfflinePaymentType;
-import com.mercadopago.android.px.tracking.internal.model.AvailableOfflineMethod;
-import com.mercadopago.android.px.tracking.internal.model.TrackingMapModel;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.mercadopago.android.px.model.OfflinePaymentType
+import com.mercadopago.android.px.tracking.internal.model.AvailableOfflineMethod
+import com.mercadopago.android.px.tracking.internal.model.TrackingMapModel
 
-/* default */ final class OfflineMethodsData extends TrackingMapModel {
+internal class OfflineMethodsData : TrackingMapModel() {
 
-    /* default */ final Collection<AvailableOfflineMethod> availableMethods = new ArrayList<>();
+    val availableMethods: MutableMap<String, Any?> = mutableMapOf()
 
-    public static OfflineMethodsData createFrom(@NonNull final List<OfflinePaymentType> offlinePaymentTypes) {
-        final OfflineMethodsData instance = new OfflineMethodsData();
-
-        for (final OfflinePaymentType offlinePaymentType : offlinePaymentTypes) {
-            for (final OfflinePaymentMethod offlinePaymentMethod : offlinePaymentType.getPaymentMethods()) {
-                instance.availableMethods
-                    .add(new AvailableOfflineMethod(offlinePaymentType.getId(), offlinePaymentMethod.getId()));
+    companion object {
+        fun createFrom(offlinePaymentTypes: List<OfflinePaymentType>): MutableMap<String, Any?> {
+            val offlineMethodsData = OfflineMethodsData()
+            offlineMethodsData.availableMethods.also { instance ->
+                instance[AVAILABLE_METHODS] = mutableListOf<AvailableOfflineMethod>().also { list ->
+                    for (offlinePaymentType in offlinePaymentTypes) {
+                        for (offlinePaymentMethod in offlinePaymentType.paymentMethods) {
+                            list.add(AvailableOfflineMethod(offlinePaymentType.id, offlinePaymentMethod.id))
+                        }
+                    }
+                }
             }
+
+            return offlineMethodsData.availableMethods
         }
-        return instance;
+        private const val AVAILABLE_METHODS = "available_methods"
     }
+
 }
