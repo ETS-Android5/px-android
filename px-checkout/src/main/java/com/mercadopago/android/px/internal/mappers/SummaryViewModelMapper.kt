@@ -15,6 +15,7 @@ import com.mercadopago.android.px.internal.view.SummaryDetailDescriptorMapper
 import com.mercadopago.android.px.internal.view.SummaryView
 import com.mercadopago.android.px.model.AmountConfiguration
 import com.mercadopago.android.px.model.DiscountConfigurationModel
+import com.mercadopago.android.px.model.PaymentTypes
 import com.mercadopago.android.px.model.commission.PaymentTypeChargeRule
 import java.math.BigDecimal
 
@@ -65,13 +66,12 @@ internal class SummaryViewModelMapper(
     }
 
     private fun getTotalAmountToPay(value: CustomTotal, discountModel: DiscountConfigurationModel): BigDecimal {
-        val hasInstallmentOrSplit = if (value.amountConfiguration.isNotNull())
-            (value.isSplitChecked) || value.amountConfiguration.payerCosts.size > 0
-        else
+        val hasInstallmentOrSplit = if (PaymentTypes.isAccountMoney(value.customOptionId) || value.selectedPayerCostIndex == null)
             false
-        return if (hasInstallmentOrSplit
-            && value.selectedPayerCostIndex.isNotNull()
-            && value.amountConfiguration.isNotNull()) {
+        else
+            value.selectedPayerCostIndex >= 0
+        return if (hasInstallmentOrSplit && value.selectedPayerCostIndex.isNotNull() && value.amountConfiguration.isNotNull() && value.selectedPayerCostIndex > 0
+            && !PaymentTypes.isAccountMoney(value.customOptionId)) {
             value.amountConfiguration.getCurrentPayerCost(value.isSplitChecked, value.selectedPayerCostIndex).totalAmount
         } else {
             amountRepository.getAmountToPay(value.paymentTypeId, discountModel)

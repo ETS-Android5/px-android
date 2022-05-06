@@ -1,7 +1,3 @@
-## Unreleased
-_##_05_2022
-* FIX - Adjust update total value when use split and first installment consumer credits
-
 ## VERSION 4.114.1
 _05_05_2022
 * FEATURE - Bank account registration.
