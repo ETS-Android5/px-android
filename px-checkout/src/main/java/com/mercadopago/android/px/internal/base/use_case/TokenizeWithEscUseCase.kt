@@ -59,7 +59,7 @@ internal class TokenizeWithEscUseCase(
         return if (shouldTokenizeWithCvv(card)) {
             if (canTokenizeCardWithEsc(card)) {
                 val esc = escManagerBehaviour.getESC(card.id, card.firstSixDigits, card.lastFourDigits)
-                tokenCreationWrapper.createTokenWithEsc(esc!!)
+                tokenCreationWrapper.cloneToken(esc!!)
                     .mapError { error ->
                         SecurityCodeRequiredError(TokenErrorWrapper(error.apiException).toReason(), card)
                     }

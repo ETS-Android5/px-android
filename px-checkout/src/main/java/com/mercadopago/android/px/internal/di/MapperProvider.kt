@@ -20,10 +20,10 @@ import com.mercadopago.android.px.internal.features.payment_result.remedies.Alte
 import com.mercadopago.android.px.internal.features.payment_result.remedies.RemediesLinkableMapper
 import com.mercadopago.android.px.internal.features.security_code.RenderModeMapper
 import com.mercadopago.android.px.internal.features.security_code.mapper.BusinessSecurityCodeDisplayDataMapper
+import com.mercadopago.android.px.internal.mappers.*
 import com.mercadopago.android.px.internal.mappers.CardDrawerCustomViewModelMapper
 import com.mercadopago.android.px.internal.mappers.CardUiMapper
 import com.mercadopago.android.px.internal.mappers.CustomChargeToPaymentTypeChargeMapper
-import com.mercadopago.android.px.internal.mappers.ElementDescriptorMapper
 import com.mercadopago.android.px.internal.mappers.InitRequestBodyMapper
 import com.mercadopago.android.px.internal.mappers.OneTapItemToDisabledPaymentMethodMapper
 import com.mercadopago.android.px.internal.mappers.PaymentMethodDescriptorMapper
@@ -31,6 +31,7 @@ import com.mercadopago.android.px.internal.mappers.PaymentMethodMapper
 import com.mercadopago.android.px.internal.mappers.PaymentResultAmountMapper
 import com.mercadopago.android.px.internal.mappers.PaymentResultMethodMapper
 import com.mercadopago.android.px.internal.mappers.SummaryInfoMapper
+import com.mercadopago.android.px.internal.mappers.UriToDeepLinkWrapperMapper
 import com.mercadopago.android.px.internal.view.SummaryDetailDescriptorMapper
 import com.mercadopago.android.px.internal.viewmodel.drawables.PaymentMethodDrawableItemMapper
 import com.mercadopago.android.px.model.internal.PaymentConfigurationMapper

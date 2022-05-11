@@ -41,6 +41,7 @@ internal class RemediesViewModel(
     private val oneTapItemRepository: OneTapItemRepository,
     private val fromPayerPaymentMethodToCardMapper: FromPayerPaymentMethodToCardMapper,
     private val tokenizeWithEscUseCase: TokenizeWithEscUseCase,
+    private val tokenizeWithCvvUseCase: TokenizeWithCvvUseCase,
     tracker: MPTracker
 ) : BaseViewModelWithState<RemediesViewModel.State>(tracker), Remedies.ViewModel {
 

@@ -33,7 +33,7 @@ internal class TokenizeUseCase(
             ).recoverWithCVV(param.securityCode)
         } ?: notNull(param.card).let {
             TokenCreationWrapper
-                .Builder(cardTokenRepository, escManagerBehaviour, tokenizeWithCvvUseCase)
+                .Builder(cardTokenRepository, escManagerBehaviour)
                 .with(it)
                 .build()
                 .createToken(param.securityCode)

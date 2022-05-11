@@ -8,13 +8,9 @@ import com.mercadopago.android.px.internal.base.use_case.TokenizeWithPaymentReco
 import com.mercadopago.android.px.internal.base.use_case.UserSelectionUseCase
 import com.mercadopago.android.px.internal.domain.CheckoutUseCase
 import com.mercadopago.android.px.internal.domain.CheckoutWithNewCardUseCase
-import com.mercadopago.android.px.internal.base.use_case.TokenizeWithCvvUseCase
-import com.mercadopago.android.px.internal.base.use_case.TokenizeWithEscUseCase
-import com.mercadopago.android.px.internal.base.use_case.TokenizeWithoutCvvUseCase
 import com.mercadopago.android.px.internal.features.security_code.domain.use_case.DisplayDataUseCase
 import com.mercadopago.android.px.internal.features.security_code.domain.use_case.SecurityTrackModelUseCase
 import com.mercadopago.android.px.internal.features.validation_program.AuthenticateUseCase
-import com.mercadopago.android.px.internal.features.validation_program.TokenDeviceUseCase
 import com.mercadopago.android.px.internal.features.validation_program.ValidationProgramUseCase
 
 internal class UseCaseModule(
@@ -106,7 +102,7 @@ internal class UseCaseModule(
             )
         }
 
-    val playSoundUseCase: PlaySoundUseCase
+    val selectPaymentSoundUseCase: SelectPaymentSoundUseCase
         get() {
             val session = Session.getInstance()
             return SelectPaymentSoundUseCase(session.tracker, configurationModule.paymentSettings)

@@ -25,10 +25,6 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.mercadolibre.android.andesui.snackbar.action.AndesSnackbarAction;
 import com.mercadolibre.android.andesui.snackbar.duration.AndesSnackbarDuration;
 import com.mercadolibre.android.andesui.snackbar.type.AndesSnackbarType;
-import androidx.viewpager.widget.ViewPager;
-import com.mercadolibre.android.andesui.bottomsheet.AndesBottomSheet;
-import com.mercadolibre.android.andesui.snackbar.duration.AndesSnackbarDuration;
-import com.mercadolibre.android.andesui.snackbar.type.AndesSnackbarType;
 import com.mercadolibre.android.cardform.CardForm;
 import com.mercadolibre.android.cardform.internal.CardFormWithFragment;
 import com.mercadolibre.android.cardform.internal.LifecycleListener;
@@ -47,7 +43,6 @@ import com.mercadopago.android.px.internal.di.Session;
 import com.mercadopago.android.px.internal.experiments.ScrolledVariant;
 import com.mercadopago.android.px.internal.experiments.Variant;
 import com.mercadopago.android.px.internal.experiments.VariantHandler;
-import com.mercadopago.android.px.internal.extensions.ViewExtensionsKt;
 import com.mercadopago.android.px.internal.extensions.ViewExtensionsKt;
 import com.mercadopago.android.px.internal.features.Constants;
 import com.mercadopago.android.px.internal.features.TermsAndConditionsActivity;
@@ -108,7 +103,6 @@ import com.mercadopago.android.px.model.exceptions.MercadoPagoError;
 import com.mercadopago.android.px.model.internal.Application;
 import com.mercadopago.android.px.model.internal.DisabledPaymentMethod;
 import com.mercadopago.android.px.model.internal.PaymentConfiguration;
-import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -165,12 +159,10 @@ public class OneTapFragment extends BaseFragment implements OneTap.View,
     private PxFragmentOneTapPaymentBinding binding;
 
     public static Fragment getInstance(@NonNull final Variant variant, final boolean fromDeeplink) {
-    public static Fragment getInstance(@NonNull final Variant variant, @Nullable final Uri uri) {
         final OneTapFragment oneTapFragment = new OneTapFragment();
         final Bundle bundle = new Bundle();
         bundle.putParcelable(EXTRA_VARIANT, variant);
         bundle.putBoolean(EXTRA_FROM_DEEPLINK, fromDeeplink);
-        bundle.putParcelable(URI, uri);
         oneTapFragment.setArguments(bundle);
         return oneTapFragment;
     }
@@ -310,7 +302,6 @@ public class OneTapFragment extends BaseFragment implements OneTap.View,
             paymentMethodHeaderView, indicator, binding.splitPaymentView, binding.oneTapContainer);
 
         presenter = createPresenter();
-
         if (savedInstanceState != null) {
             renderMode = (RenderMode) savedInstanceState.getSerializable(EXTRA_RENDER_MODE);
             navigationState =

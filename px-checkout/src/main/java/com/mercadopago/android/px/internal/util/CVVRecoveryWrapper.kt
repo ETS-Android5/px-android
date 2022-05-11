@@ -2,7 +2,6 @@ package com.mercadopago.android.px.internal.util
 
 import com.mercadopago.android.px.addons.ESCManagerBehaviour
 import com.mercadopago.android.px.internal.base.use_case.TokenizeWithCvvUseCase
-import com.mercadopago.android.px.internal.base.use_case.TokenizeWithCvvUseCase
 import com.mercadopago.android.px.internal.callbacks.Response
 import com.mercadopago.android.px.internal.extensions.isNotNullNorEmpty
 import com.mercadopago.android.px.internal.repository.CardTokenRepository
@@ -16,7 +15,7 @@ import com.mercadopago.android.px.tracking.internal.model.Reason
 internal class CVVRecoveryWrapper(
     cardTokenRepository: CardTokenRepository,
     escManagerBehaviour: ESCManagerBehaviour,
-    private val tokenizeWithCvvUseCase: TokenizeWithCvvUseCase
+    private val tokenizeWithCvvUseCase: TokenizeWithCvvUseCase,
     private val paymentRecovery: PaymentRecovery,
     private val tracker: MPTracker
 ) {
@@ -51,7 +50,7 @@ internal class CVVRecoveryWrapper(
     private fun hasToRecoverTokenFromESC() = paymentRecovery.isStatusDetailInvalidESC &&
         (token?.cardId.isNotNullNorEmpty() || card?.id.isNotNullNorEmpty())
 
-    private fun isSavedCardWithESC() = card != null && escManagerBehaviour.isESCEnabled
-
-    private fun isSavedCardWithoutESC() = card != null && !escManagerBehaviour.isESCEnabled
+//    private fun isSavedCardWithESC() = card != null && escManagerBehaviour.isESCEnabled
+//
+//    private fun isSavedCardWithoutESC() = card != null && !escManagerBehaviour.isESCEnabled
 }
