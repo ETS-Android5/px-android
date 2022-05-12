@@ -20,6 +20,8 @@ import com.mercadopago.android.px.model.internal.PaymentTypeChargeRuleDM
 import com.mercadopago.android.px.utils.StubCheckoutPreferenceUtils
 import org.junit.Assert.*
 import java.math.BigDecimal
+import java.util.Date
+import java.util.UUID
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -92,14 +94,22 @@ class InitRequestBodyMapperTest {
 
     @Test
     fun mapFromPaymentSettingRepositoryWithEscCardIdsShouldMapEscCardIds() {
-        val firstCardStatus = CardStatusDM("123", CardStatusDM.TokenStateDM.ENABLED, true)
-        val secondCardStatus = CardStatusDM("456", CardStatusDM.TokenStateDM.IN_PROGRESS, true)
+        val firstCardStatus = CardStatusDM("123", buildTokenData(CardStatusDM.TokenInfo.TokenStateDM.ENABLED), true)
+        val secondCardStatus = CardStatusDM("456", buildTokenData(CardStatusDM.TokenInfo.TokenStateDM.IN_PROGRESS), true)
         whenever(cardStatusRepository.getCardsStatus()).thenReturn(listOf(firstCardStatus, secondCardStatus))
         val requestBody = initRequestBodyMapper.map(paymentSettingRepository, null)
         with(requestBody.cardStatus) {
             assertTrue(isNotEmpty())
             assertTrue(containsAll(listOf(firstCardStatus, secondCardStatus)))
         }
+    }
+
+    private fun buildTokenData(state: CardStatusDM.TokenInfo.TokenStateDM): CardStatusDM.TokenInfo {
+        return CardStatusDM.TokenInfo(
+            vProvisionedTokenId = UUID.randomUUID().toString(),
+            updatedAt = Date(),
+            state = state
+        )
     }
 
     @Test

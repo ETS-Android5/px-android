@@ -15,9 +15,14 @@ internal class CardStatusRepositoryImpl(
         val allCardIds = cardsWithEsc + tokensStatus.map { it.cardId }
         return mutableListOf<CardStatusDM>().also {
             allCardIds.forEach { cardId ->
-                val tokenStatusDM = CardStatusDM.TokenStateDM.from(
-                    tokensStatus.firstOrNull { it.cardId == cardId }?.state)
-                it.add(CardStatusDM(cardId, tokenStatusDM, cardsWithEsc.contains(cardId)))
+                val tokenData = tokensStatus.firstOrNull { it.cardId == cardId }
+                it.add(
+                    CardStatusDM(
+                        cardId = cardId,
+                        tokenInfo = CardStatusDM.TokenInfo.from(tokenData),
+                        hasEsc = cardsWithEsc.contains(cardId)
+                    )
+                )
             }
         }
     }
