@@ -21,6 +21,23 @@ public interface CardTokenRepository {
         @Nullable final RemotePaymentToken remotePaymentToken, final boolean requireEsc);
 
     /**
+     * Clone Token.
+     *
+     * @param tokenId to clone.
+     * @return Token cloned.
+     */
+    MPCall<Token> cloneToken(final String tokenId);
+
+    /**
+     * Update Token with securityCode.
+     *
+     * @param securityCode to update token.
+     * @param tokenId to update.
+     * @return Token updated with securityCode.
+     */
+    MPCall<Token> putSecurityCode(String securityCode, String tokenId);
+
+    /**
      * Clear card cap and execute an action whatever it succeed or not
      *
      * @param cardId   card id to clear cap

@@ -15,7 +15,6 @@ import com.mercadopago.android.px.tracking.internal.model.Reason
 internal class CVVRecoveryWrapper(
     cardTokenRepository: CardTokenRepository,
     escManagerBehaviour: ESCManagerBehaviour,
-    private val tokenizeWithCvvUseCase: TokenizeWithCvvUseCase,
     private val paymentRecovery: PaymentRecovery,
     private val tracker: MPTracker
 ) {
@@ -48,9 +47,5 @@ internal class CVVRecoveryWrapper(
     private fun hasToCloneToken() = token?.run { cardId.isNullOrEmpty() } ?: false
 
     private fun hasToRecoverTokenFromESC() = paymentRecovery.isStatusDetailInvalidESC &&
-        (token?.cardId.isNotNullNorEmpty() || card?.id.isNotNullNorEmpty())
-
-//    private fun isSavedCardWithESC() = card != null && escManagerBehaviour.isESCEnabled
-//
-//    private fun isSavedCardWithoutESC() = card != null && !escManagerBehaviour.isESCEnabled
+            (token?.cardId.isNotNullNorEmpty() || card?.id.isNotNullNorEmpty())
 }

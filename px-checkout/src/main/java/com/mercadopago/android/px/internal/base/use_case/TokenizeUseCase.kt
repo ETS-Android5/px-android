@@ -27,7 +27,6 @@ internal class TokenizeUseCase(
             CVVRecoveryWrapper(
                 cardTokenRepository,
                 escManagerBehaviour,
-                tokenizeWithCvvUseCase,
                 it,
                 tracker
             ).recoverWithCVV(param.securityCode)
