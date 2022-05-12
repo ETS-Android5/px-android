@@ -34,7 +34,7 @@ android {
         release {
             buildConfigField "String", "API_ENVIRONMENT", "$Environment.LEGACY_PROD"
             buildConfigField "String", "API_ENVIRONMENT_NEW", "$Environment.PRODUCTION"
-            buildConfigField "boolean", "HTTP_CLIENT_LOG", "false"
+            buildConfigField "boolean", "HTTP_CLIENT_LOG", "true"
         }
     }
 
