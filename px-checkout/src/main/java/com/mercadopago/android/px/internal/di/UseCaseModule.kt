@@ -2,21 +2,35 @@ package com.mercadopago.android.px.internal.di
 
 import com.mercadopago.android.px.addons.BehaviourProvider
 import com.mercadopago.android.px.internal.audio.SelectPaymentSoundUseCase
+import com.mercadopago.android.px.internal.base.use_case.*
 import com.mercadopago.android.px.internal.base.use_case.TokenizeWithCvvUseCase
 import com.mercadopago.android.px.internal.base.use_case.TokenizeWithEscUseCase
 import com.mercadopago.android.px.internal.base.use_case.TokenizeWithPaymentRecoveryUseCase
+import com.mercadopago.android.px.internal.base.use_case.TokenizeWithoutCvvUseCase
 import com.mercadopago.android.px.internal.base.use_case.UserSelectionUseCase
 import com.mercadopago.android.px.internal.domain.CheckoutUseCase
 import com.mercadopago.android.px.internal.domain.CheckoutWithNewCardUseCase
 import com.mercadopago.android.px.internal.features.security_code.domain.use_case.DisplayDataUseCase
 import com.mercadopago.android.px.internal.features.security_code.domain.use_case.SecurityTrackModelUseCase
 import com.mercadopago.android.px.internal.features.validation_program.AuthenticateUseCase
+import com.mercadopago.android.px.internal.features.validation_program.TokenDeviceUseCase
 import com.mercadopago.android.px.internal.features.validation_program.ValidationProgramUseCase
 
 internal class UseCaseModule(
     private val configurationModule: CheckoutConfigurationModule,
     private val mapperProvider: MapperProvider
 ) {
+
+    private val tokenDeviceUseCase: TokenDeviceUseCase
+        get() {
+            val session = Session.getInstance()
+            return TokenDeviceUseCase(
+                session.amountRepository,
+                BehaviourProvider.getTokenDeviceBehaviour(),
+                configurationModule.applicationSelectionRepository,
+                session.tracker
+            )
+        }
 
     val tokenizeWithEscUseCase: TokenizeWithEscUseCase
         get() {
@@ -52,6 +66,12 @@ internal class UseCaseModule(
                 configurationModule.paymentSettings,
                 session.tracker
             )
+        }
+
+    val tokenizeWithoutCvvUseCase: TokenizeWithoutCvvUseCase
+        get() {
+            val session = Session.getInstance()
+            return TokenizeWithoutCvvUseCase(tokenDeviceUseCase, session.tokenRepository, session.tracker)
         }
 
     val userSelectionUseCase: UserSelectionUseCase

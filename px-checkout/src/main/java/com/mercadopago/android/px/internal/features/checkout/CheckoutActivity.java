@@ -20,6 +20,7 @@ import com.mercadopago.android.px.internal.di.MapperProvider;
 import com.mercadopago.android.px.internal.di.Session;
 import com.mercadopago.android.px.internal.experiments.Variant;
 import com.mercadopago.android.px.internal.features.Constants;
+import com.mercadopago.android.px.internal.features.one_tap.OneTap;
 import com.mercadopago.android.px.internal.features.one_tap.OneTapFragment;
 import com.mercadopago.android.px.internal.features.security_code.SecurityCodeFragment;
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository;

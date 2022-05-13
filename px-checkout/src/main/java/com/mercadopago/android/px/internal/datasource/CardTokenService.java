@@ -12,8 +12,11 @@ import com.mercadopago.android.px.internal.repository.PaymentSettingRepository;
 import com.mercadopago.android.px.internal.services.GatewayService;
 import com.mercadopago.android.px.internal.util.TextUtil;
 import com.mercadopago.android.px.model.Device;
+import com.mercadopago.android.px.model.SavedCardToken;
+import com.mercadopago.android.px.model.SavedESCCardToken;
 import com.mercadopago.android.px.model.Token;
 import com.mercadopago.android.px.model.exceptions.ApiException;
+import com.mercadopago.android.px.model.requests.SecurityCodeIntent;
 import com.mercadopago.android.px.services.Callback;
 
 public class CardTokenService implements CardTokenRepository {
@@ -41,6 +44,29 @@ public class CardTokenService implements CardTokenRepository {
         @Nullable final RemotePaymentToken remotePaymentToken, final boolean requireEsc) {
         final CardTokenBody body = new CardTokenBody(cardId, device, requireEsc, cvv, "", remotePaymentToken);
         return gatewayService.createToken(paymentSettingRepository.getPublicKey(), body);
+    }
+
+    @Override
+    public MPCall<Token> createToken(final SavedESCCardToken savedESCCardToken) {
+        savedESCCardToken.setDevice(device);
+        return gatewayService
+            .createToken(paymentSettingRepository.getPublicKey(),
+                savedESCCardToken);
+    }
+
+    @Override
+    public MPCall<Token> cloneToken(final String tokenId) {
+        return gatewayService
+            .cloneToken(tokenId, paymentSettingRepository.getPublicKey());
+    }
+
+    @Override
+    public MPCall<Token> putSecurityCode(final String securityCode, final String tokenId) {
+        final SecurityCodeIntent securityCodeIntent = new SecurityCodeIntent();
+        securityCodeIntent.setSecurityCode(securityCode);
+        return gatewayService
+            .updateToken(tokenId, paymentSettingRepository.getPublicKey(),
+                securityCodeIntent);
     }
 
     @Override

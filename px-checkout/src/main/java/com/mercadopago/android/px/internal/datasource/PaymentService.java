@@ -3,6 +3,7 @@ package com.mercadopago.android.px.internal.datasource;
 import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import com.mercadopago.android.px.addons.ESCManagerBehaviour;
 import com.mercadopago.android.px.core.internal.CheckoutData;
 import com.mercadopago.android.px.core.internal.PaymentWrapper;
 import com.mercadopago.android.px.core.v2.PaymentProcessor;
@@ -11,11 +12,16 @@ import com.mercadopago.android.px.internal.base.use_case.TokenizeWithoutCvvUseCa
 import com.mercadopago.android.px.internal.callbacks.PaymentServiceEventHandler;
 import com.mercadopago.android.px.internal.callbacks.PaymentServiceHandlerWrapper;
 import com.mercadopago.android.px.internal.core.FileManager;
+import com.mercadopago.android.px.internal.datasource.mapper.FromPayerPaymentMethodToCardMapper;
 import com.mercadopago.android.px.internal.features.validation_program.ValidationProgramUseCase;
+import com.mercadopago.android.px.internal.mappers.PaymentMethodMapper;
 import com.mercadopago.android.px.internal.repository.AmountConfigurationRepository;
+import com.mercadopago.android.px.internal.repository.AmountRepository;
 import com.mercadopago.android.px.internal.repository.CongratsRepository;
 import com.mercadopago.android.px.internal.repository.DisabledPaymentMethodRepository;
+import com.mercadopago.android.px.internal.repository.DiscountRepository;
 import com.mercadopago.android.px.internal.repository.EscPaymentManager;
+import com.mercadopago.android.px.internal.repository.PaymentMethodRepository;
 import com.mercadopago.android.px.internal.repository.PaymentRepository;
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository;
 import com.mercadopago.android.px.internal.repository.UserSelectionRepository;
@@ -27,10 +33,7 @@ import com.mercadopago.android.px.model.PaymentData;
 import com.mercadopago.android.px.model.PaymentMethod;
 import com.mercadopago.android.px.model.PaymentRecovery;
 import com.mercadopago.android.px.model.Token;
-import com.mercadopago.android.px.model.exceptions.MercadoPagoError;
-import com.mercadopago.android.px.model.internal.PaymentConfiguration;
 import com.mercadopago.android.px.preferences.CheckoutPreference;
-import com.mercadopago.android.px.tracking.internal.model.Reason;
 import java.io.File;
 import java.util.List;
 import kotlin.Unit;
@@ -64,11 +67,7 @@ public class PaymentService implements PaymentRepository {
         @NonNull final FileManager fileManager,
         @NonNull final ValidationProgramUseCase validationProgramUseCase,
         @NonNull final PaymentResultFactory paymentResultFactory,
-        @NonNull final PaymentDataFactory paymentDataFactory) {
-        @NonNull final FromPayerPaymentMethodToCardMapper fromPayerPaymentMethodToCardMapper,
-        @NonNull final PaymentMethodMapper paymentMethodMapper,
-        @NonNull final PaymentMethodRepository paymentMethodRepository,
-        @NonNull final ValidationProgramUseCase validationProgramUseCase,
+        @NonNull final PaymentDataFactory paymentDataFactory,
         @NonNull final TokenizeWithEscUseCase tokenizeWithEscUseCase,
         @NonNull final TokenizeWithoutCvvUseCase tokenizeWithoutCvvUseCase) {
         this.amountConfigurationRepository = amountConfigurationRepository;

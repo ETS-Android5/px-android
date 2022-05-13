@@ -106,6 +106,7 @@ import com.mercadopago.android.px.model.internal.PaymentConfiguration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
 import static android.app.Activity.RESULT_OK;
 import static android.view.View.GONE;

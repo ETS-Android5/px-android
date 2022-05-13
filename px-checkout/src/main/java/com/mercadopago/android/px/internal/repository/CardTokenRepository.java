@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.mercadopago.android.px.internal.callbacks.MPCall;
 import com.mercadopago.android.px.internal.model.RemotePaymentToken;
+import com.mercadopago.android.px.model.SavedCardToken;
+import com.mercadopago.android.px.model.SavedESCCardToken;
 import com.mercadopago.android.px.model.Token;
 
 public interface CardTokenRepository {
@@ -19,6 +21,22 @@ public interface CardTokenRepository {
      */
     MPCall<Token> createToken(@NonNull final String cardId, @NonNull final String cvv,
         @Nullable final RemotePaymentToken remotePaymentToken, final boolean requireEsc);
+
+    /**
+     * After gathering user save card's information, create a Token to create Payment.
+     *
+     * @param savedCardToken: Save Card information to create Token.
+     * @return Token associated to SavedCard.
+     */
+    MPCall<Token> createToken(final SavedCardToken savedCardToken);
+
+    /**
+     * An specialization of SavedCardToken. Create token for cards with ESC to create Payment.
+     *
+     * @param savedESCCardToken: saved ESC card token information to create TOken.
+     * @return Token associated to SavedESCCard.
+     */
+    MPCall<Token> createToken(final SavedESCCardToken savedESCCardToken);
 
     /**
      * Clone Token.
@@ -40,7 +58,7 @@ public interface CardTokenRepository {
     /**
      * Clear card cap and execute an action whatever it succeed or not
      *
-     * @param cardId   card id to clear cap
+     * @param cardId card id to clear cap
      * @param callback action to be executed
      */
     void clearCap(@NonNull final String cardId, @NonNull final ClearCapCallback callback);

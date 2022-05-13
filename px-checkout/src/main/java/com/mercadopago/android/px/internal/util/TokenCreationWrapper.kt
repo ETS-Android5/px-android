@@ -78,40 +78,39 @@ internal class TokenCreationWrapper private constructor(builder: Builder) {
         .putSecurityCode(cvv, tokenId)
         .awaitTaggedCallback(ApiUtil.RequestOrigin.CREATE_TOKEN)
 
-    suspend fun createToken(cvv: String): Response<Token, MercadoPagoError> {
-        return if (escManagerBehaviour.isESCEnabled) {
-            cloneToken(cvv)
-        } else {
-            createTokenWithCvv(cvv)
-        }
-    }
-
-    class Builder(
-        val cardTokenRepository: CardTokenRepository,
-        val escManagerBehaviour: ESCManagerBehaviour
-    ) {
-        lateinit var card: Card
-
-        var token: Token? = null
+    class Builder(val cardTokenRepository: CardTokenRepository, val escManagerBehaviour: ESCManagerBehaviour) {
+        var card: Card? = null
             private set
 
-        var reason: Reason = Reason.NO_REASON
+        var token: Token? = null
             private set
 
         var paymentMethod: PaymentMethod? = null
             private set
 
+        var reason: Reason? = Reason.NO_REASON
+            private set
+
         fun with(card: Card) = apply {
             this.card = card
+            this.paymentMethod = card.paymentMethod
         }
 
         fun with(token: Token) = apply { this.token = token }
         fun with(paymentMethod: PaymentMethod) = apply { this.paymentMethod = paymentMethod }
         fun with(paymentRecovery: PaymentRecovery) = apply {
-            card = paymentRecovery.card!!
+            card = paymentRecovery.card
+            token = paymentRecovery.token
+            paymentMethod = paymentRecovery.paymentMethod
             reason = Reason.from(paymentRecovery)
         }
 
-        fun build() = TokenCreationWrapper(this)
+        fun build(): TokenCreationWrapper {
+            check(!(token == null && card == null)) { "Token and card can't both be null" }
+
+            checkNotNull(paymentMethod) { "Payment method not set" }
+
+            return TokenCreationWrapper(this)
+        }
     }
 }
