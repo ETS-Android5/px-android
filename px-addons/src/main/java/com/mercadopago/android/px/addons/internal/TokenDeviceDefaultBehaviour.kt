@@ -10,18 +10,7 @@ import java.util.UUID
 
 internal class TokenDeviceDefaultBehaviour : TokenDeviceBehaviour {
     override val isFeatureAvailable: Boolean = false
-    override val tokensStatus: List<TokenState> = listOf(
-        TokenState(
-            cardId = UUID.randomUUID().toString(),
-            state = TokenState.State.IN_PROGRESS
-        ),
-        TokenState(
-            cardId = UUID.randomUUID().toString(),
-            state = TokenState.State.IN_PROGRESS,
-            updatedAt = Date(),
-            vProvisionedTokenId = UUID.randomUUID().toString()
-        )
-    )
+    override val tokensStatus: List<TokenState> = listOf()
     override fun getTokenize(
         flowId: String,
         cardId: String,
