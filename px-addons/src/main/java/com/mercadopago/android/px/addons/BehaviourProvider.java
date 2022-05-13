@@ -2,6 +2,7 @@ package com.mercadopago.android.px.addons;
 
 import androidx.annotation.NonNull;
 import com.mercadopago.android.px.addons.internal.AuthenticationDefaultBehaviour;
+import com.mercadopago.android.px.addons.internal.DeviceInfoDefaultBehaviour;
 import com.mercadopago.android.px.addons.internal.ESCManagerDefaultBehaviour;
 import com.mercadopago.android.px.addons.internal.FlowDefaultBehaviour;
 import com.mercadopago.android.px.addons.internal.LocaleDefaultBehaviour;
@@ -20,6 +21,7 @@ public final class BehaviourProvider {
     private static ThreeDSBehaviour threeDSBehaviour;
     private static TokenDeviceBehaviour tokenDeviceBehaviour;
     private static AuthenticationBehaviour authenticationBehaviour;
+    private static DeviceInfoBehaviour deviceInfoBehaviour;
 
     private BehaviourProvider() {
     }
@@ -61,6 +63,10 @@ public final class BehaviourProvider {
 
     static void set(final AuthenticationBehaviour authenticationBehaviour) {
         BehaviourProvider.authenticationBehaviour = authenticationBehaviour;
+    }
+
+    static void set(final DeviceInfoBehaviour deviceInfoBehaviour) {
+        BehaviourProvider.deviceInfoBehaviour = deviceInfoBehaviour;
     }
 
     @NonNull
@@ -148,6 +154,10 @@ public final class BehaviourProvider {
 
     public static AuthenticationBehaviour getAuthenticationBehaviour() {
         return authenticationBehaviour != null ? authenticationBehaviour : new AuthenticationDefaultBehaviour();
+    }
+
+    public static DeviceInfoBehaviour getDeviceInfoBehaviour() {
+        return deviceInfoBehaviour != null ? deviceInfoBehaviour : new DeviceInfoDefaultBehaviour();
     }
 
     @NonNull

@@ -12,6 +12,7 @@ public final class PXBehaviourConfigurer {
     private ThreeDSBehaviour threeDSBehaviour;
     private TokenDeviceBehaviour tokenDeviceBehaviour;
     private AuthenticationBehaviour authenticationBehaviour;
+    private DeviceInfoBehaviour deviceInfoBehaviour;
 
     public PXBehaviourConfigurer with(@NonNull final ESCManagerBehaviour escManagerBehaviour) {
         this.escManagerBehaviour = escManagerBehaviour;
@@ -53,6 +54,11 @@ public final class PXBehaviourConfigurer {
         return this;
     }
 
+    public PXBehaviourConfigurer with(@NonNull final DeviceInfoBehaviour deviceInfoBehaviour) {
+        this.deviceInfoBehaviour = deviceInfoBehaviour;
+        return this;
+    }
+
     /**
      * Apply only an nonnull configuration to override previous configuration
      * with nonnull values.
@@ -83,6 +89,9 @@ public final class PXBehaviourConfigurer {
         }
         if (authenticationBehaviour != null) {
             BehaviourProvider.set(authenticationBehaviour);
+        }
+        if (deviceInfoBehaviour != null) {
+            BehaviourProvider.set(deviceInfoBehaviour);
         }
     }
 }
