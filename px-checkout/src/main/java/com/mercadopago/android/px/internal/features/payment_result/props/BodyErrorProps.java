@@ -1,6 +1,8 @@
 package com.mercadopago.android.px.internal.features.payment_result.props;
 
 import androidx.annotation.NonNull;
+import com.mercadopago.android.px.internal.view.PaymentResultMethod;
+import java.util.List;
 
 public class BodyErrorProps {
 
@@ -8,12 +10,14 @@ public class BodyErrorProps {
     public final String statusDetail;
     public final String paymentMethodName;
     public final String paymentAmount;
+    public final List<PaymentResultMethod.Model> paymentResultMethodModels;
 
     public BodyErrorProps(@NonNull final Builder builder) {
         status = builder.status;
         statusDetail = builder.statusDetail;
         paymentMethodName = builder.paymentMethodName;
         paymentAmount = builder.paymentAmount;
+        paymentResultMethodModels = builder.paymentResultMethodModels;
     }
 
     public Builder toBuilder() {
@@ -30,6 +34,7 @@ public class BodyErrorProps {
         public String statusDetail;
         public String paymentMethodName;
         public String paymentAmount;
+        public List<PaymentResultMethod.Model> paymentResultMethodModels;
 
         public Builder setStatus(@NonNull final String status) {
             this.status = status;
@@ -48,6 +53,13 @@ public class BodyErrorProps {
 
         public Builder setPaymentAmount(final String paymentAmount) {
             this.paymentAmount = paymentAmount;
+            return this;
+        }
+
+        public Builder setPaymentResultMethodModels(
+            @NonNull final List<PaymentResultMethod.Model> paymentResultMethodModels
+        ) {
+            this.paymentResultMethodModels = paymentResultMethodModels;
             return this;
         }
 

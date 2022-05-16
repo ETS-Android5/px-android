@@ -5,31 +5,33 @@ import com.mercadopago.android.px.addons.ESCManagerBehaviour
 import com.mercadopago.android.px.configuration.AdvancedConfiguration
 import com.mercadopago.android.px.configuration.DynamicDialogConfiguration
 import com.mercadopago.android.px.core.DynamicDialogCreator
+import com.mercadopago.android.px.core.internal.FlowConfigurationProvider
+import com.mercadopago.android.px.internal.base.use_case.TokenizeWithEscUseCase
 import com.mercadopago.android.px.internal.callbacks.Response
 import com.mercadopago.android.px.internal.core.AuthorizationProvider
 import com.mercadopago.android.px.internal.datasource.CustomOptionIdSolver
 import com.mercadopago.android.px.internal.domain.CheckoutUseCase
+import com.mercadopago.android.px.internal.domain.CheckoutWithNewBankAccountCardUseCase
 import com.mercadopago.android.px.internal.domain.CheckoutWithNewCardUseCase
-import com.mercadopago.android.px.internal.features.AmountDescriptorViewModelFactory
+import com.mercadopago.android.px.internal.features.generic_modal.FromModalToGenericDialogItem
+import com.mercadopago.android.px.internal.features.pay_button.PayButtonFragment
 import com.mercadopago.android.px.internal.mappers.ElementDescriptorMapper
 import com.mercadopago.android.px.internal.mappers.SummaryInfoMapper
+import com.mercadopago.android.px.internal.mappers.UriToFromMapper
 import com.mercadopago.android.px.internal.repository.AmountConfigurationRepository
-import com.mercadopago.android.px.internal.repository.AmountRepository
 import com.mercadopago.android.px.internal.repository.ApplicationSelectionRepository
-import com.mercadopago.android.px.internal.repository.ChargeRepository
 import com.mercadopago.android.px.internal.repository.CheckoutRepository
 import com.mercadopago.android.px.internal.repository.DisabledPaymentMethodRepository
 import com.mercadopago.android.px.internal.repository.DiscountRepository
 import com.mercadopago.android.px.internal.repository.ExperimentsRepository
 import com.mercadopago.android.px.internal.repository.ModalRepository
 import com.mercadopago.android.px.internal.repository.OneTapItemRepository
-import com.mercadopago.android.px.internal.repository.PayerComplianceRepository
 import com.mercadopago.android.px.internal.repository.PayerCostSelectionRepository
 import com.mercadopago.android.px.internal.repository.PayerPaymentMethodRepository
 import com.mercadopago.android.px.internal.repository.PaymentRepository
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository
 import com.mercadopago.android.px.internal.tracking.TrackingRepository
-import com.mercadopago.android.px.internal.view.SummaryDetailDescriptorMapper
+import com.mercadopago.android.px.internal.viewmodel.FlowConfigurationModel
 import com.mercadopago.android.px.internal.viewmodel.SplitSelectionState
 import com.mercadopago.android.px.internal.viewmodel.drawables.PaymentMethodDrawableItemMapper
 import com.mercadopago.android.px.mocks.CurrencyStub
@@ -41,11 +43,9 @@ import com.mercadopago.android.px.model.Item
 import com.mercadopago.android.px.model.PayerCost
 import com.mercadopago.android.px.model.StatusMetadata
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError
-import com.mercadopago.android.px.model.internal.Application
-import com.mercadopago.android.px.model.internal.DisabledPaymentMethod
-import com.mercadopago.android.px.model.internal.OneTapItem
-import com.mercadopago.android.px.model.internal.SummaryInfo
+import com.mercadopago.android.px.model.internal.*
 import com.mercadopago.android.px.preferences.CheckoutPreference
+import com.mercadopago.android.px.tracking.internal.BankInfoHelper
 import com.mercadopago.android.px.tracking.internal.MPTracker
 import com.mercadopago.android.px.tracking.internal.events.AbortEvent
 import com.mercadopago.android.px.tracking.internal.events.BackEvent
@@ -79,8 +79,6 @@ class OneTapPresenterTest {
 
     private val amountConfigurationRepository = mockk<AmountConfigurationRepository>()
 
-    private val amountRepository = mockk<AmountRepository>()
-
     private val oneTapItem = mockk<OneTapItem>(relaxed = true)
 
     private val amountConfiguration = mockk<AmountConfiguration>(relaxed = true)
@@ -94,15 +92,11 @@ class OneTapPresenterTest {
 
     private val dynamicDialogConfiguration = mockk<DynamicDialogConfiguration>(relaxed = true)
 
-    private val chargeRepository = mockk<ChargeRepository>()
-
     private val escManagerBehaviour = mockk<ESCManagerBehaviour>(relaxed = true)
 
     private val paymentMethodDrawableItemMapper = mockk<PaymentMethodDrawableItemMapper>(relaxed = true)
 
     private val experimentsRepository = mockk<ExperimentsRepository>(relaxed = true)
-
-    private val payerComplianceRepository = mockk<PayerComplianceRepository>()
 
     private val applicationSelectionRepository = mockk<ApplicationSelectionRepository>(relaxed = true)
 
@@ -118,8 +112,6 @@ class OneTapPresenterTest {
 
     private val modalRepository = mockk<ModalRepository>()
 
-    private val summaryDetailDescriptorMapper = mockk<SummaryDetailDescriptorMapper>()
-
     private val summaryInfoMapper = mockk<SummaryInfoMapper>()
 
     private val elementDescriptorMapper = mockk<ElementDescriptorMapper>()
@@ -128,9 +120,17 @@ class OneTapPresenterTest {
 
     private val customOptionIdSolver = mockk<CustomOptionIdSolver>()
 
-    private val amountDescriptorViewModelFactory = mockk<AmountDescriptorViewModelFactory>()
-
     private val authorizationProvider = mockk<AuthorizationProvider>()
+
+    private val tokenizeWithEscUseCase = mockk<TokenizeWithEscUseCase>()
+
+    private val paymentConfigurationMapper = mockk<PaymentConfigurationMapper>()
+    private val fromModalToGenericDialogItem = mockk<FromModalToGenericDialogItem>()
+    private val flowConfigurationProvider = mockk<FlowConfigurationProvider>()
+    private val bankInfoHelper = mockk<BankInfoHelper>()
+    private val flowConfigurationModel = mockk<FlowConfigurationModel>()
+    private val uriToFromMapper = mockk<UriToFromMapper>()
+    private val checkoutWithNewBankAccountCardUseCase = mockk<CheckoutWithNewBankAccountCardUseCase>()
 
     private lateinit var checkoutUseCase: CheckoutUseCase
     private lateinit var checkoutWithNewCardUseCase: CheckoutWithNewCardUseCase
@@ -174,34 +174,39 @@ class OneTapPresenterTest {
         every { applicationSelectionRepository[customOptionId] } returns application
         every { summaryInfoMapper.map(preference) } returns mockk()
         every { elementDescriptorMapper.map(any<SummaryInfo>()) } returns mockk()
+        every { flowConfigurationModel.confirmButton } returns mockk<PayButtonFragment>()
+        every { flowConfigurationProvider.getFlowConfiguration() } returns flowConfigurationModel
+
         oneTapPresenter = OneTapPresenter(
             paymentSettingRepository,
             disabledPaymentMethodRepository,
             payerCostSelectionRepository,
             applicationSelectionRepository,
             discountRepository,
-            amountRepository,
             checkoutUseCase,
             checkoutWithNewCardUseCase,
             amountConfigurationRepository,
-            chargeRepository,
             escManagerBehaviour,
             experimentsRepository,
-            payerComplianceRepository,
             trackingRepository,
-            mockk(),
             oneTapItemRepository,
             payerPaymentMethodRepository,
             modalRepository,
             customOptionIdSolver,
             paymentMethodDrawableItemMapper,
             mockk(relaxed = true),
-            summaryDetailDescriptorMapper,
             summaryInfoMapper,
             elementDescriptorMapper,
             mockk(relaxed = true),
             authorizationProvider,
-            amountDescriptorViewModelFactory,
+            tokenizeWithEscUseCase,
+            paymentConfigurationMapper,
+            flowConfigurationProvider,
+            bankInfoHelper,
+            fromModalToGenericDialogItem,
+            mockk(relaxed = true),
+            uriToFromMapper,
+            checkoutWithNewBankAccountCardUseCase,
             tracker
         )
         verifyAttachView()
@@ -217,7 +222,7 @@ class OneTapPresenterTest {
         oneTapPresenter.handleDeepLink()
 
         coVerify { checkoutRepository.checkout() }
-        verify { view.showError(any()) }
+        verify { view.showErrorActivity(any()) }
     }
 
     @Test
@@ -334,10 +339,13 @@ class OneTapPresenterTest {
     fun whenSliderOptionSelectedThenShowInstallmentsRow() {
         every { payerCostSelectionRepository[any()] } returns PayerCost.NO_SELECTED
         val currentElementPosition = 0
+        every { discountRepository.getConfigurationFor(any())} returns mockk()
+        every { amountConfigurationRepository.getConfigurationFor(any())} returns mockk()
 
         oneTapPresenter.onSliderOptionSelected(currentElementPosition)
 
         verify { view.updateViewForPosition(currentElementPosition, PayerCost.NO_SELECTED, any(), any()) }
+        verify { view.updateTotalValue(any()) }
         confirmVerified(view)
     }
 
@@ -346,11 +354,17 @@ class OneTapPresenterTest {
         val paymentMethodIndex = 0
         val selectedPayerCostIndex = 1
         val payerCostList = mockPayerCosts(selectedPayerCostIndex)
+        val payerCostSelected = payerCostList[selectedPayerCostIndex]
+
+        every { discountRepository.getConfigurationFor(any())} returns mockk()
+        every { amountConfigurationRepository.getConfigurationFor(any())} returns mockk()
+        every { payerCostSelected.totalAmount } returns BigDecimal.TEN
 
         oneTapPresenter.onPayerCostSelected(payerCostList[selectedPayerCostIndex])
 
         verify { view.updateViewForPosition(paymentMethodIndex, selectedPayerCostIndex, any(), any()) }
         verify { view.collapseInstallmentsSelection() }
+        verify { view.updateTotalValue(any()) }
         confirmVerified(view)
     }
 
@@ -366,11 +380,11 @@ class OneTapPresenterTest {
         oneTapPresenter.attachView(view)
         verify { view.configurePayButton(any()) }
         verify { view.configurePaymentMethodHeader(any()) }
-        verify { view.showToolbarElementDescriptor(any()) }
-        verify { view.updateAdapters(any()) }
+        verify { view.showHorizontalElementDescriptor(any()) }
         verify { view.updateViewForPosition(any(), any(), any(), any()) }
         verify { view.configureRenderMode(any()) }
-        verify { view.configureAdapters(any(), any()) }
+        verify { view.configureAdapters(any()) }
         verify { view.updatePaymentMethods(any()) }
+        verify { view.configureFlow(flowConfigurationModel) }
     }
 }

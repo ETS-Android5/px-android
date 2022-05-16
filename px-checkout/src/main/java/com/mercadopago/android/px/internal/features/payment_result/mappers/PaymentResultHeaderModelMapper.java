@@ -1,5 +1,7 @@
 package com.mercadopago.android.px.internal.features.payment_result.mappers;
 
+import androidx.annotation.ColorRes;
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.mercadopago.android.px.R;
@@ -8,6 +10,7 @@ import com.mercadopago.android.px.internal.features.PaymentResultViewModelFactor
 import com.mercadopago.android.px.internal.features.payment_result.model.Badge;
 import com.mercadopago.android.px.internal.features.payment_result.remedies.RemediesModel;
 import com.mercadopago.android.px.internal.util.StatusHelper;
+import com.mercadopago.android.px.internal.util.TextUtil;
 import com.mercadopago.android.px.internal.view.PaymentResultHeader;
 import com.mercadopago.android.px.internal.viewmodel.GenericLocalized;
 import com.mercadopago.android.px.internal.viewmodel.PaymentModel;
@@ -55,14 +58,61 @@ public class PaymentResultHeaderModelMapper extends Mapper<PaymentModel, Payment
 
         return new PaymentResultHeader.Model.Builder()
             .setDynamicHeight(!hasBodyComponent)
-            .setBackground(remediesModel.hasRemedies() ? RemediesModel.DECORATOR.resColor : viewModel.getBackgroundResId())
-            .setIconImage(getIconImage(paymentResult))
-            .setIconUrl(getIconUrl(paymentResult))
+            .setBackground(resolveBackground(viewModel))
+            .setIconImage(resolveIconRes(viewModel, paymentResult))
+            .setIconUrl(resolveIconUrl(remediesModel, paymentResult))
             .setBadgeImage(getBadgeImage(paymentResult, viewModel))
-            .setTitle(new GenericLocalized(remediesModel.hasRemedies() ? remediesModel.getTitle() :
-                getInstructionsTitle(), viewModel.getTitleResId()))
+            .setBadgeUrl(resolveBadgeUrl(remediesModel))
+            .setTitle(new GenericLocalized(resolveTitle(remediesModel), viewModel.getTitleResId()))
             .setLabel(new GenericLocalized(null, DEFAULT_LABEL))
             .build();
+    }
+
+    private String resolveTitle(final RemediesModel remediesModel) {
+        String title = getInstructionsTitle();
+
+        if (remediesModel.hasRemedies() && remediesModel.getHeader() != null) {
+            title = remediesModel.getHeader().getTitle();
+        }
+
+        return title;
+    }
+
+    @DrawableRes
+    private int resolveIconRes(final PaymentResultViewModel viewModel, final PaymentResult paymentResult) {
+        return viewModel.getIconResId() > 0 ? viewModel.getIconResId() : getIconImage(paymentResult);
+    }
+
+    @ColorRes
+    private int resolveBackground(final PaymentResultViewModel viewModel) {
+        int backgroundResId = viewModel.getBackgroundResId();
+
+        if (remediesModel.hasRemedies()) {
+            backgroundResId = RemediesModel.DECORATOR.resColor;
+        }
+
+        return backgroundResId;
+    }
+
+    private String resolveIconUrl(final RemediesModel remediesModel, final PaymentResult paymentResult) {
+        final RemediesModel.HeaderModel header = remediesModel.getHeader();
+        String iconUrl = getIconUrl(paymentResult);
+
+        if (remediesModel.hasRemedies() && header != null && TextUtil.isNotEmpty(header.getIconUrl())) {
+            iconUrl = header.getIconUrl();
+        }
+
+        return iconUrl;
+    }
+
+    private String resolveBadgeUrl(final RemediesModel remediesModel) {
+        String iconUrl = "";
+
+        if (remediesModel.hasRemedies() && remediesModel.getHeader() != null) {
+            iconUrl = remediesModel.getHeader().getBadgeUrl();
+        }
+
+        return iconUrl;
     }
 
     @Nullable

@@ -2,6 +2,7 @@ package com.mercadopago.android.px.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import androidx.annotation.Nullable;
 import androidx.annotation.StringDef;
 import com.mercadopago.android.px.model.internal.Text;
 import java.io.Serializable;
@@ -15,6 +16,8 @@ public final class StatusMetadata implements Parcelable, Serializable {
     @Detail private final String detail;
     private final Text mainMessage;
     private final Text secondaryMessage;
+    @Nullable
+    private final Text label;
 
     public static final Creator<StatusMetadata> CREATOR = new Creator<StatusMetadata>() {
         @Override
@@ -33,6 +36,7 @@ public final class StatusMetadata implements Parcelable, Serializable {
         detail = in.readString();
         mainMessage = in.readParcelable(Text.class.getClassLoader());
         secondaryMessage = in.readParcelable(Text.class.getClassLoader());
+        label = in.readParcelable(Text.class.getClassLoader());
     }
 
     @Override
@@ -41,6 +45,7 @@ public final class StatusMetadata implements Parcelable, Serializable {
         dest.writeString(detail);
         dest.writeParcelable(mainMessage, flags);
         dest.writeParcelable(secondaryMessage, flags);
+        dest.writeParcelable(label, flags);
     }
 
     public boolean isEnabled() {
@@ -65,6 +70,11 @@ public final class StatusMetadata implements Parcelable, Serializable {
 
     public Text getSecondaryMessage() {
         return secondaryMessage;
+    }
+
+    @Nullable
+    public Text getLabel() {
+        return label;
     }
 
     @Override

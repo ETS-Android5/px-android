@@ -42,6 +42,7 @@ public class PaymentCongratsModel implements Parcelable {
 
     //Receipt data
     private final boolean shouldShowReceipt;
+    private final boolean forceShowReceipt;
 
     // Exit Buttons
     @Nullable private final ExitAction footerMainAction;
@@ -76,6 +77,7 @@ public class PaymentCongratsModel implements Parcelable {
         shouldShowPaymentMethod = builder.shouldShowPaymentMethod;
         paymentsInfo = builder.paymentsInfo;
         shouldShowReceipt = builder.shouldShowReceipt;
+        forceShowReceipt = builder.forceShowReceipt;
         topFragment = builder.topFragment;
         bottomFragment = builder.bottomFragment;
         importantFragment = builder.importantFragment;
@@ -100,11 +102,12 @@ public class PaymentCongratsModel implements Parcelable {
             paymentId = in.readLong();
         }
         shouldShowReceipt = (Boolean) in.readValue(Boolean.class.getClassLoader());
+        forceShowReceipt = (Boolean) in.readValue(Boolean.class.getClassLoader());
         footerMainAction = in.readParcelable(ExitAction.class.getClassLoader());
         footerSecondaryAction = in.readParcelable(ExitAction.class.getClassLoader());
         statementDescription = in.readString();
         shouldShowPaymentMethod = (Boolean) in.readValue(Boolean.class.getClassLoader());
-        paymentsInfo = in.createTypedArrayList(PaymentInfo.CREATOR);
+        paymentsInfo = ((PaymentsInfo) in.readParcelable(PaymentsInfo.class.getClassLoader())).getPaymentsInfo();
         topFragment = in.readParcelable(ExternalFragment.class.getClassLoader());
         bottomFragment = in.readParcelable(ExternalFragment.class.getClassLoader());
         importantFragment = in.readParcelable(ExternalFragment.class.getClassLoader());
@@ -140,11 +143,12 @@ public class PaymentCongratsModel implements Parcelable {
             dest.writeLong(paymentId);
         }
         dest.writeValue(shouldShowReceipt);
+        dest.writeValue(forceShowReceipt);
         dest.writeParcelable(footerMainAction, flags);
         dest.writeParcelable(footerSecondaryAction, flags);
         dest.writeString(statementDescription);
         dest.writeValue(shouldShowPaymentMethod);
-        dest.writeTypedList(paymentsInfo);
+        dest.writeParcelable(new PaymentsInfo(paymentsInfo), flags);
         dest.writeParcelable(topFragment, flags);
         dest.writeParcelable(bottomFragment, flags);
         dest.writeParcelable(importantFragment, flags);
@@ -218,6 +222,10 @@ public class PaymentCongratsModel implements Parcelable {
     @Nullable
     public Boolean getShouldShowReceipt() {
         return shouldShowReceipt;
+    }
+
+    public boolean getForceShowReceipt() {
+        return forceShowReceipt;
     }
 
     @Nullable
@@ -317,6 +325,7 @@ public class PaymentCongratsModel implements Parcelable {
         /* default */ List<PaymentInfo> paymentsInfo = new ArrayList<>();
 
         /* default */ boolean shouldShowReceipt = false;
+        /* default */ boolean forceShowReceipt = false;
         /* default */ String currencyId;
 
         // Exit Buttons
@@ -426,9 +435,29 @@ public class PaymentCongratsModel implements Parcelable {
          */
         public Builder withReceipt(final Long paymentId, final boolean shouldShowReceipt,
             final PaymentCongratsResponse.Action receiptAction) {
+            return withReceipt(
+                paymentId,
+                shouldShowReceipt,
+                receiptAction,
+                false
+            );
+        }
+
+        /**
+         * If value is set, then receipt view will appear.
+         *
+         * @param paymentId the receipt id to be shown.
+         * @param shouldShowReceipt if the receipt should be drawn, default value is "false"
+         * @param receiptAction a button that takes you to the payment receipt
+         * @param forceShowReceipt Forces the drawn of the receipt independent of its status
+         * @return builder
+         */
+        public Builder withReceipt(final Long paymentId, final boolean shouldShowReceipt,
+            final PaymentCongratsResponse.Action receiptAction, final boolean forceShowReceipt) {
             this.paymentId = paymentId;
             this.receiptAction = receiptAction;
             this.shouldShowReceipt = shouldShowReceipt;
+            this.forceShowReceipt = forceShowReceipt;
             return this;
         }
 

@@ -14,5 +14,8 @@ internal class UriToDeepLinkWrapperMapper(
         when (uriToFromMapper.map(value)) {
             From.TOKENIZATION -> TokenizationResponseWrapper()
             From.NONE -> DefaultWrapper()
+            else -> {
+                DefaultWrapper()
+            }
         }
 }

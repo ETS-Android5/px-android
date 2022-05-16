@@ -29,6 +29,7 @@ public class PaymentMethods {
         public static final String DEBMASTER = "debmaster";
         public static final String DEBCABAL = "debcabal";
         public static final String DEBVISA = "debvisa";
+        public static final String DEBIN = "debin_transfer";
     }
 
     public class BRASIL {

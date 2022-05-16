@@ -1,5 +1,6 @@
 package com.mercadopago.android.px.internal.features.one_tap.slider;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,30 +8,34 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatTextView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.fragment.app.Fragment;
 import com.meli.android.carddrawer.model.CardDrawerView;
 import com.mercadopago.android.px.R;
+import com.mercadopago.android.px.core.presentation.extensions.DrawableExtKt;
+import com.mercadopago.android.px.core.presentation.extensions.ViewExtKt;
 import com.mercadopago.android.px.internal.di.MapperProvider;
 import com.mercadopago.android.px.internal.features.payment_result.remedies.RemediesLinkableMapper;
+import com.mercadopago.android.px.internal.font.FontHelper;
+import com.mercadopago.android.px.internal.font.PxFont;
 import com.mercadopago.android.px.internal.util.ViewUtils;
 import com.mercadopago.android.px.internal.view.LinkableTextView;
 import com.mercadopago.android.px.internal.viewmodel.DisableConfiguration;
 import com.mercadopago.android.px.internal.viewmodel.drawables.ConsumerCreditsDrawableFragmentItem;
 import com.mercadopago.android.px.model.ConsumerCreditsDisplayInfo;
+import com.mercadopago.android.px.model.internal.Text;
 
 public class ConsumerCreditsFragment extends PaymentMethodFragment<ConsumerCreditsDrawableFragmentItem> {
 
-    private ConstraintLayout creditsLagout;
+    private ConstraintLayout creditsLayout;
     private ImageView background;
     private ImageView logo;
     private LinkableTextView topText;
     private LinkableTextView bottomText;
-    protected Integer installment = -1;
-    private RemediesLinkableMapper remediesLinkableMapper = MapperProvider.INSTANCE.getRemediesLinkableMapper();
-
-    private static String INSTALLMENT_SELECTED_EXTRA = "installment_selected";
+    private ViewGroup tagContainer;
+    private final RemediesLinkableMapper remediesLinkableMapper = MapperProvider.INSTANCE.getRemediesLinkableMapper();
 
     @NonNull
     public static Fragment getInstance(final ConsumerCreditsDrawableFragmentItem model) {
@@ -47,27 +52,31 @@ public class ConsumerCreditsFragment extends PaymentMethodFragment<ConsumerCredi
     }
 
     @Override
-    public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        if (savedInstanceState != null) {
-            installment = savedInstanceState.getInt(INSTALLMENT_SELECTED_EXTRA, -1);
-            setInstallment(installment);
-        }
-    }
-
-    @Override
-    @SuppressWarnings("ConstantConditions")
     public void initializeViews(@NonNull final View view) {
         super.initializeViews(view);
-        creditsLagout = view.findViewById(R.id.credits_layout);
+        creditsLayout = view.findViewById(R.id.credits_layout);
         background = view.findViewById(R.id.background);
         logo = view.findViewById(R.id.logo);
         topText = view.findViewById(R.id.top_text);
         bottomText = view.findViewById(R.id.bottom_text);
+        tagContainer = view.findViewById(R.id.card_tag_container);
         final ConsumerCreditsDisplayInfo displayInfo = model.metadata.displayInfo;
         tintBackground(background, displayInfo.color);
         showDisplayInfo(displayInfo);
+        if (model.tag != null) {
+            showTag(model.tag);
+        }
+        configureListener();
         view.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
+    }
+
+    private void showTag(@NonNull final Text tag) {
+        AppCompatTextView text = tagContainer.findViewById(R.id.card_cc_tag);
+        tagContainer.setVisibility(View.VISIBLE);
+        text.setText(tag.getMessage());
+        ViewUtils.setTextColor(text, tag.getTextColor());
+        DrawableExtKt.setColorFilter(text.getBackground(),tag.getBackgroundColor(),Color.WHITE);
+        FontHelper.setFont(text, PxFont.from(tag.getWeight()));
     }
 
     @Override
@@ -83,38 +92,27 @@ public class ConsumerCreditsFragment extends PaymentMethodFragment<ConsumerCredi
         }
     }
 
-    public void updateInstallment(final int installmentSelected) {
-        final View view = getView();
-        if (view != null) {
-            view.post(() -> {
-                if (installment != installmentSelected) {
-                    setInstallment(installmentSelected);
-                }
-            });
-        }
-    }
-
-    public void setInstallment(final int installmentSelected) {
-        if (topText != null) {
-            topText.updateInstallment(installmentSelected);
+    public void configureListener() {
+        final Fragment parent = getParentFragment();
+        LinkableTextView.LinkableTextListener listener = null;
+        if (parent instanceof LinkableTextView.LinkableTextListener) {
+            listener = (LinkableTextView.LinkableTextListener) parent;
         }
 
-        if (bottomText != null) {
-            bottomText.updateInstallment(installmentSelected);
+        if (listener != null && topText != null) {
+            topText.setLinkableTextListener(listener);
         }
-    }
 
-    @Override
-    public void onSaveInstanceState(@NonNull final Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt(INSTALLMENT_SELECTED_EXTRA, installment);
+        if (listener != null && bottomText != null) {
+            bottomText.setLinkableTextListener(listener);
+        }
     }
 
     @Override
     public void disable() {
         super.disable();
         final DisableConfiguration disableConfiguration = new DisableConfiguration(getContext());
-        ViewUtils.grayScaleViewGroup(creditsLagout);
+        ViewExtKt.grayScaleViewGroup(creditsLayout);
         background.clearColorFilter();
         background.setImageResource(0);
         background.setBackgroundColor(disableConfiguration.getBackgroundColor());
@@ -127,12 +125,12 @@ public class ConsumerCreditsFragment extends PaymentMethodFragment<ConsumerCredi
 
     private void centerLogo() {
         final ConstraintSet constraintSet = new ConstraintSet();
-        constraintSet.clone(creditsLagout);
-        constraintSet.connect(logo.getId(), ConstraintSet.LEFT, creditsLagout.getId(), ConstraintSet.LEFT, 0);
-        constraintSet.connect(logo.getId(), ConstraintSet.RIGHT, creditsLagout.getId(), ConstraintSet.RIGHT, 0);
-        constraintSet.connect(logo.getId(), ConstraintSet.TOP, creditsLagout.getId(), ConstraintSet.TOP, 0);
-        constraintSet.connect(logo.getId(), ConstraintSet.BOTTOM, creditsLagout.getId(), ConstraintSet.BOTTOM, 0);
-        constraintSet.applyTo(creditsLagout);
+        constraintSet.clone(creditsLayout);
+        constraintSet.connect(logo.getId(), ConstraintSet.LEFT, creditsLayout.getId(), ConstraintSet.LEFT, 0);
+        constraintSet.connect(logo.getId(), ConstraintSet.RIGHT, creditsLayout.getId(), ConstraintSet.RIGHT, 0);
+        constraintSet.connect(logo.getId(), ConstraintSet.TOP, creditsLayout.getId(), ConstraintSet.TOP, 0);
+        constraintSet.connect(logo.getId(), ConstraintSet.BOTTOM, creditsLayout.getId(), ConstraintSet.BOTTOM, 0);
+        constraintSet.applyTo(creditsLayout);
     }
 
     @Override

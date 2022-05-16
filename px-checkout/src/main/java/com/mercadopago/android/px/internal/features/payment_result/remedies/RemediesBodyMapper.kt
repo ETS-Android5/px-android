@@ -2,6 +2,7 @@ package com.mercadopago.android.px.internal.features.payment_result.remedies
 
 import com.mercadopago.android.px.internal.mappers.Mapper
 import com.mercadopago.android.px.internal.repository.AmountRepository
+import com.mercadopago.android.px.internal.repository.PayerPaymentMethodRepository
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository
 import com.mercadopago.android.px.internal.repository.UserSelectionRepository
 import com.mercadopago.android.px.model.PaymentData
@@ -12,8 +13,9 @@ import com.mercadopago.android.px.model.internal.remedies.RemedyPaymentMethod
 internal class RemediesBodyMapper(private val userSelectionRepository: UserSelectionRepository,
     private val amountRepository: AmountRepository, private val customOptionId: String,
     private val esc: Boolean, private val alternativePayerPaymentMethods: List<RemedyPaymentMethod>,
-    private val paymentSettingRepository: PaymentSettingRepository)
-    : Mapper<PaymentData, RemediesBody>() {
+    private val paymentSettingRepository: PaymentSettingRepository,
+    private val payerPaymentMethodRepository: PayerPaymentMethodRepository
+) : Mapper<PaymentData, RemediesBody>() {
 
     override fun map(data: PaymentData): RemediesBody {
         var secCodeLocation: String? = null
@@ -36,11 +38,13 @@ internal class RemediesBodyMapper(private val userSelectionRepository: UserSelec
             lastFourDigits = it.lastFourDigits
         }
 
+        val payerPaymentMethod = userSelectionRepository.customOptionId?.let { payerPaymentMethodRepository[it] }
+
         with(data) {
             val payerPaymentMethodRejected = RemedyPaymentMethod(customOptionId, payerCost?.installments,
                 issuer?.name, bin, lastFourDigits, paymentMethod.id, paymentMethod.paymentTypeId,
                 secCodeLength, secCodeLocation, amountRepository.getAmountToPay(paymentMethod.paymentTypeId, payerCost),
-                null, escStatus, esc, null)
+                null, escStatus, esc, null, payerPaymentMethod?.paymentMethodName, payerPaymentMethod?.bankInfo)
             val customStringConfiguration = paymentSettingRepository.advancedConfiguration.customStringConfiguration
             return RemediesBody(payerPaymentMethodRejected, alternativePayerPaymentMethods,
                 with(customStringConfiguration) {

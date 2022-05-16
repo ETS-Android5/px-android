@@ -11,12 +11,16 @@ import com.mercadopago.android.px.internal.actions.LinkAction;
 import com.mercadopago.android.px.internal.actions.NextAction;
 import com.mercadopago.android.px.internal.actions.RecoverPaymentAction;
 import com.mercadopago.android.px.internal.base.BasePresenter;
-import com.mercadopago.android.px.internal.features.pay_button.PayButton;
+import com.mercadopago.android.px.internal.features.one_tap.confirm_button.ConfirmButton;
+import com.mercadopago.android.px.internal.features.one_tap.RenderMode;
+import com.mercadopago.android.px.internal.features.pay_button.PaymentState;
 import com.mercadopago.android.px.internal.features.payment_congrats.model.PaymentCongratsModelMapper;
 import com.mercadopago.android.px.internal.features.payment_result.mappers.PaymentResultViewModelMapper;
 import com.mercadopago.android.px.internal.features.payment_result.presentation.PaymentResultButton;
 import com.mercadopago.android.px.internal.features.payment_result.presentation.PaymentResultFooter;
 import com.mercadopago.android.px.internal.features.payment_result.viewmodel.PaymentResultViewModel;
+import com.mercadopago.android.px.internal.features.security_code.RenderModeMapper;
+import com.mercadopago.android.px.internal.features.security_code.model.SecurityCodeParams;
 import com.mercadopago.android.px.internal.mappers.FlowBehaviourResultMapper;
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository;
 import com.mercadopago.android.px.internal.util.TextUtil;
@@ -25,6 +29,7 @@ import com.mercadopago.android.px.internal.viewmodel.PaymentModel;
 import com.mercadopago.android.px.model.Action;
 import com.mercadopago.android.px.model.IPaymentDescriptor;
 import com.mercadopago.android.px.model.internal.CongratsResponse;
+import com.mercadopago.android.px.tracking.internal.BankInfoHelper;
 import com.mercadopago.android.px.tracking.internal.MPTracker;
 import com.mercadopago.android.px.tracking.internal.events.ChangePaymentMethodEvent;
 import com.mercadopago.android.px.tracking.internal.events.CongratsSuccessDeepLink;
@@ -46,22 +51,26 @@ import com.mercadopago.android.px.tracking.internal.views.ResultViewTrack;
     @NonNull /* default */ final PaymentCongratsModelMapper paymentCongratsMapper;
     private final FlowBehaviour flowBehaviour;
     @Nullable /* default */ CongratsAutoReturn autoReturnTimer;
+    @NonNull private final RenderModeMapper renderModeMapper;
 
     /* default */ PaymentResultPresenter(@NonNull final PaymentSettingRepository paymentSettings,
         @NonNull final PaymentModel paymentModel,
         @NonNull final FlowBehaviour flowBehaviour, final boolean isMP,
         @NonNull final PaymentCongratsModelMapper paymentCongratsMapper,
         @NonNull final PaymentResultViewModelMapper paymentResultViewModelMapper,
+        @NonNull final RenderModeMapper renderModeMapper,
+        @NonNull final BankInfoHelper bankInfoHelper,
         @NonNull final MPTracker tracker) {
         super(tracker);
         this.paymentModel = paymentModel;
         this.flowBehaviour = flowBehaviour;
         this.paymentCongratsMapper = paymentCongratsMapper;
+        this.renderModeMapper = renderModeMapper;
 
         final PaymentResultScreenConfiguration screenConfiguration =
             paymentSettings.getAdvancedConfiguration().getPaymentResultScreenConfiguration();
         this.paymentResultViewModelMapper = paymentResultViewModelMapper;
-        setViewTrack(new ResultViewTrack(paymentModel, screenConfiguration, paymentSettings, isMP));
+        setViewTrack(new ResultViewTrack(paymentModel, screenConfiguration, paymentSettings, isMP, bankInfoHelper));
     }
 
     @Override
@@ -102,8 +111,21 @@ import com.mercadopago.android.px.tracking.internal.views.ResultViewTrack;
     }
 
     @Override
-    public void onGetViewTrackPath(@NonNull final PayButton.ViewTrackPathCallback callback) {
+    public void onGetViewTrackPath(@NonNull final ConfirmButton.ViewTrackPathCallback callback) {
         callback.call(getViewTrack().getTrack().getPath());
+    }
+
+    @Override
+    public void onCvvRequested(@NonNull final PaymentState paymentState) {
+        final SecurityCodeParams params = new SecurityCodeParams(
+            paymentState.getPaymentConfiguration(),
+            renderModeMapper.map(RenderMode.DYNAMIC),
+            paymentState.getCard(),
+            paymentState.getPaymentRecovery(),
+            paymentState.getReason()
+        );
+
+        getView().showSecurityCodeScreen(params);
     }
 
     private void configureView() {

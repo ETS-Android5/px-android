@@ -24,7 +24,7 @@ internal class FeatureProviderImpl(
     override val availableFeatures: CheckoutFeatures
         get() {
             val splitFeature = with(configurationProvider) {
-                paymentConfiguration.paymentProcessorV2.supportsSplitPayment(checkoutPreference)
+                paymentConfiguration.getSupportsSplit(checkoutPreference)
             }
             val builder = CheckoutFeatures.Builder()
                 .setSplit(splitFeature)

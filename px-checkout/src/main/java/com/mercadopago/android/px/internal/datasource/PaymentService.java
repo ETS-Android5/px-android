@@ -3,57 +3,31 @@ package com.mercadopago.android.px.internal.datasource;
 import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import com.mercadopago.android.px.addons.ESCManagerBehaviour;
-import com.mercadopago.android.px.core.SplitPaymentProcessor;
 import com.mercadopago.android.px.core.internal.CheckoutData;
 import com.mercadopago.android.px.core.internal.PaymentWrapper;
 import com.mercadopago.android.px.core.v2.PaymentProcessor;
-import com.mercadopago.android.px.internal.base.use_case.TokenizeWithEscUseCase;
-import com.mercadopago.android.px.internal.base.use_case.TokenizeWithoutCvvUseCase;
 import com.mercadopago.android.px.internal.callbacks.PaymentServiceEventHandler;
 import com.mercadopago.android.px.internal.callbacks.PaymentServiceHandlerWrapper;
 import com.mercadopago.android.px.internal.core.FileManager;
-import com.mercadopago.android.px.internal.datasource.mapper.FromPayerPaymentMethodToCardMapper;
 import com.mercadopago.android.px.internal.features.validation_program.ValidationProgramUseCase;
-import com.mercadopago.android.px.internal.mappers.PaymentMethodMapper;
-import com.mercadopago.android.px.internal.model.EscStatus;
 import com.mercadopago.android.px.internal.repository.AmountConfigurationRepository;
-import com.mercadopago.android.px.internal.repository.AmountRepository;
 import com.mercadopago.android.px.internal.repository.CongratsRepository;
 import com.mercadopago.android.px.internal.repository.DisabledPaymentMethodRepository;
-import com.mercadopago.android.px.internal.repository.DiscountRepository;
 import com.mercadopago.android.px.internal.repository.EscPaymentManager;
-import com.mercadopago.android.px.internal.repository.PayerPaymentMethodKey;
-import com.mercadopago.android.px.internal.repository.PaymentMethodRepository;
 import com.mercadopago.android.px.internal.repository.PaymentRepository;
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository;
 import com.mercadopago.android.px.internal.repository.UserSelectionRepository;
 import com.mercadopago.android.px.internal.util.PaymentConfigurationUtil;
-import com.mercadopago.android.px.internal.util.TokenErrorWrapper;
-import com.mercadopago.android.px.model.AmountConfiguration;
 import com.mercadopago.android.px.model.Card;
-import com.mercadopago.android.px.model.Discount;
-import com.mercadopago.android.px.model.DiscountConfigurationModel;
 import com.mercadopago.android.px.model.IPaymentDescriptor;
-import com.mercadopago.android.px.model.PayerCost;
 import com.mercadopago.android.px.model.Payment;
 import com.mercadopago.android.px.model.PaymentData;
 import com.mercadopago.android.px.model.PaymentMethod;
 import com.mercadopago.android.px.model.PaymentRecovery;
-import com.mercadopago.android.px.model.PaymentResult;
-import com.mercadopago.android.px.model.PaymentTypes;
-import com.mercadopago.android.px.model.Split;
 import com.mercadopago.android.px.model.Token;
-import com.mercadopago.android.px.model.exceptions.MercadoPagoError;
-import com.mercadopago.android.px.model.internal.PaymentConfiguration;
 import com.mercadopago.android.px.preferences.CheckoutPreference;
-import com.mercadopago.android.px.tracking.internal.model.Reason;
 import java.io.File;
-import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import kotlin.Pair;
 import kotlin.Unit;
 
 public class PaymentService implements PaymentRepository {
@@ -61,12 +35,8 @@ public class PaymentService implements PaymentRepository {
     private static final String FILE_PAYMENT = "file_payment";
 
     @NonNull private final PaymentSettingRepository paymentSettingRepository;
-    @NonNull private final DiscountRepository discountRepository;
-    @NonNull private final AmountRepository amountRepository;
     @NonNull private final Context context;
     @NonNull private final FileManager fileManager;
-    @NonNull private final EscPaymentManager escPaymentManager;
-    @NonNull private final ESCManagerBehaviour escManagerBehaviour;
 
     @NonNull /* default */ final PaymentServiceHandlerWrapper handlerWrapper;
     @NonNull /* default */ final AmountConfigurationRepository amountConfigurationRepository;
@@ -74,51 +44,35 @@ public class PaymentService implements PaymentRepository {
 
     @Nullable private PaymentWrapper payment;
     @NonNull private final File paymentFile;
-    @NonNull private final FromPayerPaymentMethodToCardMapper fromPayerPaymentMethodToCardMapper;
-    @NonNull private final PaymentMethodMapper paymentMethodMapper;
-    @NonNull private final PaymentMethodRepository paymentMethodRepository;
     @NonNull private final ValidationProgramUseCase validationProgramUseCase;
-    @NonNull private final TokenizeWithEscUseCase tokenizeWithEscUseCase;
-    @NonNull private final TokenizeWithoutCvvUseCase tokenizeWithoutCvvUseCase;
+    @NonNull private final PaymentDataFactory paymentDataFactory;
 
     public PaymentService(@NonNull final UserSelectionRepository userSelectionRepository,
         @NonNull final PaymentSettingRepository paymentSettingRepository,
         @NonNull final DisabledPaymentMethodRepository disabledPaymentMethodRepository,
-        @NonNull final DiscountRepository discountRepository,
-        @NonNull final AmountRepository amountRepository,
         @NonNull final Context context,
         @NonNull final EscPaymentManager escPaymentManager,
-        @NonNull final ESCManagerBehaviour escManagerBehaviour,
         @NonNull final AmountConfigurationRepository amountConfigurationRepository,
         @NonNull final CongratsRepository congratsRepository,
         @NonNull final FileManager fileManager,
-        @NonNull final FromPayerPaymentMethodToCardMapper fromPayerPaymentMethodToCardMapper,
-        @NonNull final PaymentMethodMapper paymentMethodMapper,
-        @NonNull final PaymentMethodRepository paymentMethodRepository,
         @NonNull final ValidationProgramUseCase validationProgramUseCase,
-        @NonNull final TokenizeWithEscUseCase tokenizeWithEscUseCase,
-        @NonNull final TokenizeWithoutCvvUseCase tokenizeWithoutCvvUseCase) {
+        @NonNull final PaymentResultFactory paymentResultFactory,
+        @NonNull final PaymentDataFactory paymentDataFactory) {
         this.amountConfigurationRepository = amountConfigurationRepository;
-        this.escPaymentManager = escPaymentManager;
-        this.escManagerBehaviour = escManagerBehaviour;
         this.userSelectionRepository = userSelectionRepository;
         this.paymentSettingRepository = paymentSettingRepository;
-        this.discountRepository = discountRepository;
-        this.amountRepository = amountRepository;
         this.context = context;
         this.fileManager = fileManager;
         this.validationProgramUseCase = validationProgramUseCase;
-        this.tokenizeWithEscUseCase = tokenizeWithEscUseCase;
-        this.tokenizeWithoutCvvUseCase = tokenizeWithoutCvvUseCase;
+        this.paymentDataFactory = paymentDataFactory;
 
         paymentFile = fileManager.create(FILE_PAYMENT);
-        this.fromPayerPaymentMethodToCardMapper = fromPayerPaymentMethodToCardMapper;
-        this.paymentMethodMapper = paymentMethodMapper;
-        this.paymentMethodRepository = paymentMethodRepository;
 
         handlerWrapper =
             new PaymentServiceHandlerWrapper(this, disabledPaymentMethodRepository, escPaymentManager,
-                congratsRepository, userSelectionRepository);
+                congratsRepository, userSelectionRepository,
+                paymentSettingRepository.getAdvancedConfiguration().getPostPaymentConfiguration(),
+                paymentResultFactory, paymentDataFactory);
     }
 
     @Nullable
@@ -177,126 +131,9 @@ public class PaymentService implements PaymentRepository {
      * This method presets all user information ahead before the payment is processed.
      */
     @Override
-    public void startExpressPayment(@NonNull final PaymentConfiguration configuration) {
+    public void startExpressPayment() {
         handlerWrapper.createTransactionLiveData();
-
-        final Pair<String, String> pair = new Pair<>(configuration.getPaymentMethodId(),
-            configuration.getPaymentTypeId());
-        final PaymentMethod paymentMethod = paymentMethodMapper.map(pair);
-        userSelectionRepository.select(paymentMethod, null);
-        if (PaymentTypes.isCardPaymentType(paymentMethod.getPaymentTypeId())) {
-            // cards
-            final Card card = fromPayerPaymentMethodToCardMapper.map(
-                new PayerPaymentMethodKey(configuration.getCustomOptionId(), paymentMethod.getPaymentTypeId()));
-            if (card == null) {
-                throw new IllegalStateException("Cannot find selected card");
-            }
-            if (configuration.getSplitPayment()) {
-                //TODO refactor
-                final String secondaryPaymentMethodId =
-                    amountConfigurationRepository.getConfigurationSelectedFor(card.getId())
-                        .getSplitConfiguration().secondaryPaymentMethod.paymentMethodId;
-                userSelectionRepository
-                    .select(card, paymentMethodRepository.getPaymentMethodById(secondaryPaymentMethodId));
-            } else if (card != null) {
-                userSelectionRepository.select(card, null);
-            }
-        }
-        userSelectionRepository.select(configuration.getPayerCost());
-
-        startPayment();
-    }
-
-    @Override
-    public void startPayment() {
-        //Wrapping the callback is important to assure ESC handling.
-        processPaymentMethod();
-    }
-
-    /* default */ void processPaymentMethod() {
-        if (PaymentTypes.isCardPaymentType(userSelectionRepository.getPaymentMethod().getPaymentTypeId())) {
-            payWithCard();
-        } else {
-            pay();
-        }
-    }
-
-    private boolean shouldPayWithCvv(@NonNull final Card card) {
-        return card.isSecurityCodeRequired();
-    }
-
-    private void payWithoutCvv(@NonNull final Card card) {
-        tokenizeWithoutCvvUseCase.execute(
-            card,
-            token -> {
-                pay();
-                return null;
-            },
-            mercadoPagoError -> {
-                // No start CVV screen if fail
-                final String tokenError = new TokenErrorWrapper(mercadoPagoError.getApiException()).getValue();
-                handlerWrapper.onPaymentError(MercadoPagoError.createRecoverable(tokenError));
-                return null;
-            }
-        );
-    }
-
-    private void payWithCard() {
-        final Card card = userSelectionRepository.getCard();
-
-        if (card != null && hasPayerCost()) {
-            if (paymentSettingRepository.hasToken()) { // Paying with saved card with token
-                pay();
-            } else if (shouldPayWithCvv(card)) { // Token does not exists - must generate one or ask for CVV.
-                checkEscAvailability(card);
-            } else {
-                payWithoutCvv(card); // Tokenize and pay with card without cvv (WebPay for example)
-            }
-        } else if (hasValidNewCardInfo()) { // New card payment
-            pay();
-        } else { // Guessing card could not tokenize or obtain card information.
-            handlerWrapper.onPaymentError(getError());
-        }
-    }
-
-    private boolean shouldInvalidateEsc(final String escStatus) {
-        return EscStatus.REJECTED.equals(escStatus);
-    }
-
-    private void checkEscAvailability(@NonNull final Card card) {
-        //Paying with saved card without token
-
-        final boolean shouldInvalidateEsc = shouldInvalidateEsc(card.getEscStatus());
-        if (escManagerBehaviour.isESCEnabled() && escPaymentManager.hasEsc(card) && !shouldInvalidateEsc) {
-            //Saved card has ESC - Try to tokenize
-            tokenizeWithEscUseCase.execute(
-                card,
-                token -> {
-                    processPaymentMethod();
-                    return null;
-                }, mercadoPagoError -> {
-                    //Start CVV screen if fail
-                    handlerWrapper
-                        .onCvvRequired(card, new TokenErrorWrapper(mercadoPagoError.getApiException()).toReason());
-                    return null;
-                });
-        } else {
-            final Reason reason =
-                escManagerBehaviour.isESCEnabled() ? (shouldInvalidateEsc ? Reason.ESC_CAP : Reason.SAVED_CARD)
-                    : Reason.ESC_DISABLED;
-            handlerWrapper.onCvvRequired(card, reason);
-        }
-    }
-
-    private boolean hasPayerCost() {
-        return userSelectionRepository.getPayerCost() != null;
-    }
-
-    private boolean hasValidNewCardInfo() {
-        return userSelectionRepository.getPaymentMethod() != null
-            && userSelectionRepository.getIssuer() != null
-            && userSelectionRepository.getPayerCost() != null
-            && paymentSettingRepository.hasToken();
+        pay();
     }
 
     private void pay() {
@@ -305,11 +142,14 @@ public class PaymentService implements PaymentRepository {
         if (getPaymentProcessor().shouldShowFragmentOnPayment(checkoutPreference)) {
             handlerWrapper.onVisualPayment();
         } else {
-            final List<PaymentData> paymentDataList = getPaymentDataList();
+            final List<PaymentData> paymentDataList = paymentDataFactory.create();
             validationProgramUseCase.execute(paymentDataList, validationProgramId -> {
-                final CheckoutData checkoutData =
-                    new CheckoutData(
-                        paymentDataList, checkoutPreference, securityType, validationProgramId);
+                final CheckoutData checkoutData = new CheckoutData(
+                    paymentDataList,
+                    checkoutPreference,
+                    securityType,
+                    validationProgramId
+                );
                 getPaymentProcessor().startPayment(context, checkoutData, handlerWrapper);
                 return Unit.INSTANCE;
             });
@@ -321,95 +161,6 @@ public class PaymentService implements PaymentRepository {
         return !getPaymentProcessor().shouldShowFragmentOnPayment(paymentSettingRepository.getCheckoutPreference());
     }
 
-    /**
-     * Payment data is a dynamic non-mutable object that represents the payment state of the checkout exp.
-     *
-     * @return payment data at the moment is called.
-     */
-    @NonNull
-    @Override
-    public List<PaymentData> getPaymentDataList() {
-        final DiscountConfigurationModel discountModel = discountRepository.getCurrentConfiguration();
-        final PaymentMethod secondaryPaymentMethod = userSelectionRepository.getSecondaryPaymentMethod();
-        final PaymentMethod paymentMethod = userSelectionRepository.getPaymentMethod();
-        final PayerCost payerCost = userSelectionRepository.getPayerCost();
-        final BigDecimal amountToPay = amountRepository.getAmountToPay(paymentMethod.getPaymentTypeId(), payerCost);
-
-        if (secondaryPaymentMethod != null) { // is split payment
-            final AmountConfiguration currentConfiguration = amountConfigurationRepository.getCurrentConfiguration();
-            final Split splitConfiguration = currentConfiguration.getSplitConfiguration();
-
-            final PaymentData paymentData = new PaymentData.Builder()
-                .setPaymentMethod(paymentMethod)
-                .setPayerCost(payerCost)
-                .setToken(paymentSettingRepository.getToken())
-                .setIssuer(userSelectionRepository.getIssuer())
-                .setPayer(paymentSettingRepository.getCheckoutPreference().getPayer())
-                .setTransactionAmount(amountToPay)
-                .setCampaign(discountModel.getCampaign())
-                .setDiscount(splitConfiguration.primaryPaymentMethod.discount)
-                .setRawAmount(splitConfiguration.primaryPaymentMethod.amount)
-                .setNoDiscountAmount(splitConfiguration.primaryPaymentMethod.amount)
-                .createPaymentData();
-
-            final PaymentData secondaryPaymentData = new PaymentData.Builder()
-                .setTransactionAmount(amountToPay)
-                .setPayer(paymentSettingRepository.getCheckoutPreference().getPayer())
-                .setPaymentMethod(secondaryPaymentMethod)
-                .setCampaign(discountModel.getCampaign())
-                .setDiscount(splitConfiguration.secondaryPaymentMethod.discount)
-                .setRawAmount(splitConfiguration.secondaryPaymentMethod.amount)
-                .setNoDiscountAmount(splitConfiguration.secondaryPaymentMethod.amount)
-                .createPaymentData();
-
-            return Arrays.asList(paymentData, secondaryPaymentData);
-        } else { // is regular 1 pm payment
-            Discount discount;
-
-            try {
-                discount = Discount.replaceWith(discountModel.getDiscount(),
-                    amountConfigurationRepository.getCurrentConfiguration().getDiscountToken());
-            } catch (final IllegalStateException e) {
-                discount = discountModel.getDiscount();
-            }
-
-            final PaymentData paymentData = new PaymentData.Builder()
-                .setPaymentMethod(paymentMethod)
-                .setPayerCost(payerCost)
-                .setToken(paymentSettingRepository.getToken())
-                .setIssuer(userSelectionRepository.getIssuer())
-                .setDiscount(discount)
-                .setPayer(paymentSettingRepository.getCheckoutPreference().getPayer())
-                .setTransactionAmount(amountToPay)
-                .setCampaign(discountModel.getCampaign())
-                .setNoDiscountAmount(amountRepository.getAmountWithoutDiscount(paymentMethod.getPaymentTypeId(),
-                    payerCost))
-                .setRawAmount(amountRepository.getTaxFreeAmount(paymentMethod.getPaymentTypeId(), payerCost))
-                .createPaymentData();
-
-            return Collections.singletonList(paymentData);
-        }
-    }
-
-    /**
-     * Transforms IPayment into a {@link PaymentResult}
-     *
-     * @param payment The payment model
-     * @return The transformed {@link PaymentResult}
-     */
-    @NonNull
-    @Override
-    public PaymentResult createPaymentResult(@NonNull final IPaymentDescriptor payment) {
-        return new PaymentResult.Builder()
-            .setPaymentData(getPaymentDataList())
-            .setPaymentId(payment.getId())
-            .setPaymentMethodId(payment.getPaymentMethodId())
-            .setPaymentStatus(payment.getPaymentStatus())
-            .setStatementDescription(payment.getStatementDescription())
-            .setPaymentStatusDetail(payment.getPaymentStatusDetail())
-            .build();
-    }
-
     private PaymentProcessor getPaymentProcessor() {
         return PaymentConfigurationUtil.getPaymentProcessor(paymentSettingRepository.getPaymentConfiguration());
     }
@@ -417,9 +168,5 @@ public class PaymentService implements PaymentRepository {
     @Override
     public int getPaymentTimeout() {
         return getPaymentProcessor().getPaymentTimeout(paymentSettingRepository.getCheckoutPreference());
-    }
-
-    public MercadoPagoError getError() {
-        return new MercadoPagoError("Something went wrong", false);
     }
 }

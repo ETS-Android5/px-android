@@ -7,6 +7,7 @@ import com.mercadopago.android.px.internal.repository.PaymentSettingRepository
 import com.mercadopago.android.px.internal.viewmodel.PaymentModel
 import com.mercadopago.android.px.model.PaymentResult
 import com.mercadopago.android.px.model.internal.remedies.RemediesResponse
+import com.mercadopago.android.px.tracking.internal.BankInfoHelper
 import com.mercadopago.android.px.tracking.internal.TrackFactory
 import com.mercadopago.android.px.tracking.internal.TrackWrapper
 import com.mercadopago.android.px.tracking.internal.model.RemedyTrackData
@@ -20,16 +21,16 @@ internal class ResultViewTrack : TrackWrapper {
     private var isStandaloneCongrats: Boolean = false
 
     constructor(paymentModel: PaymentModel, screenConfiguration: PaymentResultScreenConfiguration,
-                paymentSetting: PaymentSettingRepository, isMP: Boolean) {
+                paymentSetting: PaymentSettingRepository, isMP: Boolean, bankInfoHelper: BankInfoHelper) {
         resultViewTrackModel = ResultViewTrackModel(paymentModel, screenConfiguration, paymentSetting.checkoutPreference!!,
-                paymentSetting.currency.id, isMP)
+                paymentSetting.currency.id, isMP, bankInfoHelper)
         relativePath = getMappedResult(paymentModel.paymentResult)
         this.remediesResponse = paymentModel.remedies
     }
 
-    constructor(paymentModel: PaymentCongratsModel, isMP: Boolean) {
+    constructor(paymentModel: PaymentCongratsModel, isMP: Boolean, bankInfoHelper: BankInfoHelper) {
         isStandaloneCongrats = paymentModel.isStandAloneCongrats
-        resultViewTrackModel = ResultViewTrackModel(paymentModel, isMP)
+        resultViewTrackModel = ResultViewTrackModel(paymentModel, isMP, bankInfoHelper)
         relativePath = paymentModel.trackingRelativePath
         this.remediesResponse = RemediesResponse.EMPTY
     }

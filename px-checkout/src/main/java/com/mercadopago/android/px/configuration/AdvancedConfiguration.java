@@ -3,6 +3,8 @@ package com.mercadopago.android.px.configuration;
 import androidx.annotation.NonNull;
 import com.mercadopago.android.px.internal.core.ProductIdProvider;
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Advanced configuration provides you support for custom checkout functionality/configure special behaviour when
@@ -18,6 +20,7 @@ public final class AdvancedConfiguration implements Serializable {
     private final boolean expressEnabled;
     private final boolean amountRowEnabled;
     private final boolean acceptThirdPartyCard;
+    @NonNull private final PostPaymentConfiguration postPaymentConfiguration;
     @NonNull private final PaymentResultScreenConfiguration paymentResultScreenConfiguration;
     @NonNull private final ReviewAndConfirmConfiguration reviewAndConfirmConfiguration;
     @NonNull private final DynamicFragmentConfiguration dynamicFragmentConfiguration;
@@ -25,6 +28,8 @@ public final class AdvancedConfiguration implements Serializable {
     @NonNull private final CustomStringConfiguration customStringConfiguration;
     @NonNull private final DiscountParamsConfiguration discountParamsConfiguration;
     @NonNull private final String productId;
+    @NonNull private final List<String> paymentMethodRuleSet;
+    @NonNull private final List<PaymentMethodBehaviour> paymentMethodBehaviours;
 
     /* default */ AdvancedConfiguration(final Builder builder) {
         bankDealsEnabled = builder.bankDealsEnabled;
@@ -37,7 +42,10 @@ public final class AdvancedConfiguration implements Serializable {
         dynamicDialogConfiguration = builder.dynamicDialogConfiguration;
         customStringConfiguration = builder.customStringConfiguration;
         discountParamsConfiguration = builder.discountParamsConfiguration;
+        postPaymentConfiguration = builder.postPaymentConfiguration;
         productId = builder.productId;
+        paymentMethodBehaviours = builder.paymentMethodBehaviours;
+        paymentMethodRuleSet = builder.paymentMethodRuleSet;
     }
 
     /**
@@ -83,6 +91,11 @@ public final class AdvancedConfiguration implements Serializable {
         return paymentResultScreenConfiguration;
     }
 
+    @NonNull
+    public PostPaymentConfiguration getPostPaymentConfiguration() {
+        return postPaymentConfiguration;
+    }
+
     /**
      * @deprecated groups will no longer be available anymore
      */
@@ -115,14 +128,28 @@ public final class AdvancedConfiguration implements Serializable {
         return productId;
     }
 
+    @NonNull
+    public List<String> getPaymentMethodRuleSet() {
+        return paymentMethodRuleSet;
+    }
+
+    @NonNull
+    public List<PaymentMethodBehaviour> getPaymentMethodBehaviours() {
+        return paymentMethodBehaviours;
+    }
+
     @SuppressWarnings("unused")
     public static class Builder {
         /* default */ boolean bankDealsEnabled = true;
         /* default */ boolean expressEnabled = false;
         /* default */ boolean amountRowEnabled = true;
         /* default */ boolean acceptThirdPartyCard = true;
+        /* default */ List<String> paymentMethodRuleSet = Collections.emptyList();
+        /* default */ List<PaymentMethodBehaviour> paymentMethodBehaviours = Collections.emptyList();
         /* default */ @NonNull PaymentResultScreenConfiguration paymentResultScreenConfiguration =
             new PaymentResultScreenConfiguration.Builder().build();
+        /* default */ @NonNull PostPaymentConfiguration postPaymentConfiguration =
+            new PostPaymentConfiguration.Builder().build();
         /* default */ @NonNull ReviewAndConfirmConfiguration reviewAndConfirmConfiguration =
             new ReviewAndConfirmConfiguration.Builder().build();
         /* default */ @NonNull DynamicFragmentConfiguration dynamicFragmentConfiguration =
@@ -185,6 +212,17 @@ public final class AdvancedConfiguration implements Serializable {
         public Builder setPaymentResultScreenConfiguration(
             @NonNull final PaymentResultScreenConfiguration paymentResultScreenConfiguration) {
             this.paymentResultScreenConfiguration = paymentResultScreenConfiguration;
+            return this;
+        }
+
+        /**
+         * It provides additional configuration for post-payment flow.
+         *
+         * @param postPaymentConfiguration configuration to apply after the payment.
+         * @return builder to keep operating
+         */
+        public Builder setPostPaymentConfiguration(@NonNull final PostPaymentConfiguration postPaymentConfiguration) {
+            this.postPaymentConfiguration = postPaymentConfiguration;
             return this;
         }
 
@@ -289,6 +327,28 @@ public final class AdvancedConfiguration implements Serializable {
          */
         public Builder setAcceptThirdPartyCard(final boolean acceptThirdPartyCard) {
             this.acceptThirdPartyCard = acceptThirdPartyCard;
+            return this;
+        }
+
+        /**
+         * This provides a way to tell us what checks to apply to payment methods.
+         *
+         * @param paymentMethodRuleSet the rule set
+         * @return builder to keep operating
+         */
+        public Builder setPaymentMethodRuleSet(@NonNull @PaymentMethodRules final List< String> paymentMethodRuleSet) {
+            this.paymentMethodRuleSet = paymentMethodRuleSet;
+            return this;
+        }
+
+        /**
+         * Provides additional settings to modify the types of payment methods to display at checkout.
+         *
+         * @param paymentMethodBehaviours your configuration.
+         * @return builder to keep operating
+         */
+        public Builder setPaymentMethodBehaviours(@NonNull final List<PaymentMethodBehaviour> paymentMethodBehaviours) {
+            this.paymentMethodBehaviours = paymentMethodBehaviours;
             return this;
         }
 

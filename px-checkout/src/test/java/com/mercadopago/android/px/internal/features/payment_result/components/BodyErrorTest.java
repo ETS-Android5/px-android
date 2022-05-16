@@ -68,7 +68,7 @@ public class BodyErrorTest {
 
     @Test
     public void testBodyErrorTitleForInsufficientAmount() {
-        final PaymentResult paymentResult = PaymentResults.getStatusRejectedInsufficientAmountPaymentResult();
+        final PaymentResult paymentResult = PaymentResults.getStatusRejectedCreditCardInsufficientAmountPaymentResult();
         final BodyError bodyError = new BodyError(factory, getBodyErrorProps(paymentResult), dispatcher);
 
         assertEquals(ERROR_TITLE, bodyError.getTitle(context));
@@ -141,7 +141,7 @@ public class BodyErrorTest {
 
     @Test
     public void testBodyErrorDescriptionForRejectedInsufficientAmount() {
-        final PaymentResult paymentResult = PaymentResults.getStatusRejectedInsufficientAmountPaymentResult();
+        final PaymentResult paymentResult = PaymentResults.getStatusRejectedCreditCardInsufficientAmountPaymentResult();
         final BodyError bodyError = new BodyError(factory, getBodyErrorProps(paymentResult), dispatcher);
 
         assertEquals(REJECTED_INSUFFICIENT_AMOUNT_1 + TextUtil.NL + REJECTED_INSUFFICIENT_AMOUNT_2,

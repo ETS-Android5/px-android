@@ -17,7 +17,7 @@ internal object PaymentResultFooterModelMapper : Mapper<PaymentModel, PaymentRes
         val congrats = model.congratsResponse
         val changePmButton = PaymentResultButton(
             PaymentResultButton.Type.QUIET,
-            LazyString(R.string.px_change_payment),
+            LazyString(R.string.px_change_payment_method),
             PaymentResultButton.Action.CHANGE_PM
         )
         return when {

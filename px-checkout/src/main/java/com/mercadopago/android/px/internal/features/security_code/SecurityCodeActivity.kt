@@ -1,5 +1,6 @@
 package com.mercadopago.android.px.internal.features.security_code
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -37,8 +38,16 @@ internal class SecurityCodeActivity : PXActivity<BasePresenter<MvpView>>() {
     }
 
     companion object {
+        @JvmStatic
         fun start(fragment: Fragment, params: SecurityCodeParams, requestCode: Int) {
             fragment.startActivityForResult(Intent(fragment.context, SecurityCodeActivity::class.java).also {
+                it.putExtra(EXTRA_PARAMS, params)
+            }, requestCode)
+        }
+
+        @JvmStatic
+        fun start(activity: Activity, params: SecurityCodeParams, requestCode: Int) {
+            activity.startActivityForResult(Intent(activity, SecurityCodeActivity::class.java).also {
                 it.putExtra(EXTRA_PARAMS, params)
             }, requestCode)
         }

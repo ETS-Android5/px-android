@@ -7,7 +7,11 @@ import com.mercadopago.android.px.model.internal.CheckoutResponse
 import com.mercadopago.android.px.model.internal.InitRequestBody
 import com.mercadopago.android.px.services.BuildConfig
 import retrofit2.Response
-import retrofit2.http.*
+import retrofit2.http.Body
+import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.http.GET
+import retrofit2.http.Query
 import java.math.BigDecimal
 
 interface CheckoutService {

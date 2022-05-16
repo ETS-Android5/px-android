@@ -12,6 +12,9 @@ import androidx.annotation.LayoutRes
 import androidx.core.graphics.toColorFilter
 import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
+import androidx.core.view.isGone
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
 import com.mercadolibre.android.andesui.snackbar.AndesSnackbar
 import com.mercadolibre.android.andesui.snackbar.action.AndesSnackbarAction
 import com.mercadolibre.android.andesui.snackbar.duration.AndesSnackbarDuration
@@ -27,7 +30,8 @@ import com.mercadopago.android.px.core.commons.extensions.orIfEmpty
  * @param andesSnackbarDuration Snackbar duration on screen provided from Andes.
  * @param andesSnackbarAction Nullable snackbar action (callback with text)
  */
-fun View?.showSnackBar(message: String = "",
+fun View?.showSnackBar(
+    message: String = "",
     andesSnackbarType: AndesSnackbarType = AndesSnackbarType.ERROR,
     andesSnackbarDuration: AndesSnackbarDuration = AndesSnackbarDuration.LONG,
     andesSnackbarAction: AndesSnackbarAction? = null
@@ -83,7 +87,7 @@ fun View.resetDrawableBackgroundColor() {
  * @param color Nullable color in #RRGGBB or #AARRGGBB
  */
 fun View.setDrawableBackgroundColor(color: String?) {
-    background?.let{
+    background?.let {
         it.colorFilter = runCatching {
             PorterDuff.Mode.SRC.toColorFilter(color!!.toColorInt())
         }.getOrDefault(
@@ -107,5 +111,26 @@ fun ViewGroup.grayScaleViewGroup() {
             is ViewGroup -> view.grayScaleViewGroup()
             else -> continue@loop
         }
+    }
+}
+
+fun View.visible() {
+    isVisible = true
+}
+
+fun View.gone() {
+    isGone = true
+}
+
+fun View.invisible() {
+    isInvisible = true
+}
+
+inline fun View.loadOrGone(condition: Boolean, block: () -> Unit) {
+    if (condition) {
+        block()
+        visible()
+    } else {
+        gone()
     }
 }

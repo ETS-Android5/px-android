@@ -1,6 +1,8 @@
 package com.mercadopago.android.px.internal.viewmodel.drawables
 
 import android.os.Parcelable
+import com.mercadopago.android.px.internal.features.generic_modal.FromModalToGenericDialogItem
+import com.mercadopago.android.px.internal.features.generic_modal.GenericDialogItem
 import com.mercadopago.android.px.internal.viewmodel.CardDrawerConfiguration
 import com.mercadopago.android.px.model.StatusMetadata
 import com.mercadopago.android.px.model.internal.Application
@@ -13,6 +15,7 @@ internal data class DrawableFragmentCommons(
     val status: StatusMetadata,
     val chargeMessage: String?,
     val disabledPaymentMethod: DisabledPaymentMethod?,
+    val genericDialogItem: GenericDialogItem?,
     val description: String,
     val issuerName: String,
     val cardDrawerConfiguration: CardDrawerConfiguration?

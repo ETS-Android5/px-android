@@ -10,13 +10,14 @@ class OneTapItem(parcel: Parcel?) : ExpressMetadata(parcel) {
     var offlineMethodCard: OfflineMethodCard? = null
         private set
     val id: String
-        get () {
+        get() {
             var allPaymentMethods = ""
             getApplications().forEach {
                 allPaymentMethods += it.paymentMethod.id
             }
             return allPaymentMethods + card?.id.orEmpty()
         }
+    val bankTransfer: BankTransfer? = null
 
     init {
         throw UnsupportedOperationException("Parcelable implementation not available")
@@ -29,6 +30,8 @@ class OneTapItem(parcel: Parcel?) : ExpressMetadata(parcel) {
 
     fun isOfflineMethodCard() = offlineMethodCard != null
 
+    fun isBankTransfer() = bankTransfer != null
+
     fun getApplications() = applications.orIfNullOrEmpty(mutableListOf<Application>().also { applications ->
         if (isOfflineMethods) {
             offlineMethods.paymentTypes.forEach {
@@ -38,13 +41,18 @@ class OneTapItem(parcel: Parcel?) : ExpressMetadata(parcel) {
                             offlineMethod.id,
                             offlineMethod.instructionId),
                             listOf(),
-                            offlineMethod.status)
+                            offlineMethod.status, emptyMap())
                     )
                 }
             }
         } else {
             applications.add(
-                Application(Application.PaymentMethod(paymentMethodId.orEmpty(), paymentTypeId.orEmpty()), listOf(), status)
+                Application(
+                    Application.PaymentMethod(paymentMethodId.orEmpty(), paymentTypeId.orEmpty()),
+                    listOf(),
+                    status,
+                    emptyMap()
+                )
             )
         }
     })

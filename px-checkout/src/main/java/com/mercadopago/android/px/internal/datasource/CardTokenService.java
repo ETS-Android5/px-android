@@ -11,10 +11,16 @@ import com.mercadopago.android.px.internal.repository.CardTokenRepository;
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository;
 import com.mercadopago.android.px.internal.services.GatewayService;
 import com.mercadopago.android.px.internal.util.TextUtil;
+import com.mercadopago.android.px.model.Card;
 import com.mercadopago.android.px.model.Device;
+import com.mercadopago.android.px.model.SavedCardToken;
+import com.mercadopago.android.px.model.SavedESCCardToken;
 import com.mercadopago.android.px.model.Token;
 import com.mercadopago.android.px.model.exceptions.ApiException;
+import com.mercadopago.android.px.model.requests.SecurityCodeIntent;
 import com.mercadopago.android.px.services.Callback;
+
+import static com.mercadopago.android.px.services.BuildConfig.API_ENVIRONMENT_NEW;
 
 public class CardTokenService implements CardTokenRepository {
 
@@ -44,21 +50,64 @@ public class CardTokenService implements CardTokenRepository {
     }
 
     @Override
+    public MPCall<Token> createToken(final SavedCardToken savedCardToken) {
+        savedCardToken.setDevice(device);
+        return gatewayService
+            .createToken(paymentSettingRepository.getPublicKey(),
+                savedCardToken);
+    }
+
+    @Override
+    public MPCall<Token> createToken(final SavedESCCardToken savedESCCardToken) {
+        savedESCCardToken.setDevice(device);
+        return gatewayService
+            .createToken(paymentSettingRepository.getPublicKey(),
+                savedESCCardToken);
+    }
+
+    @Override
+    public MPCall<Token> cloneToken(final String tokenId) {
+        return gatewayService
+            .cloneToken(tokenId, paymentSettingRepository.getPublicKey());
+    }
+
+    @Override
+    public MPCall<Token> putSecurityCode(final String securityCode, final String tokenId) {
+        final SecurityCodeIntent securityCodeIntent = new SecurityCodeIntent();
+        securityCodeIntent.setSecurityCode(securityCode);
+        return gatewayService
+            .updateToken(tokenId, paymentSettingRepository.getPublicKey(),
+                securityCodeIntent);
+    }
+
+    @Override
     public void clearCap(@NonNull final String cardId, @NonNull final ClearCapCallback callback) {
         if (TextUtil.isEmpty(authorizationProvider.getPrivateKey())) {
             callback.execute();
             return;
         }
-        gatewayService.clearCap(cardId).enqueue(new Callback<String>() {
-            @Override
-            public void success(final String s) {
-                callback.execute();
-            }
+        gatewayService.clearCap(API_ENVIRONMENT_NEW, cardId)
+            .enqueue(new Callback<String>() {
+                @Override
+                public void success(final String s) {
+                    callback.execute();
+                }
 
-            @Override
-            public void failure(final ApiException apiException) {
-                callback.execute();
-            }
-        });
+                @Override
+                public void failure(final ApiException apiException) {
+                    callback.execute();
+                }
+            });
+    }
+
+    @Override
+    public MPCall<Token> createToken(@NonNull final Card card, @Nullable final RemotePaymentToken remotePaymentToken) {
+        return null;
+    }
+
+    @Override
+    public MPCall<Token> createTokenWithoutCvv(@NonNull final Card card,
+        @Nullable final RemotePaymentToken remotePaymentToken) {
+        return null;
     }
 }

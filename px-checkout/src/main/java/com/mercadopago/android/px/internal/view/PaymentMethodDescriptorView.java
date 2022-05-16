@@ -11,6 +11,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.mercadopago.android.px.R;
+import com.mercadopago.android.px.core.presentation.extensions.ViewExtKt;
 import com.mercadopago.android.px.internal.experiments.Variant;
 import com.mercadopago.android.px.internal.util.TextUtil;
 import com.mercadopago.android.px.internal.util.ViewUtils;
@@ -67,6 +68,7 @@ public class PaymentMethodDescriptorView extends LinearLayout {
     public abstract static class Model {
         protected int payerCostSelected = PayerCost.NO_SELECTED;
         protected boolean userWantToSplit = true;
+        protected boolean hasBehaviour = false;
 
         public abstract void updateLeftSpannable(@NonNull final SpannableStringBuilder spannableStringBuilder,
             @NonNull final TextView textView);
@@ -81,7 +83,7 @@ public class PaymentMethodDescriptorView extends LinearLayout {
 
         @CallSuper
         public void updateDrawableBackground(@NonNull final TextView textView) {
-            ViewUtils.resetDrawableBackgroundColor(textView);
+            ViewExtKt.resetDrawableBackgroundColor(textView);
         }
 
         public int getCurrentInstalment() {
@@ -92,8 +94,16 @@ public class PaymentMethodDescriptorView extends LinearLayout {
             userWantToSplit = split;
         }
 
+        public final void setHasBehaviour(final boolean hasBehaviour) {
+            this.hasBehaviour = hasBehaviour;
+        }
+
         public boolean hasPayerCostList() {
             return false;
+        }
+
+        public boolean hasBehaviour() {
+            return hasBehaviour;
         }
 
         protected String getAccessibilityContentDescription(@NonNull final Context context) {

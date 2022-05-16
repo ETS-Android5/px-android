@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import com.mercadolibre.android.ui.widgets.MeliButton;
 import com.mercadolibre.android.ui.widgets.MeliDialog;
 import com.mercadopago.android.px.R;
 import com.mercadopago.android.px.internal.di.Session;
@@ -67,7 +68,13 @@ public class DisabledPaymentMethodDetailDialog extends MeliDialog {
         content.setText(status != null && !status.isEnabled() ?
             status.getSecondaryMessage().getMessage() : getContent(statusDetail));
 
-        final View linkText = view.findViewById(R.id.px_dialog_detail_payment_method_disable_link);
+        final MeliButton linkText = view.findViewById(R.id.px_dialog_detail_payment_method_disable_link);
+
+        linkText.setText(
+            status.getLabel() != null ?
+                status.getLabel().getMessage() :
+                getString(R.string.px_text_pay_with_other_method)
+        );
         linkText.setOnClickListener(v -> finish());
     }
 

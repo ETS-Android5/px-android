@@ -9,12 +9,16 @@ import com.mercadopago.android.px.internal.util.PaymentDataHelper;
 import com.mercadopago.android.px.internal.util.TextUtil;
 import com.mercadopago.android.px.internal.viewmodel.PaymentModel;
 import com.mercadopago.android.px.model.PaymentData;
+import com.mercadopago.android.px.model.PaymentMethods;
 import com.mercadopago.android.px.preferences.CheckoutPreference;
+import com.mercadopago.android.px.tracking.internal.BankInfoHelper;
 import com.mercadopago.android.px.tracking.internal.TrackingHelper;
+import com.mercadopago.android.px.tracking.internal.events.BankTransferExtraInfo;
 import com.mercadopago.android.px.tracking.internal.mapper.FromDiscountItemToItemId;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public final class ResultViewTrackModel extends TrackingMapModel {
 
@@ -40,7 +44,8 @@ public final class ResultViewTrackModel extends TrackingMapModel {
 
     public ResultViewTrackModel(@NonNull final PaymentModel paymentModel,
         @NonNull final PaymentResultScreenConfiguration screenConfiguration,
-        @NonNull final CheckoutPreference checkoutPreference, @NonNull final String currencyId, final boolean isMP) {
+        @NonNull final CheckoutPreference checkoutPreference, @NonNull final String currencyId, final boolean isMP,
+        @NonNull final BankInfoHelper bankInfoHelper) {
         this(Style.GENERIC,
             paymentModel.getPaymentResult().getPaymentId(),
             paymentModel.getPaymentResult().getPaymentStatus(),
@@ -63,20 +68,23 @@ public final class ResultViewTrackModel extends TrackingMapModel {
             paymentModel.getPaymentResult().getPaymentData().getPaymentMethod() != null ? paymentModel
                 .getPaymentResult().getPaymentData().getPaymentMethod().getPaymentTypeId() : null,
             currencyId,
-            paymentModel.getPaymentResult().getPaymentData());
+            paymentModel.getPaymentResult().getPaymentData(),
+            bankInfoHelper
+        );
         hasBottomView = screenConfiguration.hasBottomFragment();
         hasTopView = screenConfiguration.hasTopFragment();
         hasImportantView = false;
         hasMoneySplitView = isMP && paymentModel.getCongratsResponse().getMoneySplit() != null;
     }
 
-    public ResultViewTrackModel(@NonNull final PaymentCongratsModel paymentCongratsModel, final boolean isMP) {
+    public ResultViewTrackModel(@NonNull final PaymentCongratsModel paymentCongratsModel, final boolean isMP, @NonNull final BankInfoHelper bankInfoHelper) {
         this(Style.CUSTOM,
             paymentCongratsModel.getPaymentId(),
             TrackingHelper.getPaymentStatus(paymentCongratsModel),
             paymentCongratsModel.getPxPaymentCongratsTracking().getPaymentStatusDetail(),
             PaymentDataHelper.isSplitPaymentInfo(paymentCongratsModel.getPaymentsInfo()),
-            paymentCongratsModel.getPxPaymentCongratsTracking().getTotalAmount(),
+            paymentCongratsModel.getPxPaymentCongratsTracking().getTotalAmount() != null ?
+                 paymentCongratsModel.getPxPaymentCongratsTracking().getTotalAmount() : BigDecimal.ZERO,
             paymentCongratsModel.getDiscountCouponsAmount(),
             paymentCongratsModel.getPaymentCongratsResponse().getLoyalty() != null ? paymentCongratsModel
                 .getPaymentCongratsResponse().getLoyalty()
@@ -91,7 +99,9 @@ public final class ResultViewTrackModel extends TrackingMapModel {
             paymentCongratsModel.getPxPaymentCongratsTracking().getPaymentMethodId(),
             paymentCongratsModel.getPxPaymentCongratsTracking().getPaymentMethodType().toLowerCase(),
             paymentCongratsModel.getPxPaymentCongratsTracking().getCurrencyId(),
-            paymentCongratsModel.getPaymentData());
+            paymentCongratsModel.getPaymentData(),
+            bankInfoHelper
+        );
         hasBottomView = paymentCongratsModel.hasBottomFragment();
         hasTopView = paymentCongratsModel.hasTopFragment();
         hasMoneySplitView = isMP && paymentCongratsModel.getPaymentCongratsResponse().getExpenseSplit() != null;
@@ -105,7 +115,8 @@ public final class ResultViewTrackModel extends TrackingMapModel {
         @Nullable final String campaignId,
         @Nullable final String paymentMethodId, @Nullable final String paymentMethodType,
         @NonNull final String currencyId,
-        @Nullable final PaymentData paymentData) {
+        @Nullable final PaymentData paymentData,
+        @NonNull final BankInfoHelper bankInfoHelper) {
         this.style = style.value;
         this.currencyId = currencyId;
         this.paymentId = paymentId;
@@ -123,6 +134,10 @@ public final class ResultViewTrackModel extends TrackingMapModel {
 
         if (paymentData != null) {
             extraInfo.putAll(PaymentDataExtraInfo.resultPaymentDataExtraInfo(paymentData).toMap());
+        }
+
+        if (Objects.equals(paymentMethodId, PaymentMethods.ARGENTINA.DEBIN)) {
+            extraInfo.putAll(new BankTransferExtraInfo(bankInfoHelper.getExternalAccountId(paymentData), bankInfoHelper.getBankName(paymentData)).toMap());
         }
     }
 

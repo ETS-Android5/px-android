@@ -9,6 +9,8 @@ import com.mercadopago.android.px.R;
 import com.mercadopago.android.px.internal.experiments.BadgeVariant;
 import com.mercadopago.android.px.internal.experiments.Variant;
 import com.mercadopago.android.px.internal.experiments.VariantHandler;
+import com.mercadopago.android.px.model.PaymentTypes;
+
 import java.util.List;
 
 public class PaymentMethodHeaderViewV2 extends PaymentMethodHeaderView {
@@ -32,10 +34,12 @@ public class PaymentMethodHeaderViewV2 extends PaymentMethodHeaderView {
     }
 
     @Override
-    public void updateData(final boolean hasPayerCost, final boolean isDisabled) {
+    public void updateData(final boolean hasPayerCost, final boolean isDisabled, final boolean hasBehaviour) {
         this.isDisabled = isDisabled;
-        setHelperVisibility(isDisabled);
+        this.hasBehaviour = hasBehaviour;
+        setHelperVisibility(isDisabled || hasBehaviour);
         changeInstallmentsState(hasPayerCost);
+        configureTitleVisibility(isDisabled, hasPayerCost);
     }
 
     @Override
@@ -44,6 +48,8 @@ public class PaymentMethodHeaderViewV2 extends PaymentMethodHeaderView {
         setOnClickListener(v -> {
             if (isDisabled) {
                 listener.onDisabledDescriptorViewClick();
+            } else if (hasBehaviour) {
+                listener.onBehaviourDescriptorViewClick();
             }
         });
     }
@@ -88,4 +94,12 @@ public class PaymentMethodHeaderViewV2 extends PaymentMethodHeaderView {
         titlePager.setVisibility(View.GONE);
         listener.onInstallmentViewUpdated();
     }
+
+    private void configureTitleVisibility(final boolean isDisabled, final boolean hasPayerCost) {
+        if (paymentType.equals(PaymentTypes.DEBIT_CARD))
+            setTitleVisibility(isDisabled || hasPayerCost);
+        else
+            setTitleVisibility(!hasPayerCost);
+    }
+
 }

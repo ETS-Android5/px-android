@@ -3,6 +3,7 @@ package com.mercadopago.android.px.internal.features.payment_congrats.model;
 import androidx.annotation.NonNull;
 import com.mercadopago.android.px.internal.features.business_result.PaymentCongratsResponseMapper;
 import com.mercadopago.android.px.internal.features.payment_congrats.mapper.PaymentCongratsTypeMapper;
+import com.mercadopago.android.px.internal.features.payment_result.model.DisplayInfoHelper;
 import com.mercadopago.android.px.internal.mappers.Mapper;
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository;
 import com.mercadopago.android.px.internal.tracking.TrackingRepository;
@@ -19,11 +20,13 @@ public class PaymentCongratsModelMapper extends Mapper<BusinessPaymentModel, Pay
 
     @NonNull private final PaymentSettingRepository paymentSettings;
     @NonNull private final TrackingRepository trackingRepository;
+    @NonNull private final DisplayInfoHelper displayInfoHelper;
 
     public PaymentCongratsModelMapper(@NonNull final PaymentSettingRepository paymentSettings,
-        @NonNull final TrackingRepository trackingRepository) {
+        @NonNull final TrackingRepository trackingRepository, @NonNull final DisplayInfoHelper displayInfoHelper) {
         this.paymentSettings = paymentSettings;
         this.trackingRepository = trackingRepository;
+        this.displayInfoHelper = displayInfoHelper;
     }
 
     /**
@@ -109,7 +112,7 @@ public class PaymentCongratsModelMapper extends Mapper<BusinessPaymentModel, Pay
         if (businessPaymentModel.getPaymentResult().getPaymentId() != null) {
             builder.withReceipt(businessPaymentModel.getPaymentResult().getPaymentId(),
                 businessPayment.shouldShowReceipt(),
-                paymentCongratsResponse.getViewReceipt());
+                paymentCongratsResponse.getViewReceipt(), businessPayment.forceShowReceipt());
         }
         if (businessPayment.getStatementDescription() != null) {
             builder.withStatementDescription(businessPayment.getStatementDescription());
@@ -147,6 +150,8 @@ public class PaymentCongratsModelMapper extends Mapper<BusinessPaymentModel, Pay
             paymentInfo.withDiscountData(paymentData.getDiscount().getName(),
                 getPrettyAmount(currency, paymentData.getNoDiscountAmount()));
         }
+
+        displayInfoHelper.resolve(paymentData, paymentInfo);
 
         return paymentInfo.build();
     }

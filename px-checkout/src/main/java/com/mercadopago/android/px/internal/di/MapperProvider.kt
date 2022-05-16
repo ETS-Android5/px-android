@@ -6,17 +6,40 @@ import com.mercadopago.android.px.addons.BehaviourProvider
 import com.mercadopago.android.px.core.MercadoPagoCheckout
 import com.mercadopago.android.px.internal.datasource.mapper.FromPayerPaymentMethodToCardMapper
 import com.mercadopago.android.px.internal.features.FeatureProviderImpl
+import com.mercadopago.android.px.internal.features.business_result.BusinessPaymentResultMapper
 import com.mercadopago.android.px.internal.features.checkout.PostPaymentUrlsMapper
+import com.mercadopago.android.px.internal.features.generic_modal.FromModalToGenericDialogItem
 import com.mercadopago.android.px.internal.features.payment_congrats.model.PaymentCongratsModelMapper
-import com.mercadopago.android.px.internal.features.payment_result.instruction.mapper.*
+import com.mercadopago.android.px.internal.features.payment_result.instruction.mapper.InstructionActionMapper
+import com.mercadopago.android.px.internal.features.payment_result.instruction.mapper.InstructionInfoMapper
+import com.mercadopago.android.px.internal.features.payment_result.instruction.mapper.InstructionInteractionMapper
+import com.mercadopago.android.px.internal.features.payment_result.instruction.mapper.InstructionMapper
+import com.mercadopago.android.px.internal.features.payment_result.instruction.mapper.InstructionReferenceMapper
+import com.mercadopago.android.px.internal.features.payment_result.mappers.PaymentResultBodyModelMapper
 import com.mercadopago.android.px.internal.features.payment_result.mappers.PaymentResultViewModelMapper
 import com.mercadopago.android.px.internal.features.payment_result.remedies.AlternativePayerPaymentMethodsMapper
 import com.mercadopago.android.px.internal.features.payment_result.remedies.RemediesLinkableMapper
 import com.mercadopago.android.px.internal.features.security_code.RenderModeMapper
 import com.mercadopago.android.px.internal.features.security_code.mapper.BusinessSecurityCodeDisplayDataMapper
 import com.mercadopago.android.px.internal.mappers.*
+import com.mercadopago.android.px.internal.mappers.CardDrawerCustomViewModelMapper
+import com.mercadopago.android.px.internal.mappers.CardUiMapper
+import com.mercadopago.android.px.internal.mappers.CustomChargeToPaymentTypeChargeMapper
+import com.mercadopago.android.px.internal.mappers.InitRequestBodyMapper
+import com.mercadopago.android.px.internal.mappers.OneTapItemToDisabledPaymentMethodMapper
+import com.mercadopago.android.px.internal.mappers.PaymentMethodBehaviourDMMapper
+import com.mercadopago.android.px.internal.mappers.PaymentMethodDescriptorMapper
+import com.mercadopago.android.px.internal.mappers.PaymentMethodMapper
+import com.mercadopago.android.px.internal.mappers.PaymentMethodReauthMapper
+import com.mercadopago.android.px.internal.mappers.PaymentResultAmountMapper
+import com.mercadopago.android.px.internal.mappers.PaymentResultMethodMapper
+import com.mercadopago.android.px.internal.mappers.SummaryInfoMapper
+import com.mercadopago.android.px.internal.mappers.SummaryViewModelMapper
+import com.mercadopago.android.px.internal.mappers.UriToDeepLinkWrapperMapper
+import com.mercadopago.android.px.internal.mappers.UriToFromMapper
 import com.mercadopago.android.px.internal.view.SummaryDetailDescriptorMapper
 import com.mercadopago.android.px.internal.viewmodel.drawables.PaymentMethodDrawableItemMapper
+import com.mercadopago.android.px.model.internal.PaymentConfigurationMapper
 import com.mercadopago.android.px.tracking.internal.mapper.FromApplicationToApplicationInfo
 
 internal object MapperProvider {
@@ -29,7 +52,8 @@ internal object MapperProvider {
             CardUiMapper,
             CardDrawerCustomViewModelMapper,
             session.payerPaymentMethodRepository,
-            session.modalRepository
+            session.modalRepository,
+            fromModalToGenericDialogItemMapper
         )
     }
 
@@ -53,7 +77,8 @@ internal object MapperProvider {
     fun getPaymentCongratsMapper(): PaymentCongratsModelMapper {
         return PaymentCongratsModelMapper(
             Session.getInstance().configurationModule.paymentSettings,
-            Session.getInstance().configurationModule.trackingRepository
+            Session.getInstance().configurationModule.trackingRepository,
+            Session.getInstance().helperModule.displayInfoHelper
         )
     }
 
@@ -107,7 +132,7 @@ internal object MapperProvider {
         return InitRequestBodyMapper(
             session.mercadoPagoESC,
             featureProvider,
-            session.cardStatusRepository,
+            paymentMethodsBehaviourDMMapper,
             session.configurationModule.trackingRepository
         )
     }
@@ -118,14 +143,16 @@ internal object MapperProvider {
             session.configurationModule.paymentSettings,
             BehaviourProvider.getTokenDeviceBehaviour()
         )
-        session.cardStatusRepository
         return InitRequestBodyMapper(
             session.mercadoPagoESC,
             featureProvider,
-            session.cardStatusRepository,
+            paymentMethodsBehaviourDMMapper,
             session.configurationModule.trackingRepository
         )
     }
+
+    val paymentMethodsBehaviourDMMapper: PaymentMethodBehaviourDMMapper
+        get() = PaymentMethodBehaviourDMMapper()
 
     val oneTapItemToDisabledPaymentMethodMapper: OneTapItemToDisabledPaymentMethodMapper
         get() = OneTapItemToDisabledPaymentMethodMapper()
@@ -137,9 +164,9 @@ internal object MapperProvider {
             return PaymentResultViewModelMapper(
                 paymentSettings.advancedConfiguration.paymentResultScreenConfiguration,
                 session.paymentResultViewModelFactory,
-                session.tracker,
                 instructionMapper,
-                paymentSettings.checkoutPreference?.autoReturn
+                paymentSettings.checkoutPreference?.autoReturn,
+                paymentResultBodyModelMapper
             )
         }
 
@@ -171,4 +198,64 @@ internal object MapperProvider {
 
     val uriToDeepLinkWrapperMapper: UriToDeepLinkWrapperMapper
         get() = UriToDeepLinkWrapperMapper(UriToFromMapper())
+
+    val paymentResultAmountMapper: PaymentResultAmountMapper
+        get() = PaymentResultAmountMapper
+
+    val fromModalToGenericDialogItemMapper: FromModalToGenericDialogItem
+        get() = FromModalToGenericDialogItem()
+
+    val paymentResultMethodMapper: PaymentResultMethodMapper
+        get() = PaymentResultMethodMapper(Session.getInstance().applicationContext, paymentResultAmountMapper)
+
+    val businessPaymentResultMapper: BusinessPaymentResultMapper
+        get() = BusinessPaymentResultMapper(Session.getInstance().tracker, paymentResultMethodMapper)
+
+    val paymentResultBodyModelMapper: PaymentResultBodyModelMapper
+        get() {
+            val session = Session.getInstance()
+            val paymentSettings = session.configurationModule.paymentSettings
+            return PaymentResultBodyModelMapper(
+                paymentSettings.advancedConfiguration.paymentResultScreenConfiguration,
+                session.tracker,
+                session.helperModule.displayInfoHelper,
+                paymentResultMethodMapper
+            )
+        }
+
+    val paymentConfigurationMapper: PaymentConfigurationMapper
+        get() {
+            val session = Session.getInstance()
+            val configurationModule = session.configurationModule
+            return PaymentConfigurationMapper(
+                session.amountConfigurationRepository,
+                configurationModule.payerCostSelectionRepository,
+                configurationModule.applicationSelectionRepository,
+                session.customOptionIdSolver
+            )
+        }
+
+    val summaryViewModelMapper: SummaryViewModelMapper
+        get() {
+            val session = Session.getInstance()
+            val summaryInfo =
+                getSummaryInfoMapper().map(session.configurationModule.paymentSettings.checkoutPreference!!)
+            val elementDescriptorModel = getElementDescriptorMapper().map(summaryInfo)
+            val configurationModule = session.configurationModule
+            return SummaryViewModelMapper(
+                session.amountRepository,
+                configurationModule.chargeRepository,
+                session.discountRepository,
+                elementDescriptorModel,
+                session.amountConfigurationRepository,
+                FactoryProvider.amountDescriptorViewModelFactory,
+                configurationModule.customTextsRepository,
+                getSummaryDetailDescriptorMapper()
+            )
+        }
+
+    val uriToFromMapper: UriToFromMapper
+        get() = UriToFromMapper()
+    val paymentMethodReauthMapper: PaymentMethodReauthMapper
+        get() = PaymentMethodReauthMapper()
 }

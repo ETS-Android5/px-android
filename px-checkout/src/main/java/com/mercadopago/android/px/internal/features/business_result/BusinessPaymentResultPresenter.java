@@ -14,6 +14,7 @@ import com.mercadopago.android.px.internal.view.PaymentResultBody;
 import com.mercadopago.android.px.model.ExitAction;
 import com.mercadopago.android.px.model.internal.PrimaryExitAction;
 import com.mercadopago.android.px.model.internal.SecondaryExitAction;
+import com.mercadopago.android.px.tracking.internal.BankInfoHelper;
 import com.mercadopago.android.px.tracking.internal.MPTracker;
 import com.mercadopago.android.px.tracking.internal.events.AbortEvent;
 import com.mercadopago.android.px.tracking.internal.events.CongratsSuccessDeepLink;
@@ -35,13 +36,17 @@ import com.mercadopago.android.px.tracking.internal.views.ResultViewTrack;
     /* default */ final ResultViewTrack viewTracker;
     private final FlowBehaviour flowBehaviour;
     @Nullable /* default */ CongratsAutoReturn autoReturnTimer;
+    @NonNull final BusinessPaymentResultMapper businessPaymentResultMapper;
 
     /* default */ BusinessPaymentResultPresenter(@NonNull final PaymentCongratsModel model,
-        @NonNull final FlowBehaviour flowBehaviour, final boolean isMP, @NonNull final MPTracker tracker) {
+        @NonNull final FlowBehaviour flowBehaviour, final boolean isMP, @NonNull final MPTracker tracker,
+        @NonNull final BusinessPaymentResultMapper businessPaymentResultMapper,
+        @NonNull final BankInfoHelper bankInfoHelper) {
         super(tracker);
         this.model = model;
         this.flowBehaviour = flowBehaviour;
-        viewTracker = new ResultViewTrack(model, isMP);
+        viewTracker = new ResultViewTrack(model, isMP, bankInfoHelper);
+        this.businessPaymentResultMapper = businessPaymentResultMapper;
     }
 
     @Override
@@ -78,7 +83,7 @@ import com.mercadopago.android.px.tracking.internal.views.ResultViewTrack;
     }
 
     private void configureView() {
-        final BusinessPaymentResultViewModel viewModel = new BusinessPaymentResultMapper(getTracker()).map(model);
+        final BusinessPaymentResultViewModel viewModel = businessPaymentResultMapper.map(model);
         getView().configureViews(viewModel, this, new PaymentResultFooter.Listener() {
             @Override
             public void onClick(@NonNull final ExitAction action) {

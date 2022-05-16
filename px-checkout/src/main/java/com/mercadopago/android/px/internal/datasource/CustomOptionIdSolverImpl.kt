@@ -13,6 +13,7 @@ internal class CustomOptionIdSolverImpl(private val applicationSelectionReposito
         return when {
             PaymentTypes.isCardPaymentType(selectedPaymentMethod.type) -> oneTapItem.card.id
             oneTapItem.isOfflineMethods -> oneTapItem.getDefaultPaymentMethodType()
+            oneTapItem.isBankTransfer() -> oneTapItem.bankTransfer!!.id
             else -> selectedPaymentMethod.id
         }
     }

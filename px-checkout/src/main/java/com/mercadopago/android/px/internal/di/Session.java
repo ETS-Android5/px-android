@@ -31,8 +31,8 @@ import com.mercadopago.android.px.internal.datasource.PayerPaymentMethodReposito
 import com.mercadopago.android.px.internal.datasource.PaymentMethodRepositoryImpl;
 import com.mercadopago.android.px.internal.datasource.PaymentService;
 import com.mercadopago.android.px.internal.datasource.PrefetchInitService;
-import com.mercadopago.android.px.internal.datasource.TokenizeService;
 import com.mercadopago.android.px.internal.features.PaymentResultViewModelFactory;
+import com.mercadopago.android.px.internal.features.payment_congrats.CongratsResultFactory;
 import com.mercadopago.android.px.internal.features.payment_congrats.model.PXPaymentCongratsTracking;
 import com.mercadopago.android.px.internal.features.payment_congrats.model.PaymentCongratsModel;
 import com.mercadopago.android.px.internal.repository.AmountConfigurationRepository;
@@ -50,7 +50,6 @@ import com.mercadopago.android.px.internal.repository.PayerPaymentMethodReposito
 import com.mercadopago.android.px.internal.repository.PaymentMethodRepository;
 import com.mercadopago.android.px.internal.repository.PaymentRepository;
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository;
-import com.mercadopago.android.px.internal.repository.TokenRepository;
 import com.mercadopago.android.px.internal.services.CardHolderAuthenticatorService;
 import com.mercadopago.android.px.internal.services.CongratsService;
 import com.mercadopago.android.px.internal.services.GatewayService;
@@ -84,6 +83,7 @@ public final class Session extends ApplicationModule {
     private EscPaymentManagerImp escPaymentManager;
     private MPTracker tracker;
     private PaymentResultViewModelFactory paymentResultViewModelFactory;
+    private CongratsResultFactory congratsResultFactory;
     private ViewModelModule viewModelModule;
     private PayerPaymentMethodRepository payerPaymentMethodRepository;
     private OneTapItemRepository oneTapItemRepository;
@@ -93,9 +93,11 @@ public final class Session extends ApplicationModule {
     private CardHolderAuthenticatorRepository cardHolderAuthenticatorRepository;
     private CardStatusRepository cardStatusRepository;
     private UseCaseModule useCaseModule;
+    private FactoryModule factoryModule;
     private CustomOptionIdSolver customOptionIdSolver;
     private AudioPlayer audioPlayer;
     private final NetworkModule networkModule;
+    private HelperModule helperModule;
 
     private Session(@NonNull final Context context) {
         super(context);
@@ -174,33 +176,56 @@ public final class Session extends ApplicationModule {
     }
 
     private void clear() {
-        getPaymentRepository().reset();
-        getExperimentsRepository().reset();
-        getConfigurationModule().reset();
-        getExperimentsRepository().reset();
-        getPayerPaymentMethodRepository().reset();
-        getPaymentMethodRepository().reset();
-        getModalRepository().reset();
-        getAmountConfigurationRepository().reset();
-        getDiscountRepository().reset();
+        if (paymentRepository != null) {
+            paymentRepository.reset();
+            paymentRepository = null;
+        }
+        if (experimentsRepository != null) {
+            experimentsRepository.reset();
+            experimentsRepository = null;
+        }
+        if (payerPaymentMethodRepository != null) {
+            payerPaymentMethodRepository.reset();
+            payerPaymentMethodRepository = null;
+        }
+        if (paymentMethodRepository != null) {
+            paymentMethodRepository.reset();
+            paymentMethodRepository = null;
+        }
+        if (modalRepository != null) {
+            modalRepository.reset();
+            modalRepository = null;
+        }
+        if (amountConfigurationRepository != null) {
+            amountConfigurationRepository.reset();
+            amountConfigurationRepository = null;
+        }
+        if (discountRepository != null) {
+            discountRepository.reset();
+            discountRepository = null;
+        }
+        if (configurationModule != null) {
+            configurationModule.reset();
+        }
+        if (oneTapItemRepository != null) {
+            oneTapItemRepository.reset();
+            oneTapItemRepository = null;
+        }
+
         useCaseModule = null;
-        discountRepository = null;
+        factoryModule = null;
+        helperModule = null;
         amountRepository = null;
         checkoutRepository = null;
-        paymentRepository = null;
-        amountConfigurationRepository = null;
         cardTokenRepository = null;
         congratsRepository = null;
         escPaymentManager = null;
         viewModelModule = null;
-        oneTapItemRepository = null;
-        payerPaymentMethodRepository = null;
-        paymentMethodRepository = null;
-        modalRepository = null;
         configurationSolver = null;
         cardHolderAuthenticatorRepository = null;
         customOptionIdSolver = null;
         audioPlayer = null;
+        congratsResultFactory = null;
     }
 
     @NonNull
@@ -296,20 +321,14 @@ public final class Session extends ApplicationModule {
             paymentRepository = new PaymentService(configurationModule.getUserSelectionRepository(),
                 configurationModule.getPaymentSettings(),
                 configurationModule.getDisabledPaymentMethodRepository(),
-                getDiscountRepository(),
-                getAmountRepository(),
                 getApplicationContext(),
                 getEscPaymentManager(),
-                getMercadoPagoESC(),
                 getAmountConfigurationRepository(),
                 getCongratsRepository(),
                 getFileManager(),
-                MapperProvider.INSTANCE.getFromPayerPaymentMethodToCardMapper(),
-                MapperProvider.INSTANCE.getPaymentMethodMapper(),
-                getPaymentMethodRepository(),
                 getUseCaseModule().getValidationProgramUseCase(),
-                getUseCaseModule().getTokenizeWithEscUseCase(),
-                getUseCaseModule().getTokenizeWithoutCvvUseCase());
+                getFactoryModule().getPaymentResultFactory(),
+                getFactoryModule().getPaymentDataFactory());
         }
 
         return paymentRepository;
@@ -321,12 +340,6 @@ public final class Session extends ApplicationModule {
             escPaymentManager = new EscPaymentManagerImp(getMercadoPagoESC(), configurationModule.getPaymentSettings());
         }
         return escPaymentManager;
-    }
-
-    @NonNull
-    public TokenRepository getTokenRepository() {
-        return new TokenizeService(networkModule.getRetrofitClient().create(GatewayService.class),
-            getConfigurationModule().getPaymentSettings(), getMercadoPagoESC(), getDevice(), getTracker());
     }
 
     @NonNull
@@ -348,7 +361,7 @@ public final class Session extends ApplicationModule {
                 getPlatform(getApplicationContext()), configurationModule.getTrackingRepository(),
                 configurationModule.getUserSelectionRepository(), getAmountRepository(),
                 configurationModule.getDisabledPaymentMethodRepository(),
-                configurationModule.getPayerComplianceRepository(), getMercadoPagoESC(), getOneTapItemRepository(),
+                getMercadoPagoESC(), getOneTapItemRepository(),
                 configurationModule.getPaymentSettings(), getPayerPaymentMethodRepository(),
                 MapperProvider.INSTANCE.getAlternativePayerPaymentMethodsMapper(),
                 configurationModule.getAuthorizationProvider()
@@ -428,7 +441,10 @@ public final class Session extends ApplicationModule {
     @NonNull
     public MPTracker getTracker() {
         if (tracker == null) {
-            tracker = new MPTracker(configurationModule.getTrackingRepository());
+            tracker = new MPTracker(
+                configurationModule.getTrackingRepository(),
+                configurationModule.getPaymentSettings().getPaymentConfiguration()
+            );
         }
         return tracker;
     }
@@ -447,6 +463,14 @@ public final class Session extends ApplicationModule {
             paymentResultViewModelFactory = new PaymentResultViewModelFactory(getTracker());
         }
         return paymentResultViewModelFactory;
+    }
+
+    @NonNull
+    public CongratsResultFactory getCongratsResultFactory() {
+        if (congratsResultFactory == null) {
+            congratsResultFactory = new CongratsResultFactory(MapperProvider.INSTANCE.getPaymentCongratsMapper());
+        }
+        return congratsResultFactory;
     }
 
     @NonNull
@@ -482,6 +506,21 @@ public final class Session extends ApplicationModule {
         if (TextUtil.isNotEmpty(accessToken)) {
             configurationModule.getAuthorizationProvider().configure(accessToken);
         }
+    }
+
+    public FactoryModule getFactoryModule() {
+        if (factoryModule == null) {
+            factoryModule = new FactoryModule();
+        }
+        return factoryModule;
+    }
+
+    @NonNull
+    public HelperModule getHelperModule() {
+        if (helperModule == null) {
+            helperModule = new HelperModule();
+        }
+        return helperModule;
     }
 
     public enum State {

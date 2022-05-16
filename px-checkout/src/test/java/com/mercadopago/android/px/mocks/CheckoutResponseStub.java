@@ -25,7 +25,8 @@ public enum CheckoutResponseStub implements JsonStub<CheckoutResponse> {
             OneTapItemStub.ONE_TAP_ACCOUNT_MONEY,
             OneTapItemStub.ONE_TAP_VISA_CREDIT_CARD,
             OneTapItemStub.ONE_TAP_MASTER_CREDIT_CARD
-        }),
+        },
+        RetryStub.ONE_TAP_NO_CARD_RETRY_NEEDED),
 
     ONE_TAP_VISA_CREDIT_CARD(SiteStub.MLA,
         CurrencyStub.MLA,
@@ -33,7 +34,8 @@ public enum CheckoutResponseStub implements JsonStub<CheckoutResponse> {
         PaymentMethodStub.values(),
         PaymentMethodSearchItemStub.values(),
         CustomSearchItemStub.values(),
-        new OneTapItemStub[] { OneTapItemStub.ONE_TAP_VISA_CREDIT_CARD }),
+        new OneTapItemStub[] { OneTapItemStub.ONE_TAP_VISA_CREDIT_CARD },
+        RetryStub.ONE_TAP_NO_CARD_RETRY_NEEDED),
 
     ONE_TAP_CREDIT_CARD_WITH_RETRY(SiteStub.MLA,
         CurrencyStub.MLA,
@@ -41,7 +43,8 @@ public enum CheckoutResponseStub implements JsonStub<CheckoutResponse> {
         PaymentMethodStub.values(),
         PaymentMethodSearchItemStub.values(),
         CustomSearchItemStub.values(),
-        new OneTapItemStub[] { OneTapItemStub.ONE_TAP_CREDIT_CARD_WITH_RETRY }),
+        new OneTapItemStub[] { OneTapItemStub.ONE_TAP_CREDIT_CARD_WITH_RETRY },
+        RetryStub.ONE_TAP_WITH_CARD_RETRY_NEEDED),
 
     NO_CUSTOM_OPTIONS(SiteStub.MLA,
         CurrencyStub.MLA,
@@ -119,7 +122,7 @@ public enum CheckoutResponseStub implements JsonStub<CheckoutResponse> {
         @NonNull final ExpressMetadataStub[] expressMetadataStubs) {
 
         final StringBuilder jsonContainer =
-            new StringBuilder(ResourcesUtil.getStringResource("init_response_template.json"));
+            new StringBuilder(ResourcesUtil.getStringResource("init_response_no_retry_needed_template.json"));
 
         siteStub.inject(jsonContainer);
         currencyStub.inject(jsonContainer);
@@ -139,7 +142,8 @@ public enum CheckoutResponseStub implements JsonStub<CheckoutResponse> {
         @NonNull final PaymentMethodStub[] paymentMethodStubs,
         @NonNull final PaymentMethodSearchItemStub[] paymentMethodSearchItemStubs,
         @NonNull final CustomSearchItemStub[] customSearchItemStubs,
-        @NonNull final OneTapItemStub[] oneTapItemStubs) {
+        @NonNull final OneTapItemStub[] oneTapItemStubs,
+        @NonNull final RetryStub retryNeededStub) {
 
         final StringBuilder jsonContainer =
             new StringBuilder(ResourcesUtil.getStringResource("init_response_template.json"));
@@ -147,6 +151,7 @@ public enum CheckoutResponseStub implements JsonStub<CheckoutResponse> {
         siteStub.inject(jsonContainer);
         currencyStub.inject(jsonContainer);
         checkoutPreferenceStub.inject(jsonContainer);
+        retryNeededStub.inject(jsonContainer);
         ListJsonInjector.injectAll(Arrays.asList(paymentMethodStubs).iterator(), jsonContainer);
         ListJsonInjector.injectAll(Arrays.asList(paymentMethodSearchItemStubs).iterator(), jsonContainer);
         ListJsonInjector.injectAll(Arrays.asList(customSearchItemStubs).iterator(), jsonContainer);

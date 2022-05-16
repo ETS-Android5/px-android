@@ -10,16 +10,18 @@ import android.util.AttributeSet;
 import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import com.mercadopago.android.px.internal.features.TermsAndConditionsActivity;
+import com.mercadopago.android.px.core.presentation.extensions.SpannableExtKt;
+import com.mercadopago.android.px.core.presentation.extensions.TextViewExtKt;
+import com.mercadopago.android.px.model.TermsAndConditionsLinks;
 import com.mercadopago.android.px.model.LinkableText;
 import com.mercadopago.android.px.internal.util.TextUtil;
-import com.mercadopago.android.px.internal.util.ViewUtils;
 import java.util.Map;
 
 public class LinkableTextView extends androidx.appcompat.widget.AppCompatTextView {
 
     private LinkableText model;
-    private int installmentSelected = -1;
+    LinkableTextView.LinkableTextListener listener = (termsAndConditionsLinks) -> {
+    };
 
     public LinkableTextView(@NonNull final Context context, @NonNull final AttributeSet attrs) {
         super(context, attrs);
@@ -32,8 +34,8 @@ public class LinkableTextView extends androidx.appcompat.widget.AppCompatTextVie
         }
     }
 
-    public void updateInstallment(final int installmentSelected) {
-        this.installmentSelected = installmentSelected;
+    public void setLinkableTextListener(@NonNull final LinkableTextView.LinkableTextListener listener) {
+        this.listener = listener;
     }
 
     private void render() {
@@ -42,35 +44,43 @@ public class LinkableTextView extends androidx.appcompat.widget.AppCompatTextVie
             for (final LinkableText.LinkablePhrase linkablePhrase : model.getLinkablePhrases()) {
                 addLinkToSpannable(spannableText, linkablePhrase);
             }
-            ViewUtils.setTextColor(this, model.getTextColor());
+            TextViewExtKt.setTextColor(this, model.getTextColor());
             setText(spannableText);
             setMovementMethod(LinkMovementMethod.getInstance());
         }
     }
 
-    private void addLinkToSpannable(@NonNull final Spannable spannable, @NonNull final LinkableText.LinkablePhrase link) {
+    private void addLinkToSpannable(@NonNull final Spannable spannable,
+        @NonNull final LinkableText.LinkablePhrase link) {
         final String phrase = link.getPhrase();
         final int start = TextUtil.isNotEmpty(phrase) ? model.getText().indexOf(phrase) : -1;
         if (start >= 0) {
             final int end = start + phrase.length();
+            final TermsAndConditionsLinks installmentLink = buildTermsAndConditionsLinks(link);
             spannable.setSpan(new ClickableSpan() {
                 @Override
                 public void onClick(@NonNull final View widget) {
-                    onLinkClicked(link);
+                    listener.onLinkClicked(installmentLink);
                 }
             }, start, end, Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-            ViewUtils.setColorInSpannable(link.getTextColor(), start, end, spannable);
+            SpannableExtKt.setColor(spannable, link.getTextColor(), start, end);
         }
     }
 
-    /* default */ void onLinkClicked(@NonNull final LinkableText.LinkablePhrase linkablePhrase) {
-        String data = "";
-        Map<String, String> links = model.getLinks();
-        if (!links.isEmpty() && installmentSelected != -1) {
-            data = links.get(linkablePhrase.getLinkId(installmentSelected));
-        } else if (linkablePhrase.getLink() != null || linkablePhrase.getHtml() != null) {
-            data = linkablePhrase.getLink() != null ? linkablePhrase.getLink() : linkablePhrase.getHtml();
+    private TermsAndConditionsLinks buildTermsAndConditionsLinks(
+        @NonNull final LinkableText.LinkablePhrase linkablePhrase
+    ) {
+        final Map<String, String> links = model.getLinkMap();
+        String link = "";
+
+        if (linkablePhrase.getLink() != null || linkablePhrase.getHtml() != null) {
+            link = linkablePhrase.getLink() != null ? linkablePhrase.getLink() : linkablePhrase.getHtml();
         }
-        TermsAndConditionsActivity.start(getContext(), data);
+
+        return new TermsAndConditionsLinks(links, linkablePhrase.getInstallmentMap(), link);
+    }
+
+    public interface LinkableTextListener {
+        void onLinkClicked(@NonNull final TermsAndConditionsLinks termsAndConditionsLinks);
     }
 }

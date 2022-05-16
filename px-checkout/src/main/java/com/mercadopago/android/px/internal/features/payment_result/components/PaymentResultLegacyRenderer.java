@@ -16,7 +16,8 @@ public final class PaymentResultLegacyRenderer {
 
     public static void render(@NonNull final ViewGroup parent, @NonNull final ActionDispatcher callback,
         @NonNull final PaymentResultLegacyViewModel viewModel, final boolean renderLegacyFooter, final boolean renderBody,
-        @NonNull final PaymentResultViewModelFactory factory) {
+        @NonNull final PaymentResultViewModelFactory factory
+    ) {
         final Body bodyComponent = getBodyComponent(factory, viewModel, callback);
         if (renderBody & bodyComponent.hasSomethingToDraw()) {
             parent.findViewById(R.id.body).setVisibility(View.GONE);
@@ -35,6 +36,7 @@ public final class PaymentResultLegacyRenderer {
             new PaymentResultBodyProps.Builder(viewModel.configuration)
                 .setPaymentResult(viewModel.model.getPaymentResult())
                 .setCurrency(viewModel.model.getCurrency())
+                .setPaymentResultMethodModels(viewModel.paymentResultMethodModels)
                 .build();
         return new Body(factory, bodyProps, callback);
     }

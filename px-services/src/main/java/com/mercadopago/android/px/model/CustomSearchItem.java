@@ -5,6 +5,7 @@ import android.os.Parcelable;
 import androidx.annotation.Nullable;
 import android.text.TextUtils;
 import com.google.gson.annotations.SerializedName;
+import com.mercadopago.android.px.model.display_info.CustomSearchItemDisplayInfo;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +35,10 @@ public class CustomSearchItem implements Serializable, Parcelable {
     @Nullable private String firstSixDigits;
 
     private String escStatus;
+
+    @Nullable private CustomSearchItemDisplayInfo displayInfo;
+    @Nullable private String paymentMethodName;
+    @Nullable private BankTransferInfo bankInfo;
 
     @Deprecated
     public CustomSearchItem() {
@@ -66,6 +71,9 @@ public class CustomSearchItem implements Serializable, Parcelable {
         firstSixDigits = in.readString();
         issuer = in.readParcelable(Issuer.class.getClassLoader());
         escStatus = in.readString();
+        displayInfo = in.readParcelable(CustomSearchItemDisplayInfo.class.getClassLoader());
+        paymentMethodName = in.readString();
+        bankInfo = in.readParcelable(BankTransferInfo.class.getClassLoader());
     }
 
     @Override
@@ -82,6 +90,9 @@ public class CustomSearchItem implements Serializable, Parcelable {
         dest.writeString(firstSixDigits);
         dest.writeParcelable(issuer, 0);
         dest.writeString(escStatus);
+        dest.writeParcelable(displayInfo, 0);
+        dest.writeString(paymentMethodName);
+        dest.writeParcelable(bankInfo, 0);
     }
 
     public String getDescription() {
@@ -164,4 +175,13 @@ public class CustomSearchItem implements Serializable, Parcelable {
     public String getEscStatus() {
         return escStatus;
     }
+
+    @Nullable
+    public CustomSearchItemDisplayInfo getDisplayInfo() { return displayInfo; }
+
+    @Nullable
+    public String getPaymentMethodName() { return paymentMethodName; }
+
+    @Nullable
+    public BankTransferInfo getBankInfo() { return bankInfo; }
 }

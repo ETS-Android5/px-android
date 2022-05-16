@@ -4,22 +4,21 @@ import com.mercadopago.android.px.addons.ESCManagerBehaviour
 import com.mercadopago.android.px.configuration.AdvancedConfiguration
 import com.mercadopago.android.px.configuration.PaymentConfiguration
 import com.mercadopago.android.px.core.MercadoPagoCheckout
-import com.mercadopago.android.px.internal.datasource.CardStatusRepository
 import com.mercadopago.android.px.internal.extensions.isZero
 import com.mercadopago.android.px.internal.features.FeatureProvider
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository
 import com.mercadopago.android.px.internal.tracking.TrackingRepository
-import com.mercadopago.android.px.model.internal.CheckoutFeaturesDM
-import com.mercadopago.android.px.model.internal.DiscountParamsConfigurationDM
 import com.mercadopago.android.px.model.internal.InitRequestBody
 import com.mercadopago.android.px.model.internal.PaymentTypeChargeRuleDM
+import com.mercadopago.android.px.model.internal.DiscountParamsConfigurationDM
+import com.mercadopago.android.px.model.internal.CheckoutFeaturesDM
 import com.mercadopago.android.px.preferences.CheckoutPreference
 
 internal class InitRequestBodyMapper (
-    val escManagerBehaviour: ESCManagerBehaviour,
-    val featureProvider: FeatureProvider,
-    val cardStatusRepository: CardStatusRepository,
-    val trackingRepository: TrackingRepository
+    private val escManagerBehaviour: ESCManagerBehaviour,
+    private val featureProvider: FeatureProvider,
+    private val paymentMethodBehaviourMapper: PaymentMethodBehaviourDMMapper,
+    private val trackingRepository: TrackingRepository
 ) {
     fun map(checkout: MercadoPagoCheckout): InitRequestBody {
         return map(
@@ -28,18 +27,20 @@ internal class InitRequestBodyMapper (
             checkout.advancedConfiguration,
             checkout.preferenceId,
             checkout.checkoutPreference,
+            null,
             null
         )
     }
 
-    fun map(paymentSettingRepository: PaymentSettingRepository, cardId: String?): InitRequestBody {
+    fun map(paymentSettingRepository: PaymentSettingRepository, cardId: String?, bankAccountId: String?): InitRequestBody {
         return map(
             paymentSettingRepository.publicKey,
             paymentSettingRepository.paymentConfiguration,
             paymentSettingRepository.advancedConfiguration,
             paymentSettingRepository.checkoutPreferenceId,
             paymentSettingRepository.checkoutPreference,
-            cardId
+            cardId,
+            bankAccountId
         )
     }
 
@@ -49,12 +50,14 @@ internal class InitRequestBodyMapper (
         advancedConfiguration : AdvancedConfiguration,
         checkoutPreferenceId: String?,
         checkoutPreference: CheckoutPreference?,
-        cardId: String?
+        cardId: String?,
+        bankAccountId: String?
     ): InitRequestBody {
         val features = featureProvider.availableFeatures
+        val paymentMethodBehaviours = paymentMethodBehaviourMapper.map(advancedConfiguration.paymentMethodBehaviours)
         return InitRequestBody(
             publicKey,
-            cardStatusRepository.getCardsStatus(),
+            escManagerBehaviour.escCardIds,
             paymentConfiguration.charges.map {
                 PaymentTypeChargeRuleDM(
                     it.paymentTypeId,
@@ -71,13 +74,17 @@ internal class InitRequestBodyMapper (
             CheckoutFeaturesDM(
                 features.express, features.split, features.odrFlag, features.comboCard, features.hybridCard,
                 features.pix, features.customTaxesCharges, features.cardsCustomTaxesCharges, features.taxableCharges,
-                features.styleVersion, features.threedsSdkVersion, features.validationPrograms, features.debinVersion
+                features.styleVersion, features.threedsSdkVersion, features.validationPrograms, features.debin,
+                features.newPaymentMethodVersion
             ),
+            paymentMethodBehaviours,
             paymentConfiguration.getCheckoutType(),
             checkoutPreferenceId,
             checkoutPreference,
             trackingRepository.flowId,
-            cardId
+            cardId,
+            bankAccountId,
+            advancedConfiguration.paymentMethodRuleSet
         )
     }
 }

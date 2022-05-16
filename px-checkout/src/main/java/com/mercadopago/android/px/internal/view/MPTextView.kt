@@ -8,16 +8,19 @@ import android.util.TypedValue
 import android.view.View
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import androidx.appcompat.widget.AppCompatTextView
-import androidx.core.content.ContextCompat
 import com.mercadopago.android.px.R
+import com.mercadopago.android.px.core.commons.extensions.isNotNullNorEmpty
+import com.mercadopago.android.px.core.presentation.extensions.setColor
+import com.mercadopago.android.px.core.presentation.extensions.setTextColor
+import com.mercadopago.android.px.internal.extensions.toGravity
 import com.mercadopago.android.px.internal.features.payment_congrats.model.PaymentCongratsText
 import com.mercadopago.android.px.internal.font.FontHelper.setFont
 import com.mercadopago.android.px.internal.font.PxFont
 import com.mercadopago.android.px.internal.util.TextUtil
 import com.mercadopago.android.px.internal.util.ViewUtils
 import com.mercadopago.android.px.internal.viewmodel.ITextDescriptor
-import com.mercadopago.android.px.internal.viewmodel.SummaryRowTextDescriptor
 import com.mercadopago.android.px.model.internal.Text
+import com.mercadopago.android.px.model.internal.TextAlignment
 
 internal class MPTextView @JvmOverloads constructor(
     context: Context,
@@ -48,7 +51,7 @@ internal class MPTextView @JvmOverloads constructor(
         val spannableStringBuilder = SpannableStringBuilder()
         var startIndex = 0
         var endIndex: Int
-        textDescriptors.forEach{ textDescriptor ->
+        textDescriptors.forEach { textDescriptor ->
             spannableStringBuilder.append(textDescriptor.getText(context)).takeUnless {
                 textDescriptor == textDescriptors.last()
             }?.append(TextUtil.SPACE)
@@ -60,11 +63,10 @@ internal class MPTextView @JvmOverloads constructor(
                 startIndex,
                 endIndex
             )
-            ViewUtils.setColorInSpannable(
+            spannableStringBuilder.setColor(
                 textDescriptor.getTextColor(context),
                 startIndex,
-                endIndex,
-                spannableStringBuilder
+                endIndex
             )
             startIndex = spannableStringBuilder.length
             textDescriptor.getTextSize(context)?.let {
@@ -80,19 +82,24 @@ internal class MPTextView @JvmOverloads constructor(
     }
 
     fun setText(text: Text) {
-        setText(text.message)
-        ViewUtils.setTextColor(this, text.textColor)
-        if (TextUtil.isNotEmpty(text.weight)) {
-            setFont(this, PxFont.from(text.weight))
-        }
+        setText(text.message, text.textColor, text.weight, text.alignment)
     }
 
     fun setText(text: PaymentCongratsText) {
-        setText(text.message)
-        ViewUtils.setTextColor(this, text.textColor)
-        if (TextUtil.isNotEmpty(text.weight)) {
-            setFont(this, PxFont.from(text.weight))
+        setText(text.message, text.textColor, text.weight, text.alignment, text.fontSize)
+    }
+
+    private fun setText(message: String?, textColor: String?, weight: String?, alignment: TextAlignment?, fontSize: Float? = null) {
+        text = message
+        setTextColor(textColor)
+        fontSize?.let {
+            setTextSize(TypedValue.COMPLEX_UNIT_DIP, it)
         }
+        if (weight.isNotNullNorEmpty()) {
+            setFont(this, PxFont.from(weight!!))
+        }
+        gravity = alignment.toGravity()
+
     }
 
     private fun configureEllipsize() {

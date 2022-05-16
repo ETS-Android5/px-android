@@ -40,6 +40,7 @@ public class BusinessPayment implements IParcelablePaymentDescriptor {
 
     @Nullable private final List<String> receiptIdList;
     private final boolean shouldShowReceipt;
+    private final boolean forceShowReceipt;
 
     /* default */ BusinessPayment(final Builder builder) {
         help = builder.help;
@@ -62,6 +63,7 @@ public class BusinessPayment implements IParcelablePaymentDescriptor {
         paymentTypeId = builder.paymentTypeId;
         receiptIdList = builder.receiptIdList;
         shouldShowReceipt = builder.shouldShowReceipt;
+        forceShowReceipt = builder.forceShowReceipt;
     }
 
     protected BusinessPayment(final Parcel in) {
@@ -85,6 +87,7 @@ public class BusinessPayment implements IParcelablePaymentDescriptor {
         paymentTypeId = in.readString();
         receiptIdList = in.createStringArrayList();
         shouldShowReceipt = in.readByte() != 0;
+        forceShowReceipt = in.readByte() != 0;
     }
 
     public static final Creator<BusinessPayment> CREATOR = new Creator<BusinessPayment>() {
@@ -126,6 +129,7 @@ public class BusinessPayment implements IParcelablePaymentDescriptor {
         dest.writeString(paymentTypeId);
         dest.writeStringList(receiptIdList);
         dest.writeByte((byte) (shouldShowReceipt ? 1 : 0));
+        dest.writeByte((byte) (forceShowReceipt ? 1 : 0));
     }
 
     public boolean hasReceipt() {
@@ -259,6 +263,10 @@ public class BusinessPayment implements IParcelablePaymentDescriptor {
         return shouldShowReceipt;
     }
 
+    public boolean forceShowReceipt() {
+        return forceShowReceipt;
+    }
+
     @Override
     public void process(@NonNull final IPaymentDescriptorHandler handler) {
         handler.visit(this);
@@ -307,6 +315,7 @@ public class BusinessPayment implements IParcelablePaymentDescriptor {
         /* default */ @Nullable String subtitle;
         /* default */ @Nullable List<String> receiptIdList;
         /* default */ boolean shouldShowReceipt = true;
+        /* default */ boolean forceShowReceipt = false;
 
         /* default */ ExternalFragment topFragment;
         /* default */ ExternalFragment bottomFragment;
@@ -496,6 +505,17 @@ public class BusinessPayment implements IParcelablePaymentDescriptor {
          */
         public Builder setShouldShowReceipt(final boolean shouldShowReceipt) {
             this.shouldShowReceipt = shouldShowReceipt;
+            return this;
+        }
+
+        /**
+         * Override the receipt drawing, without depending on the receipt status
+         *
+         * @param forceShowReceipt if the receipt should be drawn independent of its status
+         * @return builder
+         */
+        public Builder setForceShowReceipt(final boolean forceShowReceipt) {
+            this.forceShowReceipt = forceShowReceipt;
             return this;
         }
     }

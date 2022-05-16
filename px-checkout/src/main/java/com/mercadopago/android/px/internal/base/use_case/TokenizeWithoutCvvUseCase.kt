@@ -3,7 +3,7 @@ package com.mercadopago.android.px.internal.base.use_case
 import com.mercadopago.android.px.internal.base.CoroutineContextProvider
 import com.mercadopago.android.px.internal.callbacks.Response
 import com.mercadopago.android.px.internal.features.validation_program.TokenDeviceUseCase
-import com.mercadopago.android.px.internal.repository.TokenRepository
+import com.mercadopago.android.px.internal.repository.CardTokenRepository
 import com.mercadopago.android.px.internal.util.ApiUtil
 import com.mercadopago.android.px.model.Card
 import com.mercadopago.android.px.model.Token
@@ -16,7 +16,7 @@ import kotlin.coroutines.suspendCoroutine
 
 internal class TokenizeWithoutCvvUseCase(
     private val tokenDeviceUseCase: TokenDeviceUseCase,
-    private val tokenRepository: TokenRepository,
+    private val tokenRepository: CardTokenRepository,
     tracker: MPTracker,
     override val contextProvider: CoroutineContextProvider = CoroutineContextProvider()
 ) : UseCase<Card, Token>(tracker) {

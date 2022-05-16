@@ -37,7 +37,10 @@ public enum PxFont {
     }
 
     @NonNull
-    public static PxFont from(@NonNull final String name) {
+    public static PxFont from(@Nullable final String name) {
+        if (name == null) {
+            return REGULAR;
+        }
         for (final PxFont font : values()) {
             if (font.name().equalsIgnoreCase(name)) {
                 return font;

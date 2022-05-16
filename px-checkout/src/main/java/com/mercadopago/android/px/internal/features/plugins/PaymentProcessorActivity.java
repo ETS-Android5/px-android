@@ -96,7 +96,11 @@ public final class PaymentProcessorActivity extends PXActivity
         paymentServiceHandlerWrapper = new PaymentServiceHandlerWrapper(session.getPaymentRepository(),
             session.getConfigurationModule().getDisabledPaymentMethodRepository(),
             session.getEscPaymentManager(), session.getCongratsRepository(),
-            session.getConfigurationModule().getUserSelectionRepository());
+            session.getConfigurationModule().getUserSelectionRepository(),
+            session.getConfigurationModule().getPaymentSettings().getAdvancedConfiguration()
+                .getPostPaymentConfiguration(),
+            session.getFactoryModule().getPaymentResultFactory(),
+            session.getFactoryModule().getPaymentDataFactory());
 
         if (getFragmentByTag() == null) { // if fragment is not added, then create it.
             addPaymentProcessorFragment(session);
@@ -116,12 +120,9 @@ public final class PaymentProcessorActivity extends PXActivity
             session.getUseCaseModule().getValidationProgramUseCase();
 
         final com.mercadopago.android.px.core.v2.PaymentProcessor paymentProcessor =
-            PaymentConfigurationUtil.getPaymentProcessor(paymentSettings
-                .getPaymentConfiguration());
+            PaymentConfigurationUtil.getPaymentProcessor(paymentSettings.getPaymentConfiguration());;
 
-        final List<PaymentData> paymentData = session
-            .getPaymentRepository()
-            .getPaymentDataList();
+        final List<PaymentData> paymentData = session.getFactoryModule().getPaymentDataFactory().create();
 
         final CheckoutPreference checkoutPreference = paymentSettings.getCheckoutPreference();
         final String securityType = paymentSettings.getSecurityType().getValue();
@@ -163,10 +164,6 @@ public final class PaymentProcessorActivity extends PXActivity
     @NonNull
     private PaymentServiceHandler createWrapper() {
         return new PaymentServiceHandler() {
-            @Override
-            public void onCvvRequired(@NonNull final Card card, @NonNull final Reason reason) {
-                // do nothing
-            }
 
             @Override
             public void onVisualPayment() {
@@ -187,6 +184,13 @@ public final class PaymentProcessorActivity extends PXActivity
                 intent.putExtra(EXTRA_PAYMENT, paymentModel);
                 setResult(RESULT_PAYMENT, intent);
                 finish();
+            }
+
+            @Override
+            public void onPostPaymentFlowStarted(
+                @NonNull final IPaymentDescriptor iPaymentDescriptor
+            ) {
+                // do nothing
             }
 
             @Override

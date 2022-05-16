@@ -33,6 +33,6 @@ internal class AlternativePayerPaymentMethodsMapper(
                 .map { payerCost -> Installment(payerCost.installments, payerCost.totalAmount) },
             //Hacks to avoid asking for cvv in remedy when it's optional
             value.escStatus ?: if (cvvIsOptional) EscStatus.APPROVED else EscStatus.NOT_AVAILABLE,
-            escManagerBehaviour.escCardIds.contains(value.id) || cvvIsOptional, null)
+            escManagerBehaviour.escCardIds.contains(value.id) || cvvIsOptional, null, value.paymentMethodName, value.bankInfo)
     }
 }

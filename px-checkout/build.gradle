@@ -13,6 +13,12 @@ android {
         jvmTarget = "1.8"
         freeCompilerArgs = ['-Xjvm-default=enable', '-Xuse-experimental=kotlin.contracts.ExperimentalContracts']
     }
+    testOptions {
+        unitTests.includeAndroidResources = true
+    }
+    viewBinding {
+        enabled = true
+    }
 }
 
 dependencies {
@@ -31,6 +37,7 @@ dependencies {
     implementation "com.mercadolibre.android.andesui:components:$andesUi"
     implementation "androidx.constraintlayout:constraintlayout:$constraintLayout"
     implementation "com.google.android:flexbox:$flexboxLayout"
+    implementation "androidx.viewpager2:viewpager2:$viewPager2"
 
     implementation "com.squareup.okhttp3:okhttp:$okhttp"
     implementation "com.squareup.okhttp3:okhttp-urlconnection:$okhttp"
@@ -42,6 +49,7 @@ dependencies {
     }
     api project(':px-services')
     implementation project(':px-addons')
+    implementation project(':px-core')
 
     implementation "com.google.code.gson:gson:$gson"
     implementation "com.mercadolibre.android:ui:$ui"

@@ -8,17 +8,9 @@
 
     <application>
         <activity
-            android:name=".internal.features.TermsAndConditionsActivity"
-            android:label="@string/px_title_activity_terms_and_conditions"
-            android:screenOrientation="sensorPortrait"
-            android:theme="@style/Theme.MercadoPagoTheme.NoActionBar" />
-        <activity
-            android:name=".internal.features.checkout.CheckoutActivity"
-            android:label=""
-            android:launchMode="singleTask"
-            android:screenOrientation="sensorPortrait"
-            android:theme="@style/Theme.MercadoPagoTheme.NoActionBar"
-            android:windowSoftInputMode="adjustResize">
+            android:name=".internal.features.checkout.CheckoutDeeplinkActivity"
+            android:noHistory="true"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -43,30 +35,78 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".internal.features.TermsAndConditionsActivity"
+            android:label="@string/px_title_activity_terms_and_conditions"
+            android:screenOrientation="sensorPortrait"
+            android:theme="@style/Theme.MercadoPagoTheme.NoActionBar" />
+        <activity
+            android:name=".internal.features.checkout.CheckoutActivity"
+            android:exported="false"
+            android:label=""
+            android:screenOrientation="sensorPortrait"
+            android:theme="@style/Theme.MercadoPagoTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".internal.features.ErrorActivity"
+            android:exported="false"
             android:screenOrientation="sensorPortrait"
             android:theme="@style/Theme.MercadoPagoTheme.NoActionBar" />
         <activity
             android:name=".internal.features.payment_result.PaymentResultActivity"
+            android:exported="false"
             android:label=""
             android:screenOrientation="sensorPortrait"
             android:theme="@style/Theme.MercadoPagoTheme.NoActionBar" />
         <activity
             android:name=".internal.features.security_code.SecurityCodeActivity"
+            android:exported="false"
             android:label=""
             android:screenOrientation="sensorPortrait"
             android:theme="@style/Theme.MercadoPagoTheme.NoActionBar"
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".internal.features.plugins.PaymentProcessorActivity"
+            android:exported="false"
             android:screenOrientation="sensorPortrait"
             android:theme="@style/Theme.MercadoPagoTheme.NoActionBar" />
         <activity
+            android:name=".internal.features.payment_congrats.CongratsDeepLinkActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="sensorPortrait"
+            android:theme="@style/Theme.MercadoPagoTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="px"
+                    android:path="/congrats"
+                    android:scheme="mercadopago" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="px"
+                    android:path="/congrats"
+                    android:scheme="meli" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".internal.features.business_result.BusinessPaymentResultActivity"
+            android:exported="false"
             android:label=""
             android:screenOrientation="sensorPortrait"
             android:theme="@style/Theme.MercadoPagoTheme.NoActionBar"/>
-        <activity android:name=".internal.features.dummy_result.DummyResultActivity"/>
+        <activity android:name=".internal.features.dummy_result.DummyResultActivity"
+            android:exported="false" />
 
         <provider
             android:name=".internal.di.PxCheckoutInitProvider"

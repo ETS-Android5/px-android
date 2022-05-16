@@ -8,15 +8,23 @@ import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 internal data class RemediesModel(
-    val title: String,
+    val header: HeaderModel?,
     val retryPayment: RetryPaymentFragment.Model?,
     val highRisk: HighRiskRemedy.Model?,
     val trackingData: Map<String, String>?
 ) : Parcelable {
 
+    @Parcelize
+    data class HeaderModel(
+        val title: String,
+        val iconUrl: String,
+        val badgeUrl: String
+    ) : Parcelable
+
     fun hasRemedies() = retryPayment != null || highRisk != null
 
     companion object {
-        @JvmField val DECORATOR = PaymentResultType.PENDING
+        @JvmField
+        val DECORATOR = PaymentResultType.PENDING
     }
 }

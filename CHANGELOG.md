@@ -1,3 +1,110 @@
+## VERSION 4.114.1
+_05_05_2022
+* FEATURE - Bank account registration.
+* ENHANCEMENT - Update Total value when user selects an installment or split payment or both.
+* FEATURE - Migrate screenlock to reauth.
+
+## VERSION 4.114.0
+_04_05_2022
+* FEATURE - New pending screen to debin status detail.
+* FEATURE - Custom behavior to support custom texts in payment methods.
+* FEATURE - Rules configuration is supported to apply in the means of payment.
+* ENHANCEMENT - New checkout type on tracker added
+
+## VERSION 4.113.0
+_28_04_2022_
+* ENHANCEMENT - Migration of some utils methods to use the core ones.
+* FIX - Adjust track /payment_congrats/result/error
+* FIX - Remove Android ID according to Google request.
+* ENHANCEMENT - Migrates to ViewPager2.
+
+## VERSION 4.112.1
+_25_04_2022_
+* FIX - Esc tokenization in remedies.
+
+## VERSION 4.112.0
+_19_04_2022_
+* FEATURE - Added view binding for OneTapFragment.
+* FEATURE - PX as payment method selector.
+
+## VERSION 4.111.0
+_18_04_2022_
+* FEATURE - New layout consumer credits and new tag.
+* FEATURE - Adjust tag card consumer credits with size medium.
+* FEATURE - New background consumer credits.
+
+## VERSION 4.110.0
+_07_04_2022_
+* FIX - Crash when installments of payerCosts for credit cards is null.
+* ENHANCEMENT - Summary header logic refactor
+* ENHANCEMENT - Errors are handled in postPaymentFlow
+
+## VERSION 4.109.0
+_31_03_2022_
+* FIX - Parameter specified as non-null is null - parameter state
+* FIX - Crash when PaymentTypeId is null
+* FEATURE - Remove label "interest free" from the front of the installment amount
+* FEATURE - Added tracks for debin transfer.
+
+## VERSION 4.108.1
+_24_03_2022_
+* FIX - CheckoutActivity launch mode changed to clean activity correctly.
+* FIX - Parameter specified as non-null is null - solution: avoid to clear session with a new method
+
+## VERSION 4.107.0
+_17_03_2022_
+* FIX - Congrats empty texts when paying with account money
+* FIX - Duplicated payments in some cases where pay button was being enabled incorrectly.
+* FIX - Adjust track offline_methods.
+
+## VERSION 4.106.0
+_10_03_2022_
+* FIX - Removed total duplicate when payment method is debit card.
+* FIX - Call to action when payment method is debin.
+* FIX - Crash payment method not found.
+
+## VERSION 4.105.0
+_24_02_2022_
+* FEATURE - New wordings for IFPE regulation.
+
+## VERSION 4.104.1
+_16_02_2022_
+* FIX - Crash when badge placeholder is 0.
+
+## VERSION 4.104.0
+_09_02_2022_
+* FIX - T&C selection fixed when changing installments for consumer credits.
+* ENHANCEMENT - Added tests for debin changes.
+
+## VERSION 4.103.1
+_16_02_2022_
+* FIX - Crash when badge placeholder is 0.
+
+## VERSION 4.103.0
+_03_02_2022_
+* FEATURE - Debin support added.
+* ENHANCEMENT - Track for post payment flow added.
+
+## VERSION 4.102.0
+_27_01_2022_
+* ENHANCEMENT - Add backUrl and redirectUrl handling for PostPaymentUrl flow.
+* FIX - Consumer credits payment crashing when previous payment was with split
+* FEATURE - Adds GAv2 tracker to enum
+
+## VERSION 4.101.0
+_20_01_2022_
+* FEATURE - Added PostPaymentUrl flow
+
+## VERSION 4.100.1
+_13_01_2022_
+* FIX - Reverted debin version feature flag
+
+## VERSION 4.100.0
+_13_01_2022_
+* ENHANCEMENT - Added debin version feature flag
+* ENHANCEMENT - Migrated OneTapPresenter to kotlin
+* FIX - Disabled remedies back button when paying
+
 ## VERSION 4.99.1
 _16_12_2021_
 * ENHANCEMENT - Added px-core new module

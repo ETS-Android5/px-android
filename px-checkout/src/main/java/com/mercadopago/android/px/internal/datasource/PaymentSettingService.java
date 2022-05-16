@@ -7,6 +7,7 @@ import com.mercadopago.android.px.configuration.AdvancedConfiguration;
 import com.mercadopago.android.px.configuration.CustomStringConfiguration;
 import com.mercadopago.android.px.configuration.DiscountParamsConfiguration;
 import com.mercadopago.android.px.configuration.PaymentConfiguration;
+import com.mercadopago.android.px.configuration.PostPaymentConfiguration;
 import com.mercadopago.android.px.internal.core.FileManager;
 import com.mercadopago.android.px.internal.model.SecurityType;
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository;
@@ -40,6 +41,7 @@ public class PaymentSettingService implements PaymentSettingRepository {
     private static final String PREF_CONFIGURATION = "PREF_CONFIGURATION";
     private static final String PREF_ACCEPT_THIRD_PARTY_CARD = "PREF_ACCEPT_THIRD_PARTY_CARD";
     private static final String FILE_PAYMENT_CONFIG = "px_payment_config";
+    private static final String PREF_POST_PAYMENT_DEEPLINK = "PREF_POST_PAYMENT_DEEPLINK";
 
     @NonNull private final SharedPreferences sharedPreferences;
     @NonNull private final FileManager fileManager;
@@ -108,7 +110,7 @@ public class PaymentSettingService implements PaymentSettingRepository {
             JsonUtil.toJson(advancedConfiguration.getDiscountParamsConfiguration().getAdditionalParams()));
         edit.putBoolean(PREF_ONE_TAP_ENABLED, advancedConfiguration.isExpressPaymentEnabled()).apply();
         edit.putBoolean(PREF_ACCEPT_THIRD_PARTY_CARD, advancedConfiguration.acceptThirdPartyCard());
-
+        edit.putString(PREF_POST_PAYMENT_DEEPLINK, advancedConfiguration.getPostPaymentConfiguration().getPostPaymentDeepLinkUrl());
         this.advancedConfiguration = advancedConfiguration;
     }
 
@@ -255,6 +257,9 @@ public class PaymentSettingService implements PaymentSettingRepository {
                     .setLabels(sharedPreferences.getStringSet(PREF_LABELS, Collections.emptySet())).build())
                 .setCustomStringConfiguration(JsonUtil.fromJson(
                     sharedPreferences.getString(PREF_CUSTOM_STRINGS, null), CustomStringConfiguration.class))
+                .setPostPaymentConfiguration(new PostPaymentConfiguration.Builder()
+                    .setPostPaymentDeepLinkUrl(sharedPreferences.getString(PREF_POST_PAYMENT_DEEPLINK, ""))
+                    .build())
                 .build();
         }
         return advancedConfiguration;

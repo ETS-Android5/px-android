@@ -5,9 +5,8 @@ import com.mercadopago.android.px.internal.view.TitlePager;
 
 public class TitlePagerAdapterV2 extends TitlePagerAdapter {
 
-    public TitlePagerAdapterV2(@NonNull final TitlePager titlePager,
-        @NonNull final InstallmentChanged installmentChanged) {
-        super(titlePager, installmentChanged);
+    public TitlePagerAdapterV2(@NonNull final TitlePager titlePager) {
+        super(titlePager);
     }
 
     @Override

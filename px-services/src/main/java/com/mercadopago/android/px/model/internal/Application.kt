@@ -1,11 +1,13 @@
 package com.mercadopago.android.px.model.internal
 
 import com.mercadopago.android.px.model.StatusMetadata
+import com.mercadopago.android.px.model.one_tap.CheckoutBehaviour
 
 data class Application(
     val paymentMethod: PaymentMethod,
     val validationPrograms: List<ValidationProgram>?,
-    val status: StatusMetadata
+    val status: StatusMetadata,
+    val behaviours: Map<String, CheckoutBehaviour>
 ) {
 
     data class PaymentMethod(

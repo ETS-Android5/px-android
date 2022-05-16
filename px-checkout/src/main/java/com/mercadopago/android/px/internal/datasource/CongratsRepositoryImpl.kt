@@ -10,7 +10,6 @@ import com.mercadopago.android.px.internal.repository.CongratsRepository
 import com.mercadopago.android.px.internal.repository.CongratsRepository.PostPaymentCallback
 import com.mercadopago.android.px.internal.repository.DisabledPaymentMethodRepository
 import com.mercadopago.android.px.internal.repository.OneTapItemRepository
-import com.mercadopago.android.px.internal.repository.PayerComplianceRepository
 import com.mercadopago.android.px.internal.repository.PayerPaymentMethodKey
 import com.mercadopago.android.px.internal.repository.PayerPaymentMethodRepository
 import com.mercadopago.android.px.internal.repository.PaymentSettingRepository
@@ -41,7 +40,6 @@ internal class CongratsRepositoryImpl(
     private val userSelectionRepository: UserSelectionRepository,
     private val amountRepository: AmountRepository,
     private val disabledPaymentMethodRepository: DisabledPaymentMethodRepository,
-    private val payerComplianceRepository: PayerComplianceRepository,
     private val escManagerBehaviour: ESCManagerBehaviour,
     private val oneTapItemRepository: OneTapItemRepository,
     private val paymentSettingRepository: PaymentSettingRepository,
@@ -49,29 +47,51 @@ internal class CongratsRepositoryImpl(
     private val alternativePayerPaymentMethodsMapper: AlternativePayerPaymentMethodsMapper,
     private val authorizationProvider: AuthorizationProvider) : CongratsRepository {
 
-    private val paymentRewardCache = HashMap<String, CongratsResponse>()
+    private val congratsCache = HashMap<String, CongratsResponse>()
     private val remediesCache = HashMap<String, RemediesResponse>()
 
     override fun getPostPaymentData(payment: IPaymentDescriptor, paymentResult: PaymentResult,
         callback: PostPaymentCallback) {
-        val whiteLabel = TextUtil.isEmpty(authorizationProvider.privateKey)
-        val isSuccess = StatusHelper.isSuccess(payment)
         CoroutineScope(Dispatchers.IO).launch {
-            val paymentId = payment.paymentIds?.get(0) ?: payment.id.toString()
-            val congrats = when {
-                whiteLabel || !isSuccess -> CongratsResponse.EMPTY
-                paymentRewardCache.containsKey(paymentId) -> paymentRewardCache[paymentId]!!
-                else -> getCongratsResponse(payment, paymentResult).apply { paymentRewardCache[paymentId] = this }
+            val (congratsResponse, remediesResponse) = when {
+                StatusHelper.isRejected(payment) -> CongratsResponse.EMPTY to getRemedies(payment, paymentResult)
+                StatusHelper.isSuccess(payment) -> getCongrats(payment, paymentResult) to RemediesResponse.EMPTY
+                else -> CongratsResponse.EMPTY to RemediesResponse.EMPTY
             }
-            val remedies = when {
-                whiteLabel || isSuccess || payment is BusinessPayment -> RemediesResponse.EMPTY
-                remediesCache.containsKey(paymentId) -> remediesCache[paymentId]!!
-                else -> {
-                    getRemedies(payment, paymentResult.paymentData).apply { remediesCache[paymentId] = this }
-                }
-            }
+
             withContext(Dispatchers.Main) {
-                handleResult(payment, paymentResult, congrats, remedies, paymentSettingRepository.currency, callback)
+                handleResult(
+                    payment,
+                    paymentResult,
+                    congratsResponse,
+                    remediesResponse,
+                    paymentSettingRepository.currency,
+                    callback
+                )
+            }
+        }
+    }
+
+    private suspend fun getCongrats(payment: IPaymentDescriptor, paymentResult: PaymentResult) : CongratsResponse {
+        val paymentId = payment.paymentIds?.get(0) ?: payment.id.toString()
+        val whiteLabel = TextUtil.isEmpty(authorizationProvider.privateKey)
+
+        return when {
+            whiteLabel -> CongratsResponse.EMPTY
+            congratsCache.containsKey(paymentId) -> congratsCache[paymentId]!!
+            else -> getCongratsResponse(payment, paymentResult).also { congratsCache[paymentId] = it }
+        }
+    }
+
+    private suspend fun getRemedies(payment: IPaymentDescriptor, paymentResult: PaymentResult) : RemediesResponse {
+        val paymentId = payment.paymentIds?.get(0) ?: payment.id.toString()
+        val whiteLabel = TextUtil.isEmpty(authorizationProvider.privateKey)
+
+        return when {
+            whiteLabel || payment is BusinessPayment -> RemediesResponse.EMPTY
+            remediesCache.containsKey(paymentId) -> remediesCache[paymentId]!!
+            else -> {
+                getRemediesResponse(payment, paymentResult.paymentData).also { remediesCache[paymentId] = it }
             }
         }
     }
@@ -84,15 +104,24 @@ internal class CongratsRepositoryImpl(
             val campaignId = paymentResult.paymentData.campaign?.id.orEmpty()
             val paymentTypeId = paymentResult.paymentData.paymentMethod.paymentTypeId
             with(paymentSettingRepository) {
-                congratsService.getCongrats(PermissionHelper.instance.isLocationGranted(), publicKey, joinedPaymentIds, platform, campaignId,
-                    payerComplianceRepository.turnedIFPECompliant(), joinedPaymentMethodsIds, paymentTypeId,
-                    trackingRepository.flowId, checkoutPreference?.merchantOrderId, checkoutPreference?.id)
+                congratsService.getCongrats(
+                    PermissionHelper.instance.isLocationGranted(),
+                    publicKey,
+                    joinedPaymentIds,
+                    platform,
+                    campaignId,
+                    joinedPaymentMethodsIds,
+                    paymentTypeId,
+                    trackingRepository.flowId,
+                    checkoutPreference?.merchantOrderId,
+                    checkoutPreference?.id
+                )
             }
         } catch (e: Exception) {
             CongratsResponse.EMPTY
         }
 
-    private suspend fun getRemedies(payment: IPaymentDescriptor, paymentData: PaymentData) =
+    private suspend fun getRemediesResponse(payment: IPaymentDescriptor, paymentData: PaymentData) =
         try {
             val hasOneTap = oneTapItemRepository.value.isNotEmpty()
             val usedPayerPaymentMethodId = paymentData.token?.cardId ?: paymentData.paymentMethod.id
@@ -107,7 +136,8 @@ internal class CongratsRepositoryImpl(
                         !disabledPaymentMethodRepository.hasKey(
                             PayerPaymentMethodKey(it.customOptionId, it.paymentTypeId))
                 },
-                paymentSettingRepository
+                paymentSettingRepository,
+                payerPaymentMethodRepository
             ).map(paymentData)
             congratsService.getRemedies(
                 payment.id.toString(),

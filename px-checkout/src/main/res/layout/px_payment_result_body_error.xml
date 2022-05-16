@@ -22,6 +22,16 @@
         tools:text="Description"
         android:layout_marginStart="@dimen/px_l_margin"/>
 
+    <com.mercadopago.android.px.internal.view.PaymentResultMethod
+        android:id="@+id/primaryMethod"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <com.mercadopago.android.px.internal.view.PaymentResultMethod
+        android:id="@+id/secondaryMethod"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
     <View
         android:id="@+id/bodyErrorDescriptionDivider"
         android:layout_width="wrap_content"

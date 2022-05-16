@@ -36,8 +36,11 @@ import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAI
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_CC_REJECTED_MAX_ATTEMPTS;
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_CC_REJECTED_OTHER_REASON;
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_CC_REJECTED_PLUGIN_PM;
+import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_PENDING_PROVIDER_RESPONSE;
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_REJECTED_BY_REGULATIONS;
+import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_REJECTED_CAP_EXCEEDED;
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_REJECTED_HIGH_RISK;
+import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_REJECTED_INSUFFICIENT_AMOUNT;
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_REJECTED_REJECTED_BY_BANK;
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_REJECTED_REJECTED_INSUFFICIENT_DATA;
 
@@ -79,9 +82,8 @@ public final class PaymentResultViewModelFactory {
      *
      * @param props body information
      */
-    public PaymentResultViewModel createPaymentStatusWithProps(@NonNull final String status,
-        @NonNull final String detail, @Nullable final BodyErrorProps props) {
-        return createViewModelBuilder(generatePaymentResult(status, detail), props).build();
+    public PaymentResultViewModel createPaymentStatusWithProps(@Nullable final BodyErrorProps props) {
+        return createViewModelBuilder(generatePaymentResult(props.status, props.statusDetail), props).build();
     }
 
     @SuppressWarnings("fallthrough")
@@ -108,22 +110,14 @@ public final class PaymentResultViewModelFactory {
         case STATUS_PENDING:
             builder.setLinkAction(new NextAction());
         case STATUS_IN_PROCESS:
-            setPendingResources(builder, detail);
-            return builder
-                .setTitleResId(checkPaymentMethodsOff(status, detail))
-                .setDescriptionResId(getPendingDescription(detail))
-                .setLinkActionTitle(R.string.px_got_it)
-                .setApprovedSuccess(StatusHelper.isPendingStatusDetailSuccess(detail))
-                .setPendingSuccess(StatusHelper.isPendingStatusDetailSuccess(detail))
-                .setPendingWarning(!StatusHelper.isPendingStatusDetailSuccess(detail))
-                .setHasDetail(true);
+            return inProcessStatusBuilder(detail, status, builder);
 
         case STATUS_REJECTED:
             setRecoverableErrorResources(builder);
             // defaults
             builder.setMainAction(new ChangePaymentMethodAction());
             builder.setIsErrorRecoverable(true);
-            builder.setMainActionTitle(R.string.px_text_pay_with_other_method);
+            builder.setMainActionTitle(R.string.px_change_payment_method);
             builder.setHasDetail(true);
             return rejectedStatusBuilder(detail, builder, paymentMethodName, paymentAmount);
 
@@ -170,6 +164,35 @@ public final class PaymentResultViewModelFactory {
         }
     }
 
+    private PaymentResultViewModel.Builder inProcessStatusBuilder(
+        final String detail,
+        final String status,
+        final PaymentResultViewModel.Builder builder
+    ) {
+        setPendingResources(builder, detail);
+
+        if (STATUS_DETAIL_PENDING_PROVIDER_RESPONSE.equals(detail)) {
+            return builder
+                .setIconResId(R.drawable.px_ic_bank_transfer_error)
+                .setTitleResId(R.string.px_title_pending_payment)
+                .setBodyDetailDescriptionResId(R.string.px_pending_body_detail_bank_transfer)
+                .setLinkAction(new NextAction())
+                .setPendingWarning(true)
+                .setHasDetail(true)
+                .setShowPaymentMethods(true)
+                .setLinkActionTitle(R.string.px_button_text_go_to_home);
+        }
+
+        return builder
+            .setTitleResId(checkPaymentMethodsOff(status, detail))
+            .setDescriptionResId(getPendingDescription(detail))
+            .setLinkActionTitle(R.string.px_got_it)
+            .setApprovedSuccess(StatusHelper.isPendingStatusDetailSuccess(detail))
+            .setPendingSuccess(StatusHelper.isPendingStatusDetailSuccess(detail))
+            .setPendingWarning(!StatusHelper.isPendingStatusDetailSuccess(detail))
+            .setHasDetail(true);
+    }
+
     private PaymentResultViewModel.Builder rejectedStatusBuilder(final String detail,
         final PaymentResultViewModel.Builder builder, final String paymentMethodName,
         final String paymentAmount) {
@@ -187,7 +210,7 @@ public final class PaymentResultViewModelFactory {
                 .setTitleResId(R.string.px_title_other_reason_rejection)
                 .setLinkAction(null)
                 .setMainAction(new ChangePaymentMethodAction())
-                .setMainActionTitle(R.string.px_change_payment);
+                .setMainActionTitle(R.string.px_change_payment_method);
         case STATUS_DETAIL_CC_REJECTED_DUPLICATED_PAYMENT:
             setNonRecoverableErrorResources(builder);
             return builder
@@ -201,7 +224,7 @@ public final class PaymentResultViewModelFactory {
             return builder
                 .setTitleResId(R.string.px_text_insufficient_amount)
                 .setLinkAction(null)
-                .setMainActionTitle(R.string.px_change_payment)
+                .setMainActionTitle(R.string.px_change_payment_method)
                 .setBodyTitleResId(R.string.px_what_can_do)
                 .setBodyDetailDescriptionResId(R.string.px_text_insufficient_amount_title_description)
                 .setDescriptionResId(R.string.px_error_description_rejected_by_insufficient_amount_1)
@@ -219,19 +242,28 @@ public final class PaymentResultViewModelFactory {
         case STATUS_DETAIL_CC_REJECTED_HIGH_RISK:
             return getHighRiskBuilder(builder, R.string.px_title_rejection_high_risk);
         case STATUS_DETAIL_REJECTED_HIGH_RISK:
-            return getHighRiskBuilder(builder, R.string.px_title_rejection_account_high_risk);
+            setNonRecoverableErrorResources(builder);
+            return builder
+                .setBadgeResId(0)
+                .setIconResId(R.drawable.px_ic_badge_error)
+                .setTitleResId(R.string.px_title_error_rejected_high_risk)
+                .setBodyDetailDescriptionResId(R.string.px_body_error_rejected_high_risk)
+                .setMainAction(new ChangePaymentMethodAction())
+                .setMainActionTitle(R.string.px_change_payment_method)
+                .setLinkAction(new NextAction())
+                .setLinkActionTitle(R.string.px_button_text_go_to_home);
         case STATUS_DETAIL_REJECTED_BY_REGULATIONS:
             setNonRecoverableErrorResources(builder);
             return builder
                 .setTitleResId(R.string.px_title_other_reason_rejection)
                 .setMainAction(new ChangePaymentMethodAction())
-                .setMainActionTitle(R.string.px_change_payment)
+                .setMainActionTitle(R.string.px_change_payment_method)
                 .setLinkAction(null);
         case STATUS_DETAIL_CC_REJECTED_MAX_ATTEMPTS:
             setNonRecoverableErrorResources(builder);
             return builder
                 .setMainAction(new ChangePaymentMethodAction())
-                .setMainActionTitle(R.string.px_change_payment)
+                .setMainActionTitle(R.string.px_change_payment_method)
                 .setTitleResId(R.string.px_title_rejection_max_attempts)
                 .setBodyTitleResId(R.string.px_what_can_do)
                 .setDescriptionResId(R.string.px_error_description_max_attempts)
@@ -240,7 +272,7 @@ public final class PaymentResultViewModelFactory {
             setNonRecoverableErrorResources(builder);
             return builder
                 .setLinkAction(null)
-                .setMainActionTitle(R.string.px_change_payment)
+                .setMainActionTitle(R.string.px_change_payment_method)
                 .setTitleResId(R.string.px_title_rejection_blacklist);
         case STATUS_DETAIL_CC_REJECTED_FRAUD:
             setNonRecoverableErrorResources(builder);
@@ -279,10 +311,39 @@ public final class PaymentResultViewModelFactory {
                 .setLinkAction(new ChangePaymentMethodAction())
                 .setLinkActionTitle(R.string.px_text_pay_with_other_method);
 
+        case STATUS_DETAIL_REJECTED_INSUFFICIENT_AMOUNT:
+            setNonRecoverableErrorResources(builder);
+            return builder
+                .setBadgeResId(0)
+                .setIconResId(R.drawable.px_ic_badge_error)
+                .setTitleResId(R.string.px_title_error_rejected_insufficient_amount)
+                .setBodyDetailDescriptionResId(R.string.px_body_error_rejected_insufficient_amount)
+                .setMainAction(new ChangePaymentMethodAction())
+                .setMainActionTitle(R.string.px_change_payment_method)
+                .setLinkAction(new NextAction())
+                .setLinkActionTitle(R.string.px_button_text_go_to_home);
+
+        case STATUS_DETAIL_REJECTED_CAP_EXCEEDED:
+            setNonRecoverableErrorResources(builder);
+            return builder
+                .setBadgeResId(0)
+                .setIconResId(R.drawable.px_ic_badge_error)
+                .setTitleResId(R.string.px_title_error_rejected_cap_exceeded)
+                .setBodyDetailDescriptionResId(R.string.px_body_error_rejected_cap_exceeded)
+                .setMainAction(new ChangePaymentMethodAction())
+                .setMainActionTitle(R.string.px_change_payment_method)
+                .setLinkAction(new NextAction())
+                .setLinkActionTitle(R.string.px_button_text_go_to_home);
+
         default:
             setNonRecoverableErrorResources(builder);
             return builder
-                .setTitleResId(R.string.px_title_other_reason_rejection)
+                .setBadgeResId(0)
+                .setIconResId(R.drawable.px_ic_badge_error)
+                .setTitleResId(R.string.px_title_error_rejected_default)
+                .setBodyDetailDescriptionResId(R.string.px_body_error_rejected_default)
+                .setLinkAction(new NextAction())
+                .setLinkActionTitle(R.string.px_button_text_go_to_home)
                 .setPendingSuccess(false)
                 .setPendingWarning(false);
         }
@@ -297,7 +358,7 @@ public final class PaymentResultViewModelFactory {
             .setBodyTitleResId(R.string.px_what_can_do)
             .setDescriptionResId(R.string.px_text_try_with_other_method)
             .setMainAction(new ChangePaymentMethodAction())
-            .setMainActionTitle(R.string.px_change_payment)
+            .setMainActionTitle(R.string.px_change_payment_method)
             .setHasDetail(true);
     }
 
@@ -344,7 +405,7 @@ public final class PaymentResultViewModelFactory {
         return builder
             .setTitleResId(R.string.px_title_other_reason_rejection)
             .setMainAction(new ChangePaymentMethodAction())
-            .setMainActionTitle(R.string.px_change_payment)
+            .setMainActionTitle(R.string.px_change_payment_method)
             .setLinkAction(null);
     }
 }

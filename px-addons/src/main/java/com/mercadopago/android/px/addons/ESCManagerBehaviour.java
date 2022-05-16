@@ -1,12 +1,11 @@
 package com.mercadopago.android.px.addons;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.provider.Settings;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.mercadopago.android.px.addons.model.EscDeleteReason;
 import java.util.Set;
+import java.util.UUID;
 
 public interface ESCManagerBehaviour {
 
@@ -42,8 +41,7 @@ public interface ESCManagerBehaviour {
     boolean isESCEnabled();
 
     @NonNull
-    @SuppressLint("HardwareIds")
     default String getSyncedAndroidId(@NonNull final Context context) {
-        return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+        return UUID.randomUUID().toString();
     }
 }

@@ -1,48 +1,49 @@
 package com.mercadopago.android.px.internal.base.use_case
 
+import com.mercadopago.android.px.addons.ESCManagerBehaviour
 import com.mercadopago.android.px.internal.base.CoroutineContextProvider
 import com.mercadopago.android.px.internal.callbacks.Response
-import com.mercadopago.android.px.internal.features.validation_program.TokenDeviceUseCase
+import com.mercadopago.android.px.internal.callbacks.mapError
+import com.mercadopago.android.px.internal.extensions.ifFailure
+import com.mercadopago.android.px.internal.extensions.ifSuccess
 import com.mercadopago.android.px.internal.repository.CardTokenRepository
-import com.mercadopago.android.px.internal.util.ApiUtil
-import com.mercadopago.android.px.model.Card
+import com.mercadopago.android.px.internal.repository.PaymentSettingRepository
+import com.mercadopago.android.px.internal.repository.UserSelectionRepository
+import com.mercadopago.android.px.internal.util.TokenCreationWrapper
+import com.mercadopago.android.px.internal.util.TokenErrorWrapper
 import com.mercadopago.android.px.model.Token
-import com.mercadopago.android.px.model.exceptions.ApiException
 import com.mercadopago.android.px.model.exceptions.MercadoPagoError
-import com.mercadopago.android.px.services.Callback
 import com.mercadopago.android.px.tracking.internal.MPTracker
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
+
+private typealias Cvv = String
 
 internal class TokenizeWithCvvUseCase(
-    private val tokenDeviceUseCase: TokenDeviceUseCase,
     private val cardTokenRepository: CardTokenRepository,
+    private val escManagerBehaviour: ESCManagerBehaviour,
+    private val userSelectionRepository: UserSelectionRepository,
+    private val paymentSettingRepository: PaymentSettingRepository,
     tracker: MPTracker,
     override val contextProvider: CoroutineContextProvider = CoroutineContextProvider()
-) : UseCase<TokenizeWithCvvUseCase.Params, Token>(tracker) {
+) : UseCase<Cvv, Token>(tracker) {
 
-    override suspend fun doExecute(param: Params): Response<Token, MercadoPagoError> {
-        return suspendCoroutine { continuation ->
-            val tokenDeviceParams = TokenDeviceUseCase.buildParams(param.card)
-            tokenDeviceUseCase.execute(
-                tokenDeviceParams,
-                success = { remotePaymentToken ->
-                    cardTokenRepository.createToken(tokenDeviceParams.cardId, param.cvv, remotePaymentToken, param.requireEsc).enqueue(object : Callback<Token>() {
-                        override fun success(token: Token) {
-                            continuation.resume(Response.Success(token))
-                        }
-
-                        override fun failure(apiException: ApiException) {
-                            continuation.resume(Response.Failure(MercadoPagoError(apiException, ApiUtil.RequestOrigin.CREATE_TOKEN)))
-                        }
-                    })
-                },
-                failure = {
-                    continuation.resume(Response.Failure(it))
-                }
-            )
-        }
+    override suspend fun doExecute(param: Cvv): Response<Token, MercadoPagoError> {
+        val card = userSelectionRepository.card
+        checkNotNull(card) { "Card selected should not be null" }
+        return TokenCreationWrapper
+            .Builder(cardTokenRepository, escManagerBehaviour)
+            .with(card)
+            .with(card.paymentMethod!!)
+            .build()
+            .createTokenWithCvv(param)
+            .ifSuccess {
+                escManagerBehaviour.saveESCWith(it.cardId, it.esc)
+                paymentSettingRepository.configure(it)
+            }
+            .mapError { error ->
+                MercadoPagoError.createRecoverable(TokenErrorWrapper(error.apiException).value)
+            }
+            .ifFailure {
+                paymentSettingRepository.clearToken()
+            }
     }
-
-    data class Params(val card: Card, val cvv: String, val requireEsc: Boolean)
 }

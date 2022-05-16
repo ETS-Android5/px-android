@@ -237,13 +237,13 @@ public final class PaymentResultBody extends LinearLayout {
         primaryMethod.setVisibility(GONE);
         secondaryMethod.setVisibility(GONE);
 
-        if (model.methodModels != null && !model.methodModels.isEmpty()) {
-            if (model.methodModels.size() > 1) {
+        if (model.paymentResultMethodModels != null && !model.paymentResultMethodModels.isEmpty()) {
+            if (model.paymentResultMethodModels.size() > 1) {
                 secondaryMethod.setVisibility(VISIBLE);
-                secondaryMethod.setModel(model.methodModels.get(1));
+                secondaryMethod.setModel(model.paymentResultMethodModels.get(1));
             }
             primaryMethod.setVisibility(VISIBLE);
-            primaryMethod.setModel(model.methodModels.get(0));
+            primaryMethod.setModel(model.paymentResultMethodModels.get(0));
         }
     }
 
@@ -272,7 +272,7 @@ public final class PaymentResultBody extends LinearLayout {
     }
 
     public static final class Model {
-        /* default */ final List<PaymentResultMethod.Model> methodModels;
+        /* default */ final List<PaymentResultMethod.Model> paymentResultMethodModels;
         /* default */ final CongratsViewModel congratsViewModel;
         @Nullable /* default */ final String receiptId;
         @Nullable /* default */ final String help;
@@ -282,7 +282,7 @@ public final class PaymentResultBody extends LinearLayout {
         @Nullable /* default */ final ExternalFragment importantFragment;
 
         public Model(@NonNull final Builder builder) {
-            methodModels = builder.methodModels;
+            paymentResultMethodModels = builder.paymentResultMethodModels;
             congratsViewModel = builder.congratsViewModel;
             receiptId = builder.receiptId;
             help = builder.help;
@@ -292,8 +292,12 @@ public final class PaymentResultBody extends LinearLayout {
             importantFragment = builder.importantFragment;
         }
 
+        public List<PaymentResultMethod.Model> getPaymentResultMethodModels() {
+            return paymentResultMethodModels;
+        }
+
         public static class Builder {
-            /* default */ List<PaymentResultMethod.Model> methodModels;
+            /* default */ List<PaymentResultMethod.Model> paymentResultMethodModels;
             /* default */ CongratsViewModel congratsViewModel;
             @Nullable /* default */ String receiptId;
             @Nullable /* default */ String help;
@@ -302,8 +306,10 @@ public final class PaymentResultBody extends LinearLayout {
             @Nullable /* default */ ExternalFragment bottomFragment;
             @Nullable /* default */ ExternalFragment importantFragment;
 
-            public Builder setMethodModels(@NonNull final List<PaymentResultMethod.Model> methodModels) {
-                this.methodModels = methodModels;
+            public Builder setPaymentResultMethodModels(
+                @NonNull final List<PaymentResultMethod.Model> paymentResultMethodModels
+            ) {
+                this.paymentResultMethodModels = paymentResultMethodModels;
                 return this;
             }
 

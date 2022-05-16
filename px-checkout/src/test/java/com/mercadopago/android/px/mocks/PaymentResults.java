@@ -26,7 +26,9 @@ import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAI
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_PENDING_REVIEW_MANUAL;
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_PENDING_WAITING_PAYMENT;
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_REJECTED_BY_REGULATIONS;
+import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_REJECTED_CAP_EXCEEDED;
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_REJECTED_HIGH_RISK;
+import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_REJECTED_INSUFFICIENT_AMOUNT;
 import static com.mercadopago.android.px.model.Payment.StatusDetail.STATUS_DETAIL_REJECTED_REJECTED_INSUFFICIENT_DATA;
 
 public final class PaymentResults {
@@ -78,8 +80,12 @@ public final class PaymentResults {
         return getGenericStatusPaymentResult(STATUS_REJECTED, STATUS_DETAIL_CC_REJECTED_CALL_FOR_AUTHORIZE);
     }
 
-    public static PaymentResult getStatusRejectedInsufficientAmountPaymentResult() {
+    public static PaymentResult getStatusRejectedCreditCardInsufficientAmountPaymentResult() {
         return getGenericStatusPaymentResult(STATUS_REJECTED, STATUS_DETAIL_CC_REJECTED_INSUFFICIENT_AMOUNT);
+    }
+
+    public static PaymentResult getStatusRejectedInsufficientAmountPaymentResult() {
+        return getGenericStatusPaymentResult(STATUS_REJECTED, STATUS_DETAIL_REJECTED_INSUFFICIENT_AMOUNT);
     }
 
     public static PaymentResult getStatusRejectedBadFilledSecuPaymentResult() {
@@ -141,5 +147,9 @@ public final class PaymentResults {
 
     public static PaymentResult getStatusRejectedUnknown() {
         return getGenericStatusPaymentResult(STATUS_REJECTED, "sarasa");
+    }
+
+    public static PaymentResult getStatusRejectedCapExceeded() {
+        return getGenericStatusPaymentResult(STATUS_REJECTED, STATUS_DETAIL_REJECTED_CAP_EXCEEDED);
     }
 }

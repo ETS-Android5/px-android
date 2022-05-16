@@ -16,6 +16,8 @@ import com.mercadopago.android.px.internal.experiments.Variant;
 import com.mercadopago.android.px.internal.experiments.VariantHandler;
 import com.mercadopago.android.px.internal.view.experiments.ExperimentHelper;
 import com.mercadopago.android.px.internal.viewmodel.GoingToModel;
+import com.mercadopago.android.px.model.PaymentTypes;
+
 import java.util.List;
 
 import static com.mercadopago.android.px.internal.util.ViewUtils.hasEndedAnim;
@@ -54,15 +56,15 @@ public class PaymentMethodHeaderViewDefault extends PaymentMethodHeaderView {
     }
 
     @Override
-    public void updateData(final boolean hasPayerCost, final boolean isDisabled) {
-        super.updateData(hasPayerCost, isDisabled);
+    public void updateData(final boolean hasPayerCost, final boolean isDisabled, final boolean hasBehaviour) {
+        super.updateData(hasPayerCost, isDisabled, hasBehaviour);
         final boolean isExpandable = hasPayerCost && !isDisabled;
 
         showTitlePager(hasPayerCost);
         setArrowVisibility(isExpandable);
-        setHelperVisibility(isDisabled);
+        setHelperVisibility(isDisabled || hasBehaviour);
 
-        setClickable(hasPayerCost || isDisabled);
+        setClickable(hasPayerCost || isDisabled || hasBehaviour);
     }
 
     @Override
@@ -70,6 +72,8 @@ public class PaymentMethodHeaderViewDefault extends PaymentMethodHeaderView {
         setOnClickListener(v -> {
             if (isDisabled) {
                 listener.onDisabledDescriptorViewClick();
+            } else if (hasBehaviour) {
+                listener.onBehaviourDescriptorViewClick();
             } else if (hasEndedAnim(arrow)) {
                 if (titleView.getVisibility() == VISIBLE) {
                     arrow.startAnimation(rotateDown);
@@ -128,8 +132,11 @@ public class PaymentMethodHeaderViewDefault extends PaymentMethodHeaderView {
         if (titleView.getVisibility() == VISIBLE) {
             arrow.startAnimation(rotateDown);
         }
-
-        titlePager.setVisibility(VISIBLE);
+        if (paymentType.equals(PaymentTypes.DEBIT_CARD)) {
+            setTitleVisibility(isDisabled || splitSelection);
+        } else {
+            setTitleVisibility(true);
+        }
         titleView.setVisibility(GONE);
 
         setClickable(isClickable);

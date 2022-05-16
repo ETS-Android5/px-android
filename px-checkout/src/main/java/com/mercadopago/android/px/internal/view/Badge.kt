@@ -7,6 +7,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import com.mercadolibre.android.picassodiskcache.PicassoDiskLoader
 import com.mercadopago.android.px.R
+import com.mercadopago.android.px.core.presentation.extensions.setDrawableBackgroundColor
 import com.mercadopago.android.px.internal.extensions.isNotNullNorEmpty
 import com.mercadopago.android.px.internal.util.ViewUtils
 import com.mercadopago.android.px.model.internal.Text
@@ -32,8 +33,8 @@ class Badge(context: Context, attrs: AttributeSet?, defStyleAttr: Int): LinearLa
         setBadgeBackgroundColor(text.backgroundColor)
     }
 
-    private fun setBadgeBackgroundColor(color: String) {
-        ViewUtils.setDrawableBackgroundColor(this, color)
+    private fun setBadgeBackgroundColor(color: String?) {
+        setDrawableBackgroundColor(color)
     }
 
     fun setIconUrl(iconUrl: String?) {

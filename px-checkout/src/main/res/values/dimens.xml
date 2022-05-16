@@ -31,6 +31,7 @@
     <dimen name="px_badge_size">25dp</dimen>
     <dimen name="px_bigger_badge_size">52dp</dimen>
     <dimen name="px_badge_offset">16dp</dimen>
+    <dimen name="px_onetap_pager_item_padding">24dp</dimen>
 
     <!-- Payment result components -->
 
@@ -87,5 +88,20 @@
     <dimen name="px_camera_distance">2560dp</dimen>
     <dimen name="pulseStrokeWidth">2dp</dimen>
     <dimen name="pulseRadius">64dp</dimen>
+
+    <!-- Weight -->
+    <dimen name="weight_semi_bold">600</dimen>
+
+    <!-- Consumer Credits Tag -->
+    <dimen name="cc_tag_small_corner_radius">12dp</dimen>
+    <dimen name="cc_tag_medium_margin">8dp</dimen>
+    <dimen name="card_drawer_tag_vertical_padding">6dp</dimen>
+    <dimen name="card_drawer_tag_vertical_padding_small">2dp</dimen>
+    <dimen name="cc_tag_font">11dp</dimen>
+
+    <!-- Card view -->
+    <dimen name="px_card_view_stroke_width">2dp</dimen>
+    <dimen name="px_card_view_stroke_dash_width">4dp</dimen>
+    <dimen name="px_card_view_stroke_dash_gap">4dp</dimen>
 
 </resources>

@@ -12,7 +12,9 @@ import com.mercadopago.android.px.internal.di.MapperProvider
 import com.mercadopago.android.px.internal.experiments.BadgeVariant
 import com.mercadopago.android.px.internal.extensions.gone
 import com.mercadopago.android.px.internal.extensions.visible
+import com.mercadopago.android.px.internal.features.TermsAndConditionsActivity
 import com.mercadopago.android.px.internal.features.one_tap.slider.PaymentMethodFragment
+import com.mercadopago.android.px.internal.features.one_tap.slider.TitlePagerAdapter
 import com.mercadopago.android.px.internal.features.payment_result.remedies.RemediesPayerCost
 import com.mercadopago.android.px.internal.features.payment_result.remedies.RemediesPaymentMethodMapper
 import com.mercadopago.android.px.internal.view.LinkableTextView
@@ -22,6 +24,8 @@ import com.mercadopago.android.px.model.internal.OneTapItem
 import com.mercadopago.android.px.model.internal.Text
 import com.mercadopago.android.px.model.internal.remedies.CardSize
 import kotlinx.android.parcel.Parcelize
+
+private const val NO_SELECTED = -1
 
 internal class RetryPaymentFragment : Fragment(), PaymentMethodFragment.DisabledDetailDialogLauncher {
 
@@ -55,7 +59,15 @@ internal class RetryPaymentFragment : Fragment(), PaymentMethodFragment.Disabled
             }
 
             it.consumerCredits?.let { consumerCredits ->
-                bottomText.updateModel(remediesLinkableMapper.mapRemedies(consumerCredits.displayInfo.bottomText))
+                with(bottomText) {
+                    updateModel(remediesLinkableMapper.mapRemedies(consumerCredits.displayInfo.bottomText))
+                    setLinkableTextListener {
+                        val instalmentKey = model.payerCost?.installments ?: NO_SELECTED
+                        context?.apply {
+                            TermsAndConditionsActivity.start(this, it.getLinkByInstallment(instalmentKey))
+                        }
+                    }
+                }
             }
         }
         model.cvvModel?.let { cvvRemedy.init(it) } ?: cvvRemedy.gone()

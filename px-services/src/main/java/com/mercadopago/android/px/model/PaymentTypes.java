@@ -36,6 +36,10 @@ public final class PaymentTypes {
         return PaymentTypes.ACCOUNT_MONEY.equals(type);
     }
 
+    public static boolean isBankTransfer(final String type) {
+        return PaymentTypes.BANK_TRANSFER.equals(type);
+    }
+
     public static boolean isDigitalCurrency(final String type) {
         return PaymentTypes.DIGITAL_CURRENCY.equals(type);
     }

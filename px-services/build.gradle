@@ -67,6 +67,7 @@ android {
 
 dependencies {
     testImplementation "junit:junit:$junit"
+//    testImplementation "org.mockito:mockito-core:$mockito"
     testImplementation "org.mockito.kotlin:mockito-kotlin:$mockitoKotlin"
 
     implementation project(':px-addons')

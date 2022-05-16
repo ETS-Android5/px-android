@@ -9,20 +9,22 @@ import java.io.Serializable;
 
 public final class DisplayInfo implements Parcelable, Serializable {
 
-    private final LinkableText termsAndConditions;
-    private final ResultInfo resultInfo;
-    private final Text description;
+    @Nullable private final LinkableText termsAndConditions;
+    @Nullable private final ResultInfo resultInfo;
+    @Nullable private final Text description;
     @Nullable private CvvInfo cvvInfo;
 
-
+    @Nullable
     public LinkableText getTermsAndConditions() {
         return termsAndConditions;
     }
 
+    @Nullable
     public ResultInfo getResultInfo() {
         return resultInfo;
     }
 
+    @Nullable
     public Text getDescription() {
         return description;
     }

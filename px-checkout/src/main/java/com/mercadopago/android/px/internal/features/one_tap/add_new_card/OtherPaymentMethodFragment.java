@@ -1,5 +1,9 @@
 package com.mercadopago.android.px.internal.features.one_tap.add_new_card;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,9 +13,15 @@ import android.widget.ImageView;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import com.meli.android.carddrawer.CircleTransform;
 import com.mercadopago.android.px.R;
+import com.mercadopago.android.px.core.commons.extensions.DrawableExtKt;
+import com.mercadopago.android.px.core.commons.extensions.StringExtKt;
+import com.mercadopago.android.px.core.presentation.extensions.ImageViewExtKt;
 import com.mercadopago.android.px.internal.base.BasePagerFragment;
 import com.mercadopago.android.px.internal.di.CheckoutConfigurationModule;
 import com.mercadopago.android.px.internal.di.Session;
@@ -22,8 +32,11 @@ import com.mercadopago.android.px.internal.util.ViewUtils;
 import com.mercadopago.android.px.internal.view.MPTextView;
 import com.mercadopago.android.px.internal.viewmodel.drawables.OtherPaymentMethodFragmentItem;
 import com.mercadopago.android.px.model.CardFormInitType;
+import com.mercadopago.android.px.model.GenericCardDisplayInfo;
 import com.mercadopago.android.px.model.NewCardMetadata;
 import com.mercadopago.android.px.model.OfflinePaymentTypesMetadata;
+import com.mercadopago.android.px.model.PXBorder;
+import com.mercadopago.android.px.model.exceptions.MercadoPagoError;
 import com.mercadopago.android.px.model.internal.CardFormOption;
 import com.mercadopago.android.px.model.internal.Text;
 import java.util.List;
@@ -37,8 +50,12 @@ public class OtherPaymentMethodFragment
     extends BasePagerFragment<OtherPaymentMethodPresenter, OtherPaymentMethodFragmentItem>
     implements AddNewCard.View {
 
-    private View addNewCardView;
-    private View offPaymentMethodView;
+    private CardView addNewCardView;
+    private CardView offPaymentMethodView;
+    private CardViewHelper cardViewHelper;
+    private static final float NO_ELEVATION = 0f;
+    private static final float SMALL_ELEVATION = 2f;
+    private static final String TAG = OtherPaymentMethodFragment.class.getSimpleName();
 
     @NonNull
     public static Fragment getInstance(@NonNull final OtherPaymentMethodFragmentItem model) {
@@ -61,14 +78,13 @@ public class OtherPaymentMethodFragment
     @Override
     public View onCreateView(@NonNull final LayoutInflater inflater, @Nullable final ViewGroup container,
         @Nullable final Bundle savedInstanceState) {
-        final boolean smallMode = model.getNewCardMetadata() != null && model.getOfflineMethodsMetadata() != null;
-        return smallMode ? inflater.inflate(R.layout.px_fragment_other_payment_method_small, container, false) :
-            inflater.inflate(R.layout.px_fragment_other_payment_method_large, container, false);
+        return inflater.inflate(R.layout.px_fragment_other_payment_method_large, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        cardViewHelper = Session.getInstance().getHelperModule().getCardViewHelper();
         addNewCardView = view.findViewById(R.id.px_add_new_card);
         offPaymentMethodView = view.findViewById(R.id.px_off_payment_method);
         if (model.getNewCardMetadata() != null) {
@@ -82,63 +98,92 @@ public class OtherPaymentMethodFragment
     private void configureAddNewCard(@NonNull final NewCardMetadata newCardMetadata) {
         addNewCardView.setVisibility(View.VISIBLE);
         final List<CardFormOption> cardFormOptions = newCardMetadata.getSheetOptions();
-        final View.OnClickListener onClickListener;
+        final GenericCardDisplayInfo displayInfo = newCardMetadata.getGenericCardDisplayInfo();
 
-        if (ListUtil.isEmpty(cardFormOptions)) {
-            onClickListener = v -> presenter.onAddNewCardSelected(newCardMetadata.getCardFormInitType());
-        } else {
-            final Fragment parentFragment = getParentFragment();
+        if (ListUtil.isNotEmpty(cardFormOptions)) {
             final CardFormBottomSheetModel model = new CardFormBottomSheetModel(
-                newCardMetadata.getLabel().getMessage(),
-                cardFormOptions);
+                    newCardMetadata.getLabel().getMessage(),
+                    cardFormOptions);
 
-            if (parentFragment instanceof OnOtherPaymentMethodClickListener) {
-                final OnOtherPaymentMethodClickListener listener = ((OnOtherPaymentMethodClickListener) parentFragment);
-                listener.onLoadCardFormSheetOptions(model);
-                onClickListener = v -> listener.onNewCardWithSheetOptions();
-            } else {
-                throw new IllegalStateException(
-                    "Parent fragment must implement " + OnOtherPaymentMethodClickListener.class.getSimpleName());
-            }
+            getParentListener().onLoadCardFormSheetOptions(model);
         }
 
         configureViews(
             addNewCardView,
+            displayInfo != null ? displayInfo.getIconUrl() : null,
             R.drawable.px_ico_new_card,
             newCardMetadata.getLabel(),
             newCardMetadata.getDescription(),
-            onClickListener);
+            displayInfo != null ? displayInfo.getBackgroundColor() : null,
+            displayInfo != null ? displayInfo.getBorder() : null,
+            displayInfo != null ? displayInfo.getShadow() : null,
+            v -> presenter.onNewCardActions(newCardMetadata)
+        );
+    }
+
+    @Override
+    public void launchDeepLink(@NonNull final String deepLink) {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(deepLink)));
+        } catch (final ActivityNotFoundException e) {
+            final String errorMessage = StringExtKt.orIfEmpty(e.getLocalizedMessage(), StringExtKt.EMPTY);
+            presenter.onTrackActivityNotFoundFriction(MercadoPagoError.createNotRecoverable(errorMessage));
+        }
+    }
+
+    @Override
+    public void onNewCardWithSheetOptions() {
+        getParentListener().onNewCardWithSheetOptions();
     }
 
     private void configureOffMethods(@NonNull final OfflinePaymentTypesMetadata offlineMethods) {
         offPaymentMethodView.setVisibility(View.VISIBLE);
+        final GenericCardDisplayInfo displayInfo = offlineMethods.getGenericCardDisplayInfo();
+
         configureViews(
             offPaymentMethodView,
+            displayInfo != null ? displayInfo.getIconUrl() : null,
             R.drawable.px_ico_off_method,
             offlineMethods.getLabel(),
             offlineMethods.getDescription(),
-            v -> {
-                final Fragment parentFragment = getParentFragment();
-                if (parentFragment instanceof OnOtherPaymentMethodClickListener) {
-                    ((OnOtherPaymentMethodClickListener) parentFragment).onOtherPaymentMethodClicked();
-                } else {
-                    throw new IllegalStateException(
-                        "Parent fragment must implement " + OnOtherPaymentMethodClickListener.class.getSimpleName());
-                }
-            });
+            displayInfo != null ? displayInfo.getBackgroundColor() : null,
+            displayInfo != null ? displayInfo.getBorder() : null,
+            displayInfo != null ? displayInfo.getShadow() : null,
+            v -> getParentListener().onOtherPaymentMethodClicked()
+        );
     }
 
-    private void configureViews(@NonNull final View view, @DrawableRes final int imageResId,
+    private void configureViews(@NonNull final CardView view, @Nullable final String imageUrl, @DrawableRes final int imageResId,
         @NonNull final Text primaryMessage, @Nullable final Text secondaryMessage,
+        @Nullable final String backgroundColor, @Nullable final PXBorder border, @Nullable final Boolean shadow,
         final View.OnClickListener listener) {
         loadPrimaryMessageView(view, primaryMessage);
         loadSecondaryMessageView(view, secondaryMessage);
-        loadImage(view, imageResId);
+        loadImage(view, imageUrl, imageResId);
+        loadBorder(view, border);
+        loadBackgroundColor(view, backgroundColor);
+        loadShadow(view, shadow);
         view.setOnClickListener(listener);
         executeIfAccessibilityTalkBackEnable(view.getContext(), () -> {
             view.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
             return Unit.INSTANCE;
         });
+    }
+
+    private void loadShadow(@NonNull final CardView view, @Nullable final Boolean shadow) {
+        view.setCardElevation(shadow != null && shadow ? SMALL_ELEVATION : NO_ELEVATION);
+    }
+
+    private void loadBorder(@NonNull final CardView view, @Nullable final PXBorder border) {
+        if (border != null) {
+            final Drawable drawable = ContextCompat.getDrawable(getContext(), cardViewHelper.getDrawableResByBorderType(border.getType()));
+            DrawableExtKt.setColorFilter(drawable, border.getColor());
+            view.setForeground(drawable);
+        }
+    }
+
+    private void loadBackgroundColor(@NonNull final CardView view, @Nullable final String backgroundColor) {
+        DrawableExtKt.setColorFilter(view.getBackground(), backgroundColor);
     }
 
     @Override
@@ -159,19 +204,19 @@ public class OtherPaymentMethodFragment
         }
     }
 
-    protected void loadPrimaryMessageView(@NonNull final View view, @Nullable final Text primaryMessage) {
+    protected void loadPrimaryMessageView(@NonNull final CardView view, @Nullable final Text primaryMessage) {
         final MPTextView primaryMessageView = view.findViewById(R.id.other_payment_method_primary_message);
         ViewUtils.loadOrHide(View.GONE, primaryMessage, primaryMessageView);
     }
 
-    protected void loadSecondaryMessageView(@NonNull final View view, @Nullable final Text secondaryMessage) {
+    protected void loadSecondaryMessageView(@NonNull final CardView view, @Nullable final Text secondaryMessage) {
         final MPTextView secondaryMessageView = view.findViewById(R.id.other_payment_method_secondary_message);
         ViewUtils.loadOrHide(View.GONE, secondaryMessage, secondaryMessageView);
     }
 
-    protected void loadImage(@NonNull final View view, @DrawableRes final int imageResId) {
+    protected void loadImage(@NonNull final CardView view, @Nullable final String imageUrl, @DrawableRes final int imageResId) {
         final ImageView image = view.findViewById(R.id.other_payment_method_image);
-        ViewUtils.loadOrGone(imageResId, image);
+        ImageViewExtKt.loadOrElse(image, imageUrl, imageResId, new CircleTransform());
     }
 
     @Override
@@ -191,6 +236,14 @@ public class OtherPaymentMethodFragment
                     cardFormWrapper.getCardFormWithWebView().start(fragment, REQ_CARD_FORM_WEB_VIEW);
                 }
             }
+        }
+    }
+
+    private OnOtherPaymentMethodClickListener getParentListener() {
+        if (getParentFragment() instanceof OnOtherPaymentMethodClickListener) {
+            return (OnOtherPaymentMethodClickListener) getParentFragment();
+        } else {
+            throw new IllegalStateException("Parent fragment must implement " + TAG);
         }
     }
 

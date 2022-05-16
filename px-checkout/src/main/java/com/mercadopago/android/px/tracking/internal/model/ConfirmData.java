@@ -3,13 +3,8 @@ package com.mercadopago.android.px.tracking.internal.model;
 import android.os.Parcel;
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
-import com.mercadopago.android.px.internal.repository.UserSelectionRepository;
-import com.mercadopago.android.px.tracking.internal.events.ConfirmEvent;
-
-import com.mercadopago.android.px.tracking.internal.mapper.FromUserSelectionToAvailableMethod;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 @SuppressWarnings("unused")
 @Keep
@@ -30,28 +25,21 @@ public class ConfirmData extends AvailableMethod {
         }
     };
 
-    public static ConfirmData from(final String paymentTypeId, final String paymentMethodId, final boolean isCompliant, final boolean hasAdditionalInfoNeeded) {
+    public static ConfirmData from(final String paymentTypeId, final String paymentMethodId, final boolean isCompliant,
+        final boolean hasAdditionalInfoNeeded) {
         final Map<String, Object> extraInfo = new HashMap<>();
         extraInfo.put("has_payer_information", isCompliant);
         extraInfo.put("additional_information_needed", hasAdditionalInfoNeeded);
         return new ConfirmData(ReviewType.ONE_TAP, new AvailableMethod(paymentMethodId, paymentTypeId, extraInfo));
     }
 
-    public static ConfirmData from(@NonNull final Set<String> cardsWithEsc,
-        @NonNull final UserSelectionRepository userSelectionRepository) {
-        final AvailableMethod ava = new FromUserSelectionToAvailableMethod(cardsWithEsc).map(userSelectionRepository);
-        return new ConfirmData(ReviewType.TRADITIONAL, ava);
-    }
-
-    public ConfirmData(@NonNull final ReviewType reviewType, final int paymentMethodSelectedIndex,
-        @NonNull final AvailableMethod availableMethod) {
+    public ConfirmData(@NonNull final ReviewType reviewType, final int paymentMethodSelectedIndex, @NonNull final AvailableMethod availableMethod) {
         super(availableMethod.paymentMethodId, availableMethod.paymentMethodType, availableMethod.extraInfo);
         this.reviewType = reviewType.value;
         this.paymentMethodSelectedIndex = paymentMethodSelectedIndex;
     }
 
-    public ConfirmData(@NonNull final ReviewType reviewType,
-        @NonNull final AvailableMethod availableMethod) {
+    public ConfirmData(@NonNull final ReviewType reviewType, @NonNull final AvailableMethod availableMethod) {
         super(availableMethod.paymentMethodId, availableMethod.paymentMethodType, availableMethod.extraInfo);
         this.reviewType = reviewType.value;
     }

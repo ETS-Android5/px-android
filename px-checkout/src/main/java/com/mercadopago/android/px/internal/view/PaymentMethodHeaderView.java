@@ -2,6 +2,7 @@ package com.mercadopago.android.px.internal.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import androidx.annotation.NonNull;
@@ -16,6 +17,9 @@ public abstract class PaymentMethodHeaderView extends FrameLayout {
     /* default */ final ImageView helper;
     protected final TitlePager titlePager;
     protected boolean isDisabled;
+    protected boolean hasBehaviour;
+    protected String paymentType;
+    protected boolean splitSelection;
 
     protected PaymentMethodHeaderView(@NonNull final Context context, @Nullable final AttributeSet attrs,
         final int defStyleAttr) {
@@ -30,6 +34,8 @@ public abstract class PaymentMethodHeaderView extends FrameLayout {
     public interface Listener {
         void onDescriptorViewClicked();
 
+        void onBehaviourDescriptorViewClick();
+
         void onDisabledDescriptorViewClick();
 
         void onInstallmentsSelectorCancelClicked();
@@ -37,8 +43,9 @@ public abstract class PaymentMethodHeaderView extends FrameLayout {
         void onInstallmentViewUpdated();
     }
 
-    public void updateData(final boolean hasPayerCost, final boolean isDisabled) {
+    public void updateData(final boolean hasPayerCost, final boolean isDisabled, final boolean hasBehaviour) {
         this.isDisabled = isDisabled;
+        this.hasBehaviour = hasBehaviour;
     }
 
     public abstract void setListener(final Listener listener);
@@ -65,4 +72,14 @@ public abstract class PaymentMethodHeaderView extends FrameLayout {
             this.nextIsExpandable = nextIsExpandable;
         }
     }
+
+    public void setPaymentTypeAndSplitSelection(final String paymentType, final boolean isSelected) {
+        this.paymentType = paymentType;
+        this.splitSelection = isSelected;
+    }
+
+    protected void setTitleVisibility(boolean isVisible) {
+        titlePager.setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
+    }
+
 }
