@@ -86,7 +86,7 @@ public class CardTokenService implements CardTokenRepository {
             callback.execute();
             return;
         }
-        gatewayService.clearCap(API_ENVIRONMENT_NEW, cardId)
+        gatewayService.clearCap(cardId)
             .enqueue(new Callback<String>() {
                 @Override
                 public void success(final String s) {
